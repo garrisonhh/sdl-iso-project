@@ -10,5 +10,6 @@ typedef struct vector3d {
 } vector3;
 
 void vector3ToIsometric(SDL_Point *, vector3 *, int, int, int, int);
+int flatten(vector3 *, int);
 
 #endif

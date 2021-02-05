@@ -13,12 +13,10 @@ in this file:
 - anything related to rendering graphics to the screen
 */
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 800
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
-
-SDL_Point *camera = NULL; // TODO camera motion
 
 // textures for voxels
 typedef struct voxel_texture {
@@ -227,7 +225,7 @@ int main() {
 	init();
 	loadMedia();
 
-	vector3 dims = {4, 4, 2};
+	vector3 dims = {2, 2, 1};
 	world_t *world = createWorld(dims);
 	generateWorld(world);
 

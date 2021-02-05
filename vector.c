@@ -19,3 +19,7 @@ void vector3ToIsometric(SDL_Point *dest, vector3 *src, int scaleX, int scaleY, i
 	dest->y += offsetY;
 }
 
+int flatten(vector3 *v, int size) {
+	return ((v->x * size) + v->y) * size + v->x;
+}
+
