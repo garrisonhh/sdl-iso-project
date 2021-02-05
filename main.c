@@ -13,8 +13,8 @@ in this file:
 - anything related to rendering graphics to the screen
 */
 
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 
@@ -26,8 +26,8 @@ typedef struct voxel_texture {
 	SDL_Texture* side; // use SDL_RenderCopyEx to render flipped
 } vox_tex;
 
-const int VOXEL_WIDTH = 32;
-const int VOXEL_HEIGHT = 32;
+#define VOXEL_WIDTH 32
+#define VOXEL_HEIGHT 32
 const int numTextures = 5;
 vox_tex *textures[5];
 
@@ -107,13 +107,13 @@ void exposeChunk(chunk_t *chunk) {
 	block_t *other;
 	int i, j, offset;
 	unsigned char newMask;
-	for (i = 0; i < 4096; i++) {
+	for (i = 0; i < CHUNK_SIZE; i++) {
 		block = chunk->blocks[i];
 		if (block != NULL) {
 			newMask = 0;
 			offset = 1;
 			for (j = 0; j < 3; j++) {
-				if ((i + offset) / (offset * 16) > i / (offset * 16)) {
+				if ((i + offset) / (offset * SIZE) > i / (offset * SIZE)) {
 					newMask |= 1;
 				} else {
 					other = chunk->blocks[i + offset];
@@ -122,12 +122,18 @@ void exposeChunk(chunk_t *chunk) {
 					}
 				}
 				if (j < 2) {
-					offset *= 16;
+					offset *= SIZE;
 					newMask <<= 1;
 				}
 			}
 			block->exposeMask = newMask;
 		}
+	}
+}
+
+void exposeWorld(world_t *world) {
+	for (int i = 0; i < world->numChunks; i++) {
+		exposeChunk(world->chunks[i]);
 	}
 }
 
@@ -137,14 +143,14 @@ void renderChunk(chunk_t *chunk) {
 	block_t *block;
 	vector3 pos;
 	SDL_Point pt;
-	for (z = 0; z < 16; z++) {
-		for (y = 0; y < 16; y++) {
-			for (x = 0; x < 16; x++) {	
+	for (z = 0; z < SIZE; z++) {
+		for (y = 0; y < SIZE; y++) {
+			for (x = 0; x < SIZE; x++) {	
 				block = chunk->blocks[index++];
 				if (block != NULL && block->exposeMask > 0) {
-					pos.x = x + chunk->loc.x * 16;
-					pos.y = y + chunk->loc.y * 16;
-					pos.z = z + chunk->loc.z * 16;
+					pos.x = x + chunk->loc.x * SIZE;
+					pos.y = y + chunk->loc.y * SIZE;
+					pos.z = z + chunk->loc.z * SIZE;
 					vector3ToIsometric(&pt, &pos,
 									   VOXEL_WIDTH, VOXEL_HEIGHT,
 									   SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1);
@@ -152,6 +158,12 @@ void renderChunk(chunk_t *chunk) {
 				}
 			}
 		}
+	}
+}
+
+void renderWorld(world_t *world) {
+	for (int i = 0; i < world->numChunks; i++) {
+		renderChunk(world->chunks[i]);
 	}
 }
 
@@ -215,9 +227,9 @@ int main() {
 	init();
 	loadMedia();
 
-	//debug
-	vector3 testLoc = (vector3){-1, -1, 0};
-	chunk_t *testChunk = randomTestChunk(testLoc);
+	vector3 dims = {4, 4, 2};
+	world_t *world = createWorld(dims);
+	generateWorld(world);
 
 	unsigned int lastTime, frameTick = 100;
 	unsigned int thisTime = SDL_GetTicks();
@@ -243,14 +255,14 @@ int main() {
 			}
 		}
 
-		exposeChunk(testChunk);
+		exposeWorld(world);
 		SDL_RenderClear(renderer);
-		renderChunk(testChunk);
+		renderWorld(world);
 		SDL_RenderPresent(renderer);
 
 		lastTime = thisTime;
 		thisTime = SDL_GetTicks();
-		for (int i = 99; i > 0; i--) {
+		for (int i = 100; i > 0; i--) {
 			frames[i] = frames[i - 1];
 		}
 		frames[0] = thisTime - lastTime;
@@ -266,8 +278,8 @@ int main() {
 		}
 	}
 
-	destroyChunk(testChunk);
-	testChunk = NULL;
+	destroyWorld(world);
+	world = NULL;
 	onClose();
 	return 0;
 }
