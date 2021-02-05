@@ -9,6 +9,6 @@ typedef struct vector3d {
 	int z;
 } vector3;
 
-void vector3ToIsometric(SDL_Point*, vector3*, int, int, int, int);
+void vector3ToIsometric(SDL_Point *, vector3 *, int, int, int, int);
 
 #endif

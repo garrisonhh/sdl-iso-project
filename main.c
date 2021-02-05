@@ -15,10 +15,10 @@ in this file:
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
-SDL_Window* window = NULL;
-SDL_Renderer* renderer = NULL;
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
 
-SDL_Point* camera = NULL; // TODO camera motion
+SDL_Point *camera = NULL; // TODO camera motion
 
 // textures for voxels
 typedef struct voxel_texture {
@@ -29,11 +29,11 @@ typedef struct voxel_texture {
 const int VOXEL_WIDTH = 32;
 const int VOXEL_HEIGHT = 32;
 const int numTextures = 5;
-vox_tex* textures[5];
+vox_tex *textures[5];
 
-SDL_Texture* loadTexture(char* path) {
-	SDL_Texture* newTexture = NULL;
-	SDL_Surface* loadedSurface = IMG_Load(path);
+SDL_Texture *loadTexture(char* path) {
+	SDL_Texture *newTexture = NULL;
+	SDL_Surface *loadedSurface = IMG_Load(path);
 	if (loadedSurface == NULL) {
 		printf("unable to load image %s:\n%s\n", path, IMG_GetError());
 		exit(1);
@@ -50,21 +50,21 @@ SDL_Texture* loadTexture(char* path) {
 }
 
 // loads [base_path]_top.png and [base_path]_side.png
-vox_tex* loadVoxelTexture(char* basePath) {
+vox_tex* loadVoxelTexture(char *basePath) {
 	char topPath[100], sidePath[100];
 	strcpy(topPath, basePath);
 	strcpy(sidePath, basePath);
 	strcat(topPath, "_top.png");
 	strcat(sidePath, "_side.png");
 
-	vox_tex* newVoxTex = (vox_tex*)malloc(sizeof(vox_tex));
+	vox_tex* newVoxTex = (vox_tex *)malloc(sizeof(vox_tex));
 	newVoxTex->top = loadTexture(topPath);
 	newVoxTex->side = loadTexture(sidePath);
 
 	return newVoxTex;
 }
 
-void destroyVoxelTexture(vox_tex* voxelTexture) {
+void destroyVoxelTexture(vox_tex *voxelTexture) {
 	SDL_DestroyTexture(voxelTexture->top);
 	SDL_DestroyTexture(voxelTexture->side);
 	voxelTexture->top = NULL;
@@ -75,7 +75,7 @@ void destroyVoxelTexture(vox_tex* voxelTexture) {
 // the weird magic pragma shit suppresses an incorrect warning thats bugging the fuck out of me
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
-void renderVoxelTexture(vox_tex* voxelTexture, SDL_Point* pos, unsigned char exposeMask) {
+void renderVoxelTexture(vox_tex *voxelTexture, SDL_Point *pos, unsigned char exposeMask) {
 	SDL_Rect draw;
 	if ((exposeMask >> 2) & 1) { // right
 		draw.x = pos->x;
@@ -102,9 +102,9 @@ void renderVoxelTexture(vox_tex* voxelTexture, SDL_Point* pos, unsigned char exp
 #pragma GCC diagnostic pop
 
 // TODO dynamically update block exposure based on surrounding block updates
-void exposeChunk(chunk_t* chunk) {
-	block_t* block;
-	block_t* other;
+void exposeChunk(chunk_t *chunk) {
+	block_t *block;
+	block_t *other;
 	int i, j, offset;
 	unsigned char newMask;
 	for (i = 0; i < 4096; i++) {
@@ -132,9 +132,9 @@ void exposeChunk(chunk_t* chunk) {
 }
 
 // TODO render chunks at correct location, camera offset, etc
-void renderChunk(chunk_t* chunk) {
+void renderChunk(chunk_t *chunk) {
 	int x, y, z, index = 0;
-	block_t* block;
+	block_t *block;
 	vector3 pos;
 	SDL_Point pt;
 	for (z = 0; z < 16; z++) {
@@ -142,7 +142,9 @@ void renderChunk(chunk_t* chunk) {
 			for (x = 0; x < 16; x++) {	
 				block = chunk->blocks[index++];
 				if (block != NULL && block->exposeMask > 0) {
-					pos.x = x, pos.y = y, pos.z = z;
+					pos.x = x + chunk->loc.x * 16;
+					pos.y = y + chunk->loc.y * 16;
+					pos.z = z + chunk->loc.z * 16;
 					vector3ToIsometric(&pt, &pos,
 									   VOXEL_WIDTH, VOXEL_HEIGHT,
 									   SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1);
@@ -214,7 +216,8 @@ int main() {
 	loadMedia();
 
 	//debug
-	chunk_t* testChunk = randomTestChunk();
+	vector3 testLoc = (vector3){-1, -1, 0};
+	chunk_t *testChunk = randomTestChunk(testLoc);
 
 	unsigned int lastTime, frameTick = 100;
 	unsigned int thisTime = SDL_GetTicks();
@@ -263,9 +266,8 @@ int main() {
 		}
 	}
 
-	freeChunk(testChunk);
+	destroyChunk(testChunk);
 	testChunk = NULL;
-
 	onClose();
 	return 0;
 }

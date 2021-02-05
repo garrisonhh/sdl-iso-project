@@ -11,17 +11,16 @@ typedef struct block {
 
 // TODO block updates
 typedef struct chunk {
-	block_t* blocks[4096];
+	block_t *blocks[4096];
 	vector3 loc;
 } chunk_t;
 
-/*
 typedef struct world {
-	// TODO
+	chunk_t *chunks;
+	vector3 dims;
 } world_t;
-*/
 
-chunk_t* randomTestChunk(void);
-void freeChunk(chunk_t*);
+chunk_t *randomTestChunk(vector3);
+void destroyChunk(chunk_t *);
 
 #endif
