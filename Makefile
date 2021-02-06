@@ -1,6 +1,6 @@
 OBJS = main.c vector.c world.c 
 COMPILER_FLAGS = -Wall -g
-LINKER_FLAGS = -lSDL2 -lSDL2_image
+LINKER_FLAGS = -lm -lSDL2 -lSDL2_image
 TARGET = iso
 
 all:
