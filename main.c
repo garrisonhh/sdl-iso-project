@@ -135,7 +135,6 @@ void exposeWorld(world_t *world) {
 	}
 }
 
-// TODO render chunks at correct location, camera offset, etc
 void renderChunk(chunk_t *chunk) {
 	int x, y, z, index = 0;
 	block_t *block;

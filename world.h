@@ -20,8 +20,8 @@ typedef struct chunk {
 
 typedef struct world {
 	chunk_t **chunks;
-	int numChunks;
 	vector3 dims;
+	int numChunks;
 } world_t;
 
 world_t *createWorld(vector3 dims);
