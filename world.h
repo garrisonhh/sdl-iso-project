@@ -7,18 +7,17 @@
 #define SIZE 16
 #define CHUNK_SIZE 4096
 
-typedef struct block {
+typedef struct {
 	int texture;
 	unsigned char exposeMask;
 } block_t;
 
-// TODO block updates
-typedef struct chunk {
+typedef struct {
 	block_t *blocks[CHUNK_SIZE];
 	vector3 loc;
 } chunk_t;
 
-typedef struct world {
+typedef struct {
 	chunk_t **chunks;
 	vector3 dims;
 	int numChunks;

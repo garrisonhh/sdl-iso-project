@@ -3,13 +3,13 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-typedef struct vector3d {
+typedef struct {
 	int x;
 	int y;
 	int z;
 } vector3;
 
-typedef struct dvector2d {
+typedef struct {
 	double x;
 	double y;
 } dvector2;
