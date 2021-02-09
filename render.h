@@ -6,14 +6,23 @@
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 800
-#define VOXEL_WIDTH 32
-#define VOXEL_HEIGHT 32
-#define NUM_TEXTURES 5
+
+typedef enum {
+	TEX_TEXTURE,
+	TEX_VOXELTEXTURE
+} block_tex_type;   
 
 typedef struct {
 	SDL_Texture* top;
 	SDL_Texture* side; // use SDL_RenderCopyEx to render flipped
 } vox_tex;
+
+typedef struct {
+	block_tex_type type;
+	SDL_Texture *texture;
+	vox_tex *voxelTexture;
+	bool transparent; // TODO
+} texture_t;
 
 extern SDL_Renderer *renderer;
 

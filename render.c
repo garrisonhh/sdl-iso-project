@@ -3,12 +3,36 @@
 #include "world.h"
 #include "render.h"
 
+#define VOXEL_WIDTH 32
+#define VOXEL_HEIGHT 36
+#define NUM_TEXTURES 5
+const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
+
 SDL_Renderer *renderer = NULL;
-vox_tex **textures;
+texture_t **textures;
+SDL_Point texTexOffset = {
+	-(VOXEL_WIDTH >> 1),
+	-VOXEL_Z_HEIGHT
+};
 SDL_Rect voxTexRects[3] = { // used to render sides of vox_tex; t-l-r to correspond with bitmask rshifts
-	{-(VOXEL_WIDTH >> 1), -(VOXEL_HEIGHT >> 1), VOXEL_WIDTH, VOXEL_HEIGHT >> 1},
-	{-(VOXEL_WIDTH >> 1), -(VOXEL_HEIGHT >> 2), VOXEL_WIDTH >> 1, VOXEL_HEIGHT - (VOXEL_HEIGHT >> 2)},
-	{0, -(VOXEL_HEIGHT >> 2), VOXEL_WIDTH >> 1, VOXEL_HEIGHT - (VOXEL_HEIGHT >> 2)},
+	{
+		-(VOXEL_WIDTH >> 1),
+		-VOXEL_Z_HEIGHT,
+		VOXEL_WIDTH,
+		VOXEL_WIDTH >> 1
+	},
+	{
+		-(VOXEL_WIDTH >> 1),
+		-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
+		VOXEL_WIDTH >> 1,
+		VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
+	},
+	{
+		0,
+		-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
+		VOXEL_WIDTH >> 1,
+		VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
+	},
 };
 
 SDL_Texture *loadTexture(char* path) {
@@ -44,13 +68,6 @@ vox_tex* loadVoxelTexture(char *basePath) {
 	return newVoxTex;
 }
 
-void destroyVoxelTexture(vox_tex *voxelTexture) {
-	SDL_DestroyTexture(voxelTexture->top);
-	SDL_DestroyTexture(voxelTexture->side);
-	voxelTexture->top = NULL;
-	voxelTexture->side = NULL;
-}
-
 void initRenderer(SDL_Window *window) {
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	if (renderer == NULL) {
@@ -67,17 +84,31 @@ void destroyRenderer() {
 }
 
 void loadMedia() {
-	textures = (vox_tex **)malloc(sizeof(vox_tex *) * NUM_TEXTURES);
+	textures = (texture_t **)malloc(sizeof(texture_t *) * NUM_TEXTURES);
 	for (int i = 0; i < NUM_TEXTURES; i++) {
 		char path[50];
 		sprintf(path, "assets/%i", i);
-		textures[i] = loadVoxelTexture(path);
+
+		textures[i] = (texture_t *)malloc(sizeof(texture_t));
+		textures[i]->voxelTexture = loadVoxelTexture(path);
+		textures[i]->type = TEX_VOXELTEXTURE;
 	}
 }
 
 void destroyMedia() {
 	for (int i = 0; i < NUM_TEXTURES; i++) {
-		destroyVoxelTexture(textures[i]);
+		switch (textures[i]->type) {
+		case TEX_TEXTURE:
+			SDL_DestroyTexture(textures[i]->texture);
+			break;
+		case TEX_VOXELTEXTURE:
+			SDL_DestroyTexture(textures[i]->voxelTexture->top);
+			SDL_DestroyTexture(textures[i]->voxelTexture->side);
+			textures[i]->voxelTexture->top = NULL;
+			textures[i]->voxelTexture->side = NULL;
+			break;
+		}
+		free(textures[i]);
 		textures[i] = NULL;
 	}
 	free(textures);
@@ -95,19 +126,20 @@ SDL_Rect offsetRect(SDL_Rect *rect, SDL_Point *offset) {
 }
 
 // exposeMask uses only the last 3 bits; right-left-top order (corresponding to XYZ)
+// is this stupid? I think this is pretty fucking stupid
 void renderVoxelTexture(vox_tex *voxelTexture, SDL_Point *pos, unsigned char exposeMask) {
 	for (int i = 2; i >= 0; i--) {
 		if ((exposeMask >> i) & 1) {
-			SDL_Rect draw = offsetRect(&voxTexRects[i], pos);
+			SDL_Rect drawRect = offsetRect(&voxTexRects[i], pos);
 			switch (i) {
 			case 0:
-				SDL_RenderCopy(renderer, voxelTexture->top, NULL, &draw);
+				SDL_RenderCopy(renderer, voxelTexture->top, NULL, &drawRect);
 				break;
 			case 1:
-				SDL_RenderCopy(renderer, voxelTexture->side, NULL, &draw);
+				SDL_RenderCopy(renderer, voxelTexture->side, NULL, &drawRect);
 				break;
 			case 2:
-				SDL_RenderCopyEx(renderer, voxelTexture->side, NULL, &draw, 0, NULL, SDL_FLIP_HORIZONTAL);
+				SDL_RenderCopyEx(renderer, voxelTexture->side, NULL, &drawRect, 0, NULL, SDL_FLIP_HORIZONTAL);
 				break;
 			}
 		}
@@ -117,20 +149,34 @@ void renderVoxelTexture(vox_tex *voxelTexture, SDL_Point *pos, unsigned char exp
 void renderChunk(chunk_t *chunk) {
 	int x, y, z, index = 0;
 	block_t *block;
-	vector3 pos;
-	SDL_Point pt;
+	SDL_Point screenPos;
 	for (z = 0; z < SIZE; z++) {
 		for (y = 0; y < SIZE; y++) {
 			for (x = 0; x < SIZE; x++) {
 				block = chunk->blocks[index++];
 				if (block != NULL && block->exposeMask > 0) {
-					pos.x = x + chunk->loc.x * SIZE;
-					pos.y = y + chunk->loc.y * SIZE;
-					pos.z = z + chunk->loc.z * SIZE;
-					vector3ToIsometric(&pt, &pos,
-									   VOXEL_WIDTH, VOXEL_HEIGHT,
+					vector3 blockLoc = {
+						x + chunk->loc.x * SIZE,
+						y + chunk->loc.y * SIZE,
+						z + chunk->loc.z * SIZE
+					};
+					vector3ToIsometric(&screenPos, &blockLoc,
+									   VOXEL_WIDTH, VOXEL_Z_HEIGHT,
 									   SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1);
-					renderVoxelTexture(textures[block->texture], &pt, block->exposeMask);
+					switch (textures[block->texture]->type) {
+					case TEX_TEXTURE:
+						SDL_Rect drawRect = {
+							screenPos.x + texTexOffset.x,
+							screenPos.y + texTexOffset.y,
+							VOXEL_WIDTH,
+							VOXEL_HEIGHT
+						};
+						SDL_RenderCopy(renderer, textures[block->texture]->texture, NULL, &drawRect);
+						break;
+					case TEX_VOXELTEXTURE:
+						renderVoxelTexture(textures[block->texture]->voxelTexture, &screenPos, block->exposeMask);
+						break;
+					}
 				}
 			}
 		}
