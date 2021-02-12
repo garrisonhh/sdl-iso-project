@@ -1,4 +1,4 @@
-OBJS = main.c vector.c world.c render.c expose.c
+OBJS = *.c
 COMPILER_FLAGS = -Wall -g
 LINKER_FLAGS = -lm -lSDL2 -lSDL2_image
 TARGET = iso

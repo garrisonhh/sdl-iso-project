@@ -101,14 +101,11 @@ void generateWorld(world_t *world) {
 					loc.x = cx;
 					loc.y = cy;
 					val = (int)((1.0 + noise(&pos)) * (SIZE / 2));
-					for (cz = 0; cz < SIZE; cz++) {
+					for (cz = 0; cz < val; cz++) {
 						loc.z = cz;
-						if (cz < val) {
-							setBlock(chunk, &loc, (cz % 4) + 1);
-						} else {
-							break;
-						}
+						setBlock(chunk, &loc, 0); // dirt in ground
 					}
+					setBlock(chunk, &loc, 1); // grass on top
 				}
 			}
 		}

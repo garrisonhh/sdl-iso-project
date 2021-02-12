@@ -1,15 +1,15 @@
+#include <stdint.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "world.h"
 #include "render.h"
-
-#define VOXEL_WIDTH 32
-#define VOXEL_HEIGHT 36
-#define NUM_TEXTURES 5
-const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
+#include "textures.h"
 
 SDL_Renderer *renderer = NULL;
-texture_t **textures;
+
+#define VOXEL_WIDTH 32
+#define VOXEL_HEIGHT 34
+const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 SDL_Point texTexOffset = {
 	-(VOXEL_WIDTH >> 1),
 	-VOXEL_Z_HEIGHT
@@ -34,39 +34,11 @@ SDL_Rect voxTexRects[3] = { // used to render sides of vox_tex; t-l-r to corresp
 		VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
 	},
 };
-
-SDL_Texture *loadTexture(char* path) {
-	SDL_Texture *newTexture = NULL;
-	SDL_Surface *loadedSurface = IMG_Load(path);
-	if (loadedSurface == NULL) {
-		printf("unable to load image %s:\n%s\n", path, IMG_GetError());
-		exit(1);
-	}
-
-	newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
-	if (newTexture == NULL) {
-		printf("unable to create texture from %s:\n%s\n", path, SDL_GetError());
-		exit(1);
-	}
-
-	SDL_FreeSurface(loadedSurface);
-	return newTexture;
-}
-
-// loads [base_path]_top.png and [base_path]_side.png
-vox_tex* loadVoxelTexture(char *basePath) {
-	char topPath[100], sidePath[100];
-	strcpy(topPath, basePath);
-	strcpy(sidePath, basePath);
-	strcat(topPath, "_top.png");
-	strcat(sidePath, "_side.png");
-
-	vox_tex* newVoxTex = (vox_tex *)malloc(sizeof(vox_tex));
-	newVoxTex->top = loadTexture(topPath);
-	newVoxTex->side = loadTexture(sidePath);
-
-	return newVoxTex;
-}
+Uint8 voxTexShades[] = { // flat shading values (out of 255) for each side t-l-r
+	255,
+	223,
+	191
+};
 
 void initRenderer(SDL_Window *window) {
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -83,38 +55,7 @@ void destroyRenderer() {
 	renderer = NULL;
 }
 
-void loadMedia() {
-	textures = (texture_t **)malloc(sizeof(texture_t *) * NUM_TEXTURES);
-	for (int i = 0; i < NUM_TEXTURES; i++) {
-		char path[50];
-		sprintf(path, "assets/%i", i);
-
-		textures[i] = (texture_t *)malloc(sizeof(texture_t));
-		textures[i]->voxelTexture = loadVoxelTexture(path);
-		textures[i]->type = TEX_VOXELTEXTURE;
-	}
-}
-
-void destroyMedia() {
-	for (int i = 0; i < NUM_TEXTURES; i++) {
-		switch (textures[i]->type) {
-		case TEX_TEXTURE:
-			SDL_DestroyTexture(textures[i]->texture);
-			break;
-		case TEX_VOXELTEXTURE:
-			SDL_DestroyTexture(textures[i]->voxelTexture->top);
-			SDL_DestroyTexture(textures[i]->voxelTexture->side);
-			textures[i]->voxelTexture->top = NULL;
-			textures[i]->voxelTexture->side = NULL;
-			break;
-		}
-		free(textures[i]);
-		textures[i] = NULL;
-	}
-	free(textures);
-	textures = NULL;
-}
-
+// technically nothing to do with rendering, maybe move somewhere else?
 SDL_Rect offsetRect(SDL_Rect *rect, SDL_Point *offset) {
 	SDL_Rect newRect = {
 		offset->x + rect->x,
@@ -126,11 +67,16 @@ SDL_Rect offsetRect(SDL_Rect *rect, SDL_Point *offset) {
 }
 
 // exposeMask uses only the last 3 bits; right-left-top order (corresponding to XYZ)
-// is this stupid? I think this is pretty fucking stupid
 void renderVoxelTexture(vox_tex *voxelTexture, SDL_Point *pos, unsigned char exposeMask) {
 	for (int i = 2; i >= 0; i--) {
 		if ((exposeMask >> i) & 1) {
 			SDL_Rect drawRect = offsetRect(&voxTexRects[i], pos);
+			Uint8 shade = voxTexShades[i];
+			if (i == 0) {
+				SDL_SetTextureColorMod(voxelTexture->top, shade, shade, shade);
+			} else {
+				SDL_SetTextureColorMod(voxelTexture->side, shade, shade, shade);
+			}
 			switch (i) {
 			case 0:
 				SDL_RenderCopy(renderer, voxelTexture->top, NULL, &drawRect);
@@ -165,6 +111,7 @@ void renderChunk(chunk_t *chunk) {
 									   SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1);
 					switch (textures[block->texture]->type) {
 					case TEX_TEXTURE:
+						; // yes, this semicolon is actually necessary to compile without errors. I am not joking.
 						SDL_Rect drawRect = {
 							screenPos.x + texTexOffset.x,
 							screenPos.y + texTexOffset.y,
