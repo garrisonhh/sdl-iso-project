@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 #include "vector.h"
 
 #ifndef WORLD_H
@@ -9,7 +10,7 @@
 
 typedef struct {
 	int texture;
-	unsigned char exposeMask;
+	Uint8 exposeMask;
 } block_t;
 
 typedef struct {

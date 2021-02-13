@@ -1,6 +1,6 @@
 OBJS = *.c
 COMPILER_FLAGS = -Wall -g
-LINKER_FLAGS = -lm -lSDL2 -lSDL2_image
+LINKER_FLAGS = -lm -lSDL2 -lSDL2_image -ljson-c
 TARGET = iso
 
 all:

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include "world.h"
 
 /*
@@ -18,7 +19,7 @@ void exposeChunk(chunk_t *chunk) {
 	block_t *block;
 	block_t *other;
 	int i, j, offset;
-	unsigned char newMask;
+	Uint8 newMask;
 	for (i = 0; i < CHUNK_SIZE; i++) {
 		block = chunk->blocks[i];
 		if (block != NULL) {

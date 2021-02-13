@@ -1,18 +1,11 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <json-c/json.h>
 #include "render.h"
 #include "textures.h"
 
 texture_t **textures = NULL;
-
-// TODO TEMPORARY; add json integration or something similar
-char *texTexNames[] = {
-	"bush",
-};
-char *voxTexNames[] = {
-	"dirt",
-	"grass",
-};
+int numTextures;
 
 SDL_Texture *loadTexture(char* path) {
 	SDL_Texture *newTexture = NULL;
@@ -48,29 +41,47 @@ vox_tex* loadVoxelTexture(char *basePath) {
 }
 
 void loadMedia() {
-	textures = (texture_t **)malloc(sizeof(texture_t *) * NUM_TEXTURES);
-	for (int i = 0; i < NUM_TEXTURES; i++) {
+	json_object *texFile, *texArrayObj;
+	texFile = json_object_from_file("assets/textures.json");
+	texArrayObj = json_object_object_get(texFile, "textures");
+	numTextures = json_object_array_length(texArrayObj);
+
+	textures = (texture_t **)malloc(sizeof(texture_t *) * numTextures);
+
+	for (int i = 0; i < numTextures; i++) {
+		json_object *currentTex;
 		char path[50];
-		sprintf(path, "assets/%s", voxTexNames[i]);
+		currentTex = json_object_array_get_idx(texArrayObj, i);
+		sprintf(path, "assets/%s", json_object_get_string(json_object_object_get(currentTex, "name")));
 
 		textures[i] = (texture_t *)malloc(sizeof(texture_t));
-		textures[i]->voxelTexture = loadVoxelTexture(path);
-		textures[i]->type = TEX_VOXELTEXTURE;
+		textures[i]->type = json_object_get_int(json_object_object_get(currentTex, "type"));
+		textures[i]->transparent = json_object_get_boolean(json_object_object_get(currentTex, "transparent"));
+		switch (textures[i]->type) {
+			case TEX_TEXTURE:;
+				char texPath[54];
+				sprintf(texPath, "%s.png", path);
+				textures[i]->texture = loadTexture(texPath);
+				break;	
+			case TEX_VOXELTEXTURE:
+				textures[i]->voxelTexture = loadVoxelTexture(path);
+				break;
+		}
 	}
 }
 
 void destroyMedia() {
-	for (int i = 0; i < NUM_TEXTURES; i++) {
+	for (int i = 0; i < numTextures; i++) {
 		switch (textures[i]->type) {
-		case TEX_TEXTURE:
-			SDL_DestroyTexture(textures[i]->texture);
-			break;
-		case TEX_VOXELTEXTURE:
-			SDL_DestroyTexture(textures[i]->voxelTexture->top);
-			SDL_DestroyTexture(textures[i]->voxelTexture->side);
-			textures[i]->voxelTexture->top = NULL;
-			textures[i]->voxelTexture->side = NULL;
-			break;
+			case TEX_TEXTURE:
+				SDL_DestroyTexture(textures[i]->texture);
+				break;
+			case TEX_VOXELTEXTURE:
+				SDL_DestroyTexture(textures[i]->voxelTexture->top);
+				SDL_DestroyTexture(textures[i]->voxelTexture->side);
+				textures[i]->voxelTexture->top = NULL;
+				textures[i]->voxelTexture->side = NULL;
+				break;
 		}
 		free(textures[i]);
 		textures[i] = NULL;

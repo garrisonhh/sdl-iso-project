@@ -1,6 +1,6 @@
-#include <stdint.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <stdint.h>
 #include "world.h"
 #include "render.h"
 #include "textures.h"
@@ -67,7 +67,7 @@ SDL_Rect offsetRect(SDL_Rect *rect, SDL_Point *offset) {
 }
 
 // exposeMask uses only the last 3 bits; right-left-top order (corresponding to XYZ)
-void renderVoxelTexture(vox_tex *voxelTexture, SDL_Point *pos, unsigned char exposeMask) {
+void renderVoxelTexture(vox_tex *voxelTexture, SDL_Point *pos, Uint8 exposeMask) {
 	for (int i = 2; i >= 0; i--) {
 		if ((exposeMask >> i) & 1) {
 			SDL_Rect drawRect = offsetRect(&voxTexRects[i], pos);

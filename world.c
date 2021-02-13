@@ -106,6 +106,11 @@ void generateWorld(world_t *world) {
 						setBlock(chunk, &loc, 0); // dirt in ground
 					}
 					setBlock(chunk, &loc, 1); // grass on top
+					// TODO requires working transparency
+					/*if ((rand() % 20) == 0) {
+						loc.z++;
+						setBlock(chunk, &loc, 2); // random bushes
+					}*/
 				}
 			}
 		}

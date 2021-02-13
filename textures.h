@@ -4,8 +4,8 @@
 #define TEXTURES_H
 
 typedef enum {
-	TEX_TEXTURE,
-	TEX_VOXELTEXTURE
+	TEX_TEXTURE = 0,
+	TEX_VOXELTEXTURE = 1
 } block_tex_type;   
 
 typedef struct {
@@ -17,10 +17,9 @@ typedef struct {
 	block_tex_type type;
 	SDL_Texture *texture;
 	vox_tex *voxelTexture;
-	bool transparent; // TODO
+	bool transparent;
 } texture_t;
 
-#define NUM_TEXTURES 2
 extern texture_t **textures;
 
 void loadMedia(void);
