@@ -11,6 +11,7 @@
 typedef struct {
 	int texture;
 	Uint8 exposeMask;
+	bool updateExpose;
 } block_t;
 
 typedef struct {

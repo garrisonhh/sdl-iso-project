@@ -1,45 +1,29 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "world.h"
+#include "textures.h"
 
-/*
-are you future me or someone else trying to figure out how in the god damned fuck this function works?
-here ya go:
-foreach block in chunk:
-	set index offset to 1
-	if the block isn't air:
-		iterates through each of the 3 dimensions (x->y->z)
-			set bit 0 of mask to whether that face is exposed
-			lshift bitmask 1
-			multiply the offset by SIZE (which due to the way blocks[] works, goes from x + 1 -> y + 1 -> z + 1)
-		store the new bitmask in the block
-*/
-// TODO dynamically update block exposure based on surrounding block updates
 void exposeChunk(chunk_t *chunk) {
-	block_t *block;
-	block_t *other;
-	int i, j, offset;
-	Uint8 newMask;
-	for (i = 0; i < CHUNK_SIZE; i++) {
-		block = chunk->blocks[i];
-		if (block != NULL) {
-			newMask = 0;
-			offset = 1;
-			for (j = 0; j < 3; j++) {
-				if ((i + offset) / (offset * SIZE) > i / (offset * SIZE)) {
-					newMask |= 1;
-				} else {
-					other = chunk->blocks[i + offset];
-					if (other == NULL) {
-						newMask |= 1;
+	for (int index = 0; index < CHUNK_SIZE; index++) {
+		if (chunk->blocks[index] != NULL && chunk->blocks[index]->updateExpose) {
+			Uint8 newMask = 0;
+			int offset = 1; // the index offset of the next block to check
+			int nextOffset = SIZE; // the range of current width-height-depths that aren't edges
+			while (offset < CHUNK_SIZE) {
+				newMask <<= 1;
+				if ((index % nextOffset) + offset < nextOffset) {
+					if (chunk->blocks[index + offset] == NULL
+							|| textures[chunk->blocks[index + offset]->texture]->transparent) {
+						newMask |= 1; // block face is exposed
 					}
+				} else {
+					newMask |= 1; // block is on an edge
 				}
-				if (j < 2) {
-					offset *= SIZE;
-					newMask <<= 1;
-				}
+				offset = nextOffset;
+				nextOffset *= SIZE;
 			}
-			block->exposeMask = newMask;
+			chunk->blocks[index]->exposeMask = newMask;
+			chunk->blocks[index]->updateExpose = false;
 		}
 	}
 }

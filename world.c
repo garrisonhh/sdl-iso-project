@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <time.h>
 #include "world.h"
 
@@ -14,7 +15,7 @@ chunk_t *createChunk(vector3 loc) {
 		printf("error: could not allocate a new chunk at (%i, %i, %i)\n", loc.x, loc.y, loc.z);
 		exit(1);
 	}
-	for (int i = 0; i < 4096; i++) {
+	for (int i = 0; i < CHUNK_SIZE; i++) {
 		chunk->blocks[i] = NULL;
 	}
 	chunk->loc = loc;
@@ -22,7 +23,7 @@ chunk_t *createChunk(vector3 loc) {
 }
 
 void destroyChunk(chunk_t *chunk) {
-	for (int i = 0; i < 4096; i++) {
+	for (int i = 0; i < CHUNK_SIZE; i++) {
 		if (chunk->blocks[i] != NULL) {
 			free(chunk->blocks[i]);
 			chunk->blocks[i] = NULL;
@@ -40,7 +41,17 @@ void setBlock(chunk_t *chunk, vector3 *loc, int texture) {
 	}
 	block->texture = texture;
 	block->exposeMask = 7;
+	block->updateExpose = true;
 	chunk->blocks[index] = block;
+
+	// tell any surrounding blocks to update expose mask on next frame
+	for (int offset = 1; offset < CHUNK_SIZE; offset *= SIZE) {
+		if (index - offset < 0) {
+			break;
+		} else if (chunk->blocks[index - offset] != NULL) {
+			chunk->blocks[index - offset]->updateExpose = true;
+		}
+	}
 }
 
 world_t *createWorld(vector3 dims) {
@@ -106,11 +117,11 @@ void generateWorld(world_t *world) {
 						setBlock(chunk, &loc, 0); // dirt in ground
 					}
 					setBlock(chunk, &loc, 1); // grass on top
-					// TODO requires working transparency
-					/*if ((rand() % 20) == 0) {
+					// randomly scattered bushes
+					if ((rand() % 20) == 0) {
 						loc.z++;
-						setBlock(chunk, &loc, 2); // random bushes
-					}*/
+						setBlock(chunk, &loc, 2);
+					}
 				}
 			}
 		}

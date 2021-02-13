@@ -56,10 +56,10 @@ int main() {
 	world_t *world = createWorld(dims);
 	generateWorld(world);
 
-	unsigned int lastTime, frameTick = 100;
+	/*unsigned int lastTime, frameTick = 100;
 	unsigned int thisTime = SDL_GetTicks();
 	float frameRate;
-	unsigned int frames[100];
+	unsigned int frames[100];*/
 
 	bool quit = false;
 	SDL_Event e;
@@ -85,7 +85,8 @@ int main() {
 		renderWorld(world);
 		SDL_RenderPresent(renderer);
 
-		lastTime = thisTime;
+		// TODO render FPS on screen
+		/*lastTime = thisTime;
 		thisTime = SDL_GetTicks();
 		for (int i = 100; i > 0; i--) {
 			frames[i] = frames[i - 1];
@@ -100,7 +101,9 @@ int main() {
 			frameRate /= 100;
 			printf("FPS: %.2f\n", 1000 / frameRate);
 			frameTick = 100;
-		}
+		}*/
+
+		SDL_Delay(5); // so my laptop doesn't explode
 	}
 
 	destroyWorld(world);

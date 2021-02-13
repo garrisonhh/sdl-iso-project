@@ -1,0 +1,19 @@
+{
+	"textures": [
+		{
+			"name": "dirt",
+			"type": 1,
+			"transparent": false
+		},
+		{
+			"name": "grass",
+			"type": 1,
+			"transparent": false
+		},
+		{
+			"name": "bush",
+			"type": 0,
+			"transparent": true
+		}
+	]
+}
