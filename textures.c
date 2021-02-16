@@ -7,24 +7,6 @@
 texture_t **textures = NULL;
 int numTextures;
 
-SDL_Texture *loadTexture(char* path) {
-	SDL_Texture *newTexture = NULL;
-	SDL_Surface *loadedSurface = IMG_Load(path);
-	if (loadedSurface == NULL) {
-		printf("unable to load image %s:\n%s\n", path, IMG_GetError());
-		exit(1);
-	}
-
-	newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
-	if (newTexture == NULL) {
-		printf("unable to create texture from %s:\n%s\n", path, SDL_GetError());
-		exit(1);
-	}
-
-	SDL_FreeSurface(loadedSurface);
-	return newTexture;
-}
-
 // loads [base_path]_top.png and [base_path]_side.png
 vox_tex* loadVoxelTexture(char *basePath) {
 	char topPath[100], sidePath[100];
@@ -34,19 +16,17 @@ vox_tex* loadVoxelTexture(char *basePath) {
 	strcat(sidePath, "_side.png");
 
 	vox_tex* newVoxTex = (vox_tex *)malloc(sizeof(vox_tex));
-	newVoxTex->top = loadTexture(topPath);
-	newVoxTex->side = loadTexture(sidePath);
+	newVoxTex->top = loadSDLTexture(topPath);
+	newVoxTex->side = loadSDLTexture(sidePath);
 
 	return newVoxTex;
 }
 
-void loadMedia() {
-	json_object *texFile, *texArrayObj;
-	texFile = json_object_from_file("assets/textures.json");
-	texArrayObj = json_object_object_get(texFile, "textures");
+void loadTextures() {
+	json_object *texArrayObj;
+	texArrayObj = json_object_object_get(json_object_from_file("assets/assets.json"), "textures");
 	numTextures = json_object_array_length(texArrayObj);
-
-	textures = (texture_t **)malloc(sizeof(texture_t *) * numTextures);
+	textures = (texture_t **)calloc(numTextures, sizeof(texture_t *));
 
 	for (int i = 0; i < numTextures; i++) {
 		json_object *currentTex;
@@ -61,7 +41,7 @@ void loadMedia() {
 			case TEX_TEXTURE:;
 				char texPath[54];
 				sprintf(texPath, "%s.png", path);
-				textures[i]->texture = loadTexture(texPath);
+				textures[i]->texture = loadSDLTexture(texPath);
 				break;	
 			case TEX_VOXELTEXTURE:
 				textures[i]->voxelTexture = loadVoxelTexture(path);
@@ -70,7 +50,7 @@ void loadMedia() {
 	}
 }
 
-void destroyMedia() {
+void destroyTextures() {
 	for (int i = 0; i < numTextures; i++) {
 		switch (textures[i]->type) {
 			case TEX_TEXTURE:

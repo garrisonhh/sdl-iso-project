@@ -4,7 +4,7 @@ LINKER_FLAGS = -lm -lSDL2 -lSDL2_image -ljson-c
 TARGET = iso
 
 all:
-	gcc $(OBJS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(TARGET)
+	gcc $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(TARGET) $(OBJS)
 
 clean:
 	rm -f $(TARGET)

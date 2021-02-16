@@ -15,5 +15,10 @@
 			"type": 0,
 			"transparent": true
 		}
+	],
+	"sprites" : [
+		{
+			"name": "banana_man"
+		}
 	]
 }

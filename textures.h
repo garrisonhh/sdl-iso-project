@@ -22,8 +22,8 @@ typedef struct {
 
 extern texture_t **textures;
 
-void loadMedia(void);
-void destroyMedia(void);
+void loadTextures(void);
+void destroyTextures(void);
 
 #endif
 

@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include "render.h"
-#include "textures.h"
-#include "vector.h"
 #include "world.h"
 #include "expose.h"
 

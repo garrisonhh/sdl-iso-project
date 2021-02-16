@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <time.h>
 #include "world.h"
+#include "entity.h"
+#include "player.h"
 
 /*
 in world.*: composite types holding world data and the functions that manage/create/destroy them
@@ -76,6 +78,7 @@ world_t *createWorld(vector3 dims) {
 			}
 		}
 	}
+	world->player = createPlayer();
 	return world;
 }
 
@@ -84,6 +87,7 @@ void destroyWorld(world_t *world) {
 		destroyChunk(world->chunks[i]);
 		world->chunks[i] = NULL;
 	}
+	destroyEntity(world->player);
 	free(world->chunks);
 	free(world);
 }

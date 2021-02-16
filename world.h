@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "vector.h"
+#include "entity.h"
 
 #ifndef WORLD_H
 #define WORLD_H
@@ -23,6 +24,7 @@ typedef struct {
 	chunk_t **chunks;
 	vector3 dims;
 	int numChunks;
+	entity_t *player;
 } world_t;
 
 world_t *createWorld(vector3 dims);

@@ -14,7 +14,14 @@ typedef struct {
 	double y;
 } dvector2;
 
-void vector3ToIsometric(SDL_Point *, vector3 *, int, int, int, int);
+typedef struct {
+	double x;
+	double y;
+	double z;
+} dvector3;
+
+void vector3ToIsometric(SDL_Point *, vector3 *, int, int);
+void dvector3ToIsometric(SDL_Point *, dvector3 *, int, int);
 int flatten(vector3 *, int);
 void initNoise(unsigned int, int, int);
 double noise(dvector2 *);

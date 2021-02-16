@@ -4,11 +4,13 @@
 #include "textures.h"
 
 void exposeChunk(chunk_t *chunk) {
-	for (int index = 0; index < CHUNK_SIZE; index++) {
+	Uint8 newMask;
+	int index, offset, nextOffset;
+	for (index = 0; index < CHUNK_SIZE; index++) {
 		if (chunk->blocks[index] != NULL && chunk->blocks[index]->updateExpose) {
-			Uint8 newMask = 0;
-			int offset = 1; // the index offset of the next block to check
-			int nextOffset = SIZE; // the range of current width-height-depths that aren't edges
+			newMask = 0;
+			offset = 1; // the index offset of the next block to check
+			nextOffset = SIZE; // the range of current width-height-depths that aren't edges
 			while (offset < CHUNK_SIZE) {
 				newMask <<= 1;
 				if ((index % nextOffset) + offset < nextOffset) {

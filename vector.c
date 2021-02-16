@@ -1,8 +1,18 @@
 #include <SDL2/SDL.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h> // apparently also requires manually linking math.h with -lm compiler flag, what the fuck?
+#include <math.h>
 #include "vector.h"
+#include "render.h"
+
+/* 
+ * apparently M_PI isn't always defined in math.h between c versions?
+ * gcc defines M_PI anyways, but it isn't the standard and that
+ * would break using another compiler. the c language dude.
+ */
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
 
 /*
    z
@@ -19,9 +29,17 @@ dvector2 *perlinVectors;
 SDL_Point perlinDims;
 int perlinSize;
 
-void vector3ToIsometric(SDL_Point *dest, vector3 *src, int scaleX, int scaleY, int offsetX, int offsetY) {
-	dest->x = ((src->x - src->y) * scaleX) >> 1;
-	dest->y = (((src->x + src->y) * scaleX) >> 2) - (src->z * scaleY); // this can't be shortened, stop trying
+void vector3ToIsometric(SDL_Point *dest, vector3 *src, int offsetX, int offsetY) {
+	dest->x = ((src->x - src->y) * VOXEL_WIDTH) >> 1;
+	// this can't be shortened, stop trying
+	dest->y = (((src->x + src->y) * VOXEL_WIDTH) >> 2) - (src->z * VOXEL_Z_HEIGHT);
+	dest->x += offsetX;
+	dest->y += offsetY;
+}
+
+void dvector3ToIsometric(SDL_Point *dest, dvector3 *src, int offsetX, int offsetY) {
+	dest->x = ((src->x - src->y) * VOXEL_WIDTH) / 2;
+	dest->y = (((src->x + src->y) * VOXEL_WIDTH) / 4) - (src->z * VOXEL_Z_HEIGHT);
 	dest->x += offsetX;
 	dest->y += offsetY;
 }
@@ -36,7 +54,7 @@ double dotProd(dvector2 *a, dvector2 *b) {
 
 // 0 <= x <= 1
 double lerp(double a, double b, double x) {
-	return a + (b - a) * ((1 - cos(x * M_PI)) / 2);
+	return a + (b - a) * ((1 - cosl(x * M_PI)) / 2);
 }
 
 double lerp2d(double corners[4], dvector2 *point) {
@@ -44,7 +62,7 @@ double lerp2d(double corners[4], dvector2 *point) {
 }
 
 void initNoise(unsigned int seed, int w, int h) {
-	srand(seed);
+	srand(seed); // TODO move this somewhere else for transparency?
 	perlinDims.x = w;
 	perlinDims.y = h;
 	perlinSize = (h + 1) * (w + 1);
