@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdint.h>
-#include <stdio.h> // debug only
+#include <stdio.h>
 #include "world.h"
 #include "render.h"
 #include "textures.h"
@@ -47,7 +47,7 @@ Uint8 voxTexShades[] = { // flat shading values (out of 255) for each side t-l-r
 void initRenderer(SDL_Window *window) {
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	if (renderer == NULL) {
-		printf("renderer could not be created:\n%s\n", SDL_GetError());
+		printf("unable to create renderer:\n%s\n", SDL_GetError());
 		exit(1);
 	}
 
@@ -75,7 +75,6 @@ SDL_Texture *loadSDLTexture(char *path) {
 	}
 
 	SDL_FreeSurface(loadedSurface);
-	printf("successfully loaded texture from %s\n", path);
 	return newTexture;
 }
 

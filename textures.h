@@ -1,7 +1,7 @@
-#include <SDL2/SDL.h>
-
 #ifndef TEXTURES_H
 #define TEXTURES_H
+
+#include <SDL2/SDL.h>
 
 typedef enum {
 	TEX_TEXTURE = 0,

@@ -1,8 +1,8 @@
-#include <SDL2/SDL.h>
-#include "world.h"
-
 #ifndef RENDER_H
 #define RENDER_H
+
+#include <SDL2/SDL.h>
+#include "world.h"
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 800

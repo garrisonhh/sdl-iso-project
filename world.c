@@ -3,12 +3,9 @@
 #include <stdbool.h>
 #include <time.h>
 #include "world.h"
+#include "noise.h"
 #include "entity.h"
 #include "player.h"
-
-/*
-in world.*: composite types holding world data and the functions that manage/create/destroy them
-*/
 
 // initializes chunk with no blocks
 chunk_t *createChunk(vector3 loc) {
@@ -100,6 +97,7 @@ perlin noise:
 3) use a linear interpolation formula (cosine based or similar) to interpolate all 4 values
 */
 void generateWorld(world_t *world) {
+	srand(time(0));
 	initNoise(time(0), world->dims.x, world->dims.y);
 
 	dvector2 pos;

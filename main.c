@@ -8,10 +8,6 @@
 #include "world.h"
 #include "expose.h"
 
-/*
-in this file: main() and initialization functions
-*/
-
 SDL_Window *window = NULL;
 void init() {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {

@@ -1,10 +1,10 @@
+#ifndef WORLD_H
+#define WORLD_H
+
 #include <stdbool.h>
 #include <stdint.h>
 #include "vector.h"
 #include "entity.h"
-
-#ifndef WORLD_H
-#define WORLD_H
 
 #define SIZE 16
 #define CHUNK_SIZE 4096
