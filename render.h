@@ -10,6 +10,9 @@
 #define VOXEL_HEIGHT 34
 
 extern const int VOXEL_Z_HEIGHT;
+extern const vector2 SCREEN_CENTER;
+extern vector2 camera;
+
 extern SDL_Renderer *renderer;
 
 SDL_Texture *loadSDLTexture(char *path);
@@ -17,7 +20,7 @@ void initRenderer(SDL_Window *);
 void destroyRenderer(void);
 void loadMedia(void);
 void destroyMedia(void);
+void updateCamera(world_t *);
 void renderWorld(world_t *);
-void updateCamera();
 
 #endif

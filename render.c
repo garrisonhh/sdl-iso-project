@@ -2,6 +2,7 @@
 #include <SDL2/SDL_image.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "world.h"
 #include "render.h"
 #include "textures.h"
@@ -12,7 +13,9 @@
 // SDL stuff" rather than "renderer stuff"
 
 SDL_Renderer *renderer = NULL;
+vector2 camera = {0, 0};
 
+const vector2 SCREEN_CENTER = {SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2};
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 vector2 texTexOffset = {
 	-(VOXEL_WIDTH >> 1),
@@ -88,6 +91,10 @@ void destroyMedia() {
 	destroySprites();
 }
 
+void updateCamera(world_t *world) {
+	camera = vector2Sub(SCREEN_CENTER, dvector3ToIsometric(world->player->pos, false));
+}
+
 // technically nothing to do with rendering, maybe move somewhere else?
 SDL_Rect offsetRect(SDL_Rect *rect, vector2 *offset) {
 	SDL_Rect newRect = {
@@ -126,8 +133,7 @@ void renderVoxelTexture(vox_tex *voxelTexture, vector2 *pos, Uint8 exposeMask) {
 }
 
 void renderEntity(entity_t *entity) {
-	vector2 screenPos = dvector3ToIsometric(entity->pos,
-											SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2); // TODO un-hardcode scaling
+	vector2 screenPos = dvector3ToIsometric(entity->pos, true);
 	sprite_t *sprite = sprites[entity->sprite];
 	SDL_Rect drawRect = {
 		screenPos.x + sprite->offsetX,
@@ -153,8 +159,7 @@ void renderChunk(chunk_t *chunk) {
 						y + chunk->loc.y * SIZE,
 						z + chunk->loc.z * SIZE
 					};
-					screenPos = vector3ToIsometric(blockLoc,
-												   SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2); // TODO un-hardcode scaling
+					screenPos = vector3ToIsometric(blockLoc, true);
 						switch (textures[block->texture]->type) {
 							case TEX_TEXTURE:
 								; // yes, this semicolon is necessary to compile without errors. I am not joking.

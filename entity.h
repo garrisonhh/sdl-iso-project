@@ -15,7 +15,6 @@ typedef struct {
 } entity_t;
 
 void destroyEntity(entity_t *);
-void addEntityMove(entity_t *, dvector3);
 void tickEntity(entity_t *, int ms);
 
 #endif

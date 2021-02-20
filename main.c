@@ -8,8 +8,10 @@
 #include "render.h"
 #include "world.h"
 #include "expose.h"
+#include "player.h"
 
 SDL_Window *window = NULL;
+
 void init() {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		printf("SDL could not initialize:\n%s\n", SDL_GetError());
@@ -43,7 +45,7 @@ void onClose() {
 	SDL_Quit();
 }
 
-int main() {
+int main(int argc, char *argv[]) {
 	init();
 	loadMedia();
 
@@ -94,18 +96,21 @@ int main() {
 			dvector3Scale(moveDown, moveInputs.y)
 		);
 
+		// tick
+		thisTime = SDL_GetTicks();
+
+		tickEntity(world->player, thisTime - lastTime);
+		updateCamera(world);
+
+		lastTime = thisTime;
+
 		// gfx
 		exposeWorld(world);
 		SDL_RenderClear(renderer);
 		renderWorld(world);
 		SDL_RenderPresent(renderer);
 
-		// time
-		thisTime = SDL_GetTicks();
-
-		tickEntity(world->player, thisTime - lastTime);
-
-		lastTime = thisTime;
+		// delay
 		SDL_Delay(5); // so my laptop doesn't explode
 	}
 

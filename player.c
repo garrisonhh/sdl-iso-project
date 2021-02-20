@@ -1,5 +1,6 @@
 #include "entity.h"
 #include "collision.h"
+#include "render.h"
 
 entity_t *createPlayer() {
 	entity_t *newPlayer = (entity_t *)malloc(sizeof(entity_t));
@@ -10,3 +11,4 @@ entity_t *createPlayer() {
 
 	return newPlayer;
 }
+
