@@ -11,7 +11,7 @@
 #endif
 
 dvector2 *perlinVectors;
-SDL_Point perlinDims;
+vector2 perlinDims;
 int perlinSize;
 
 // 0 <= x <= 1
@@ -47,8 +47,8 @@ double noise(dvector2 *point) {
 			corner.x = i ? 1 - modPt->x : modPt->x;
 			corner.y = j ? 1 - modPt->y : modPt->y;
 			dotCorners[j * 2 + i] = dvector2DotProd(
-				&corner,
-				&perlinVectors[(pY + j) * (perlinDims.x + 1) + (pX + i)]
+				corner,
+				perlinVectors[(pY + j) * (perlinDims.x + 1) + (pX + i)]
 			);
 		}
 	}

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include "render.h"
 #include "world.h"
@@ -50,53 +51,61 @@ int main() {
 	world_t *world = createWorld(dims);
 	generateWorld(world);
 
-	/*unsigned int lastTime, frameTick = 100;
-	unsigned int thisTime = SDL_GetTicks();
-	float frameRate;
-	unsigned int frames[100];*/
+	unsigned int lastTime, thisTime = SDL_GetTicks();
 
 	bool quit = false;
 	SDL_Event e;
+	const Uint8 *kbState = SDL_GetKeyboardState(NULL);
+
+	vector2 moveInputs;
+	const int SPEED = 3; // TODO move this somewhere better idk where
+	const dvector3 moveDown = {SPEED, SPEED, 0};
+	const dvector3 moveRight = {SPEED, -SPEED, 0};
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
 			switch (e.type) {
-			case SDL_QUIT:
-				quit = true;
-				break;
-			case SDL_KEYDOWN:
-				switch (e.key.keysym.sym) { // nothing wrong with this. very normal code.
-				case SDLK_ESCAPE:
+				case SDL_QUIT:
 					quit = true;
 					break;
-				}
-				break;
+				case SDL_KEYDOWN:
+					switch (e.key.keysym.sym) { // nothing wrong with this. very normal code.
+						case SDLK_ESCAPE:
+							quit = true;
+							break;
+					}
+					break;
 			}
 		}
 
+		// movement
+		moveInputs = (vector2){0, 0};
+		if (kbState[SDL_SCANCODE_W])
+			moveInputs.y--;
+		if (kbState[SDL_SCANCODE_S])
+			moveInputs.y++;
+		if (kbState[SDL_SCANCODE_A])
+			moveInputs.x--;
+		if (kbState[SDL_SCANCODE_D])
+			moveInputs.x++;
+		
+		world->player->move = dvector3Add(
+			dvector3Scale(moveRight, moveInputs.x),
+			dvector3Scale(moveDown, moveInputs.y)
+		);
+
+		// gfx
 		exposeWorld(world);
 		SDL_RenderClear(renderer);
 		renderWorld(world);
 		SDL_RenderPresent(renderer);
 
-		// TODO render FPS on screen
-		/*lastTime = thisTime;
+		// time
 		thisTime = SDL_GetTicks();
-		for (int i = 100; i > 0; i--) {
-			frames[i] = frames[i - 1];
-		}
-		frames[0] = thisTime - lastTime;
-		frameTick--;
-		if (frameTick == 0) {
-			frameRate = 0;
-			for (int i = 0; i < 100; i++) {
-				frameRate += frames[i];
-			}
-			frameRate /= 100;
-			printf("FPS: %.2f\n", 1000 / frameRate);
-			frameTick = 100;
-		}*/
 
+		tickEntity(world->player, thisTime - lastTime);
+
+		lastTime = thisTime;
 		SDL_Delay(5); // so my laptop doesn't explode
 	}
 

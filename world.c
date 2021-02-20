@@ -31,7 +31,7 @@ void destroyChunk(chunk_t *chunk) {
 	free(chunk);
 }
 
-void setBlock(chunk_t *chunk, vector3 *loc, int texture) {
+void setBlock(chunk_t *chunk, vector3 loc, int texture) {
 	block_t *block = (block_t *)malloc(sizeof(block_t));
 	int index = flatten(loc, SIZE);
 	if (chunk->blocks[index] != NULL) {
@@ -116,13 +116,13 @@ void generateWorld(world_t *world) {
 					val = (int)((1.0 + noise(&pos)) * (SIZE / 2));
 					for (cz = 0; cz < val; cz++) {
 						loc.z = cz;
-						setBlock(chunk, &loc, 0); // dirt in ground
+						setBlock(chunk, loc, 0); // dirt in ground
 					}
-					setBlock(chunk, &loc, 1); // grass on top
+					setBlock(chunk, loc, 1); // grass on top
 					// randomly scattered bushes
 					if ((rand() % 20) == 0) {
 						loc.z++;
-						setBlock(chunk, &loc, 2);
+						setBlock(chunk, loc, 2);
 					}
 				}
 			}

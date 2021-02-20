@@ -6,13 +6,16 @@
 #include "collision.h"
 
 typedef struct {
-	dvector3 pos;
 	int sprite;
+	dvector3 pos;
+	dvector3 move; // speed is in blocks per second
 	// TODO this should probably become a pointer
-	// maybe load different entities from a json?
-	bbox_t bbox; 
+	// maybe load entity sprite/bbox data from a json?
+	bbox_t bbox;
 } entity_t;
 
 void destroyEntity(entity_t *);
+void addEntityMove(entity_t *, dvector3);
+void tickEntity(entity_t *, int ms);
 
 #endif

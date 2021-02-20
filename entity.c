@@ -8,3 +8,11 @@ void destroyEntity(entity_t *entity) {
 	free(entity);
 	entity = NULL;
 }
+
+void addEntityMove(entity_t *entity, dvector3 addMove) {
+	entity->move = dvector3Add(entity->move, addMove);
+}
+
+void tickEntity(entity_t *entity, int ms) {
+	entity->pos = dvector3Add(entity->pos, dvector3Scale(entity->move, (double)ms / 1000));
+}

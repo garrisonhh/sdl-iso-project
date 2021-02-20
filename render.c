@@ -14,7 +14,7 @@
 SDL_Renderer *renderer = NULL;
 
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
-SDL_Point texTexOffset = {
+vector2 texTexOffset = {
 	-(VOXEL_WIDTH >> 1),
 	-VOXEL_Z_HEIGHT
 };
@@ -89,7 +89,7 @@ void destroyMedia() {
 }
 
 // technically nothing to do with rendering, maybe move somewhere else?
-SDL_Rect offsetRect(SDL_Rect *rect, SDL_Point *offset) {
+SDL_Rect offsetRect(SDL_Rect *rect, vector2 *offset) {
 	SDL_Rect newRect = {
 		offset->x + rect->x,
 		offset->y + rect->y,
@@ -100,7 +100,7 @@ SDL_Rect offsetRect(SDL_Rect *rect, SDL_Point *offset) {
 }
 
 // exposeMask uses only the last 3 bits; right-left-top order (corresponding to XYZ)
-void renderVoxelTexture(vox_tex *voxelTexture, SDL_Point *pos, Uint8 exposeMask) {
+void renderVoxelTexture(vox_tex *voxelTexture, vector2 *pos, Uint8 exposeMask) {
 	for (int i = 2; i >= 0; i--) {
 		if ((exposeMask >> i) & 1) {
 			SDL_Rect drawRect = offsetRect(&voxTexRects[i], pos);
@@ -126,8 +126,8 @@ void renderVoxelTexture(vox_tex *voxelTexture, SDL_Point *pos, Uint8 exposeMask)
 }
 
 void renderEntity(entity_t *entity) {
-	SDL_Point screenPos;
-	dvector3ToIsometric(&screenPos, &entity->pos, SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2); // TODO un-hardcode scaling
+	vector2 screenPos = dvector3ToIsometric(entity->pos,
+											SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2); // TODO un-hardcode scaling
 	sprite_t *sprite = sprites[entity->sprite];
 	SDL_Rect drawRect = {
 		screenPos.x + sprite->offsetX,
@@ -141,7 +141,7 @@ void renderEntity(entity_t *entity) {
 void renderChunk(chunk_t *chunk) {
 	int x, y, z, index = 0;
 	block_t *block;
-	SDL_Point screenPos;
+	vector2 screenPos;
 	vector3 blockLoc;
 	for (z = 0; z < SIZE; z++) {
 		for (y = 0; y < SIZE; y++) {
@@ -153,7 +153,8 @@ void renderChunk(chunk_t *chunk) {
 						y + chunk->loc.y * SIZE,
 						z + chunk->loc.z * SIZE
 					};
-					vector3ToIsometric(&screenPos, &blockLoc, SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2); // TODO un-hardcode scaling
+					screenPos = vector3ToIsometric(blockLoc,
+												   SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2); // TODO un-hardcode scaling
 						switch (textures[block->texture]->type) {
 							case TEX_TEXTURE:
 								; // yes, this semicolon is necessary to compile without errors. I am not joking.

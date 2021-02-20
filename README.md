@@ -1,6 +1,7 @@
 ## TODOs
 1) entity type
 	- sprite rendering
+		- render sorting
 		- animations
 	- player entity with controls
 		- collision with world (stick to AABB for now)
