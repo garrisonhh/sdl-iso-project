@@ -8,7 +8,6 @@
 #include "render.h"
 #include "world.h"
 #include "expose.h"
-#include "player.h"
 
 SDL_Window *window = NULL;
 
@@ -99,7 +98,7 @@ int main(int argc, char *argv[]) {
 		// tick
 		thisTime = SDL_GetTicks();
 
-		tickEntity(world->player, thisTime - lastTime);
+		tickWorld(world, thisTime - lastTime);
 		updateCamera(world);
 
 		lastTime = thisTime;
