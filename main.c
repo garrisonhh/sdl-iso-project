@@ -102,10 +102,6 @@ int main(int argc, char *argv[]) {
 
 		// tick
 		thisTime = SDL_GetTicks();
-<<<<<<< HEAD
-
-=======
->>>>>>> 0ddeedebff5cc2b35e210e4113f6ff331dee8759
 		tickWorld(world, thisTime - lastTime);
 		updateCamera(world);
 		lastTime = thisTime;

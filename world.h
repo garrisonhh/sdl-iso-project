@@ -31,6 +31,5 @@ world_t *createWorld(vector3 dims);
 void destroyWorld(world_t *);
 void tickWorld(world_t *, int ms);
 void generateWorld(world_t *);
-void tickWorld(world_t *, int ms);
 
 #endif

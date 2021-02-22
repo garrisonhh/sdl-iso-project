@@ -19,24 +19,6 @@ bool collides(double a, double b, double x) {
 }
 
 bool collide1d(double startA, double lenA, double startB, double lenB) {
-<<<<<<< HEAD
-	return (startA > startB && startA < startB + lenB)
-		|| (startB > startA && startB < startA + lenA);
-}
-
-bool bboxCollide(bbox_t boxA, bbox_t boxB) {
-	return collide1d(boxA.offset.x, boxA.size.x, boxB.offset.x, boxB.size.x)
-		&& collide1d(boxA.offset.y, boxA.size.y, boxB.offset.y, boxB.size.y)
-		&& collide1d(boxA.offset.z, boxA.size.z, boxB.offset.z, boxB.size.z);
-}
-
-// returns offset for startE in order to resolve collision
-// assumes that entity has collided with box by traveling in direction of velocity
-double findCollision1d(double startE, double lenE, double velE, double startB, double lenB) {
-	if (velE >= 0)
-		return startB - (startE + lenE);
-	return (startB + lenB) - startE;
-=======
 	return collides(startB, startB + lenB, startA)
 		|| collides(startB, startB + lenB, startA + lenA)
 		|| (startA == startB && lenA == lenB);
@@ -115,6 +97,4 @@ dvector3 collideResolveMultiple(bbox_t eBox, bbox_t *boxArr, int lenArr) {
 	}
 
 	return (dvector3){0, 0, 0}; 
->>>>>>> 0ddeedebff5cc2b35e210e4113f6ff331dee8759
 }
-

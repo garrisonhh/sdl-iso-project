@@ -16,11 +16,6 @@ typedef struct {
 
 void destroyEntity(entity_t *);
 void tickEntity(entity_t *, int ms);
-<<<<<<< HEAD
-bbox_t getAbsoluteBBox(entity_t *);
-void resolveEntityCollision(entity_t *, bbox_t);
-=======
 bbox_t absoluteBBox(entity_t *);
->>>>>>> 0ddeedebff5cc2b35e210e4113f6ff331dee8759
 
 #endif
