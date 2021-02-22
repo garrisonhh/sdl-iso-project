@@ -15,6 +15,7 @@ void tickEntity(entity_t *entity, int ms) {
 	entity->pos = dvector3Add(entity->pos, dvector3Scale(entity->move, (double)ms / 1000));
 }
 
+<<<<<<< HEAD
 bbox_t getAbsoluteBBox(entity_t *entity) {
 	bbox_t box = entity->bbox;
 	
@@ -45,3 +46,10 @@ void resolveEntityCollision(entity_t *entity, bbox_t box) {
 			entity->pos.z += coll.x;
 	}
 }
+=======
+bbox_t absoluteBBox(entity_t *entity) {
+	bbox_t box = entity->bbox;
+	box.offset = dvector3Add(box.offset, entity->pos);
+	return box;
+}
+>>>>>>> 0ddeedebff5cc2b35e210e4113f6ff331dee8759

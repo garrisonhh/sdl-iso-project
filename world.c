@@ -31,6 +31,7 @@ void destroyChunk(chunk_t *chunk) {
 	free(chunk);
 }
 
+<<<<<<< HEAD
 chunk_t *getChunk(world_t *world, vector3 loc) {
 	int chunkIndex = ((loc.z * world->dims.z) + loc.y) * world->dims.y + loc.x;
 	if (chunkIndex < 0 || chunkIndex >= world->numChunks)
@@ -38,6 +39,9 @@ chunk_t *getChunk(world_t *world, vector3 loc) {
 	return world->chunks[chunkIndex];
 }
 
+=======
+// this also creates the block.. separate functionality maybe? use block ids instead of tex ids? idk
+>>>>>>> 0ddeedebff5cc2b35e210e4113f6ff331dee8759
 void setBlock(chunk_t *chunk, vector3 loc, int texture) {
 	block_t *block = (block_t *)malloc(sizeof(block_t));
 	int index = flatten(loc, SIZE);
@@ -60,6 +64,7 @@ void setBlock(chunk_t *chunk, vector3 loc, int texture) {
 	}
 }
 
+<<<<<<< HEAD
 block_t *getBlock(world_t *world, vector3 loc) {
 	vector3 chunk = {loc.x / SIZE, loc.y / SIZE, loc.z / SIZE};
 	
@@ -94,6 +99,14 @@ void tickWorld(world_t *world, int ms) {
 	//world->player->move.z = -1; // TODO proper gravity
 	tickEntity(world->player, ms);
 	//resolveEntityWorldCollision(world->player, world);
+=======
+block_t *getBlock(chunk_t *chunk, vector3 loc) {
+	int blockIndex = flatten(loc, SIZE);
+
+	if (blockIndex >= 0 && blockIndex < CHUNK_SIZE)
+		return chunk->blocks[blockIndex];
+	return NULL;
+>>>>>>> 0ddeedebff5cc2b35e210e4113f6ff331dee8759
 }
 
 world_t *createWorld(vector3 dims) {
@@ -125,6 +138,49 @@ void destroyWorld(world_t *world) {
 	free(world);
 }
 
+// TODO collision for entities larger than 1x1x1 (just some annoying math stuff)
+void applyEntityCollision(entity_t *entity, world_t *world) {
+	int x, y, z, chunkIndex;
+	vector3 eLoc = vector3FromDvector3(dvector3Add(entity->pos, entity->bbox.offset)), absLoc, blockLoc;
+	dvector3 resolve;
+	bbox_t boxArr[27];
+	int lenArr = 0; 
+
+	for (z = -1; z <= 1; z++) {
+		for (y = -1; y <= 1; y++) {
+			for (x = -1; x <= 1; x++) {
+				absLoc = (vector3){x, y, z};
+				absLoc = vector3Add(eLoc, absLoc);
+				chunkIndex = ((absLoc.z / SIZE) * world->dims.z + (absLoc.y / SIZE)) * world->dims.y + (absLoc.x / SIZE);
+				blockLoc = (vector3){absLoc.x % SIZE, absLoc.y % SIZE, absLoc.z % SIZE};
+
+				if (chunkIndex >= 0 && chunkIndex < world->numChunks
+						&& getBlock(world->chunks[chunkIndex], blockLoc) != NULL) {
+					boxArr[lenArr] = (bbox_t){dvector3FromVector3(absLoc), (dvector3){1, 1, 1}};
+					lenArr++;
+
+					// TODO remove
+					if (absLoc.x == 0 && absLoc.y == 0 && absLoc.z == 0) {
+						printf("0, 0, 0 bbox:");
+						printfBBox(boxArr[lenArr - 1]);
+						printf("\n");
+					}
+				}
+			}
+		}
+	}
+
+	if (lenArr > 0) {
+		resolve = collideResolveMultiple(absoluteBBox(entity), boxArr, lenArr);
+		entity->pos = dvector3Add(entity->pos, resolve);
+	}
+}
+
+void tickWorld(world_t *world, int ms) {
+	tickEntity(world->player, ms);
+	applyEntityCollision(world->player, world);
+}
+
 /*
 perlin noise:
 1) generate random vectors for each point on a grid
@@ -133,6 +189,20 @@ perlin noise:
 3) use a linear interpolation formula (cosine based or similar) to interpolate all 4 values
 */
 void generateWorld(world_t *world) {
+	// TODO v REMOVE
+	vector3 testloc = {0, 0, 1};
+
+	for (int y = 0; y < SIZE; y++) {
+		testloc.y = y;
+		for (int x = 0; x < SIZE; x++) {
+			testloc.x = x;
+			setBlock(world->chunks[0], testloc, 1);
+		}
+	}
+
+	return;
+	// TODO ^ REMOVE
+
 	srand(time(0));
 	initNoise(time(0), world->dims.x, world->dims.y);
 
