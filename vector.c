@@ -53,6 +53,47 @@ vector2 vector2Sub(vector2 a, vector2 b) {
 	};
 }
 
+vector3 vector3FromDvector3(dvector3 v) {
+	return (vector3){
+		(int)v.x,
+		(int)v.y,
+		(int)v.z
+	};
+}
+
+vector3 vector3Add(vector3 a, vector3 b) {
+	return (vector3){
+		a.x + b.x,
+		a.y + b.y,
+		a.z + b.z
+	};
+}
+
+void printfDvector3(dvector3 v) {
+	printf("{%6.2f %6.2f %6.2f}", v.x, v.y, v.z);
+}
+
+dvector3 dvector3FromVector3(vector3 v) {
+	return (dvector3){v.x, v.y, v.z};
+}
+
+double dvector3Get(dvector3 v, int index) {
+	if (index == 0)
+		return v.x;
+	else if (index == 1)
+		return v.y;
+	return v.z;
+}
+
+void dvector3Set(dvector3 *v, int index, double value) {
+	if (index == 0)
+		v->x = value;
+	else if (index == 1)
+		v->y = value;
+	else
+		v->z = value;
+}
+
 dvector3 dvector3Add(dvector3 a, dvector3 b) {
 	return (dvector3){
 		a.x + b.x,

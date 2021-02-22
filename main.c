@@ -8,7 +8,6 @@
 #include "render.h"
 #include "world.h"
 #include "expose.h"
-#include "player.h"
 
 SDL_Window *window = NULL;
 
@@ -59,7 +58,7 @@ int main(int argc, char *argv[]) {
 	SDL_Event e;
 	const Uint8 *kbState = SDL_GetKeyboardState(NULL);
 
-	vector2 moveInputs;
+	vector3 moveInputs;
 	const int SPEED = 3; // TODO move this somewhere better idk where
 	const dvector3 moveDown = {SPEED, SPEED, 0};
 	const dvector3 moveRight = {SPEED, -SPEED, 0};
@@ -81,7 +80,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		// movement
-		moveInputs = (vector2){0, 0};
+		moveInputs = (vector3){0, 0, 0};
 		if (kbState[SDL_SCANCODE_W])
 			moveInputs.y--;
 		if (kbState[SDL_SCANCODE_S])
@@ -90,19 +89,25 @@ int main(int argc, char *argv[]) {
 			moveInputs.x--;
 		if (kbState[SDL_SCANCODE_D])
 			moveInputs.x++;
+		if (kbState[SDL_SCANCODE_LSHIFT])
+			moveInputs.z--;
+		if (kbState[SDL_SCANCODE_LCTRL])
+			moveInputs.z++;
 		
 		world->player->move = dvector3Add(
 			dvector3Scale(moveRight, moveInputs.x),
 			dvector3Scale(moveDown, moveInputs.y)
 		);
+		world->player->move.z = moveInputs.z;
 
 		// tick
 		thisTime = SDL_GetTicks();
-
-		tickEntity(world->player, thisTime - lastTime);
+		tickWorld(world, thisTime - lastTime);
 		updateCamera(world);
-
 		lastTime = thisTime;
+
+		printfDvector3(world->player->pos);
+		printf("\n");
 
 		// gfx
 		exposeWorld(world);
@@ -110,12 +115,13 @@ int main(int argc, char *argv[]) {
 		renderWorld(world);
 		SDL_RenderPresent(renderer);
 
-		// delay
-		SDL_Delay(5); // so my laptop doesn't explode
+		// so my laptop doesn't explode
+		SDL_Delay(5);
 	}
 
 	destroyWorld(world);
 	world = NULL;
 	onClose();
+	
 	return 0;
 }
