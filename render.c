@@ -132,6 +132,8 @@ void renderVoxelTexture(vox_tex *voxelTexture, vector2 *pos, Uint8 exposeMask) {
 	}
 }
 
+// TODO entity sprite sorting into world
+// TODO make entity Z level visually apparent
 void renderEntity(entity_t *entity) {
 	vector2 screenPos = dvector3ToIsometric(entity->pos, true);
 	sprite_t *sprite = sprites[entity->sprite];
@@ -142,16 +144,6 @@ void renderEntity(entity_t *entity) {
 		sprite->h
 	};
 	SDL_RenderCopy(renderer, sprite->texture, NULL, &drawRect);
-
-	// TODO remove
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	SDL_Rect rect = {
-		screenPos.x - 2,
-		screenPos.y - 1,
-		4,
-		2
-	};
-	SDL_RenderDrawRect(renderer, &rect);
 }
 
 void renderChunk(chunk_t *chunk) {

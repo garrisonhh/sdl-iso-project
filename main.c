@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 			dvector3Scale(moveRight, moveInputs.x),
 			dvector3Scale(moveDown, moveInputs.y)
 		);
-		world->player->move.z = moveInputs.z;
+		world->player->move.z = moveInputs.z * 2;
 
 		// tick
 		thisTime = SDL_GetTicks();

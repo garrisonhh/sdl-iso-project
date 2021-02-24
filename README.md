@@ -1,4 +1,7 @@
 ## TODOs
+0) frickin collision detection bug hunting
+	- I am going nuts
+	- Use a god damn library next time you idiot
 1) entity type
 	- sprite rendering
 		- render sorting

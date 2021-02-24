@@ -98,10 +98,10 @@ void destroyWorld(world_t *world) {
 	free(world);
 }
 
-// TODO collision for entities larger than 1x1x1 (just some annoying math stuff)
+// TODO collision for entities larger than 1x1x1 (just some annoying math I don't feel like doing atm))
 void applyEntityCollision(entity_t *entity, world_t *world) {
 	int x, y, z, chunkIndex;
-	vector3 eLoc = vector3FromDvector3(dvector3Add(entity->pos, entity->bbox.offset)), absLoc, blockLoc;
+	vector3 eLoc = vector3FromDvector3(entity->pos), absLoc, blockLoc;
 	dvector3 resolve;
 	bbox_t boxArr[27];
 	int lenArr = 0; 
@@ -118,13 +118,6 @@ void applyEntityCollision(entity_t *entity, world_t *world) {
 						&& getBlock(world->chunks[chunkIndex], blockLoc) != NULL) {
 					boxArr[lenArr] = (bbox_t){dvector3FromVector3(absLoc), (dvector3){1, 1, 1}};
 					lenArr++;
-
-					// TODO remove
-					if (absLoc.x == 0 && absLoc.y == 0 && absLoc.z == 0) {
-						printf("0, 0, 0 bbox:");
-						printfBBox(boxArr[lenArr - 1]);
-						printf("\n");
-					}
 				}
 			}
 		}
@@ -149,20 +142,6 @@ perlin noise:
 3) use a linear interpolation formula (cosine based or similar) to interpolate all 4 values
 */
 void generateWorld(world_t *world) {
-	// TODO v REMOVE
-	vector3 testloc = {0, 0, 1};
-
-	for (int y = 0; y < SIZE; y++) {
-		testloc.y = y;
-		for (int x = 0; x < SIZE; x++) {
-			testloc.x = x;
-			setBlock(world->chunks[0], testloc, 1);
-		}
-	}
-
-	return;
-	// TODO ^ REMOVE
-
 	srand(time(0));
 	initNoise(time(0), world->dims.x, world->dims.y);
 

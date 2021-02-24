@@ -1,18 +1,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include "collision.h"
 #include "vector.h"
 #include "entity.h"
 #include "world.h"
-
-void printfBBox(bbox_t bbox) {
-	printf("(bbox_t){");
-	printfDvector3(bbox.offset);
-	printf(", ");
-	printfDvector3(bbox.size);
-	printf("}");
-}
+#include "utils.h"
 
 bool collides(double a, double b, double x) {
 	return (a < x) && (x < b);
@@ -21,9 +13,11 @@ bool collides(double a, double b, double x) {
 bool collide1d(double startA, double lenA, double startB, double lenB) {
 	return collides(startB, startB + lenB, startA)
 		|| collides(startB, startB + lenB, startA + lenA)
-		|| (startA == startB && lenA == lenB);
+		|| (fisClose(startA, startB) && fisClose(lenA, lenB));
 }
 
+// checks if boxA is inside boxB, but not vice versa
+// if boxA surrounds boxB, no collision will be detected
 bool bboxCollide(bbox_t boxA, bbox_t boxB) {
 	return collide1d(boxA.offset.x, boxA.size.x, boxB.offset.x, boxB.size.x)
 		&& collide1d(boxA.offset.y, boxA.size.y, boxB.offset.y, boxB.size.y)
@@ -45,7 +39,7 @@ int resolveCompare(const void *a, const void *b) {
 	return 1;
 }
 
-// assumes collision; pastes results into dest
+// assumes collision; pastes results into dest array
 void findPossResolves(dvector3 dest[6], bbox_t eBox, bbox_t otherBox) {
 	int i;
 	double diff1, diff2;
@@ -90,8 +84,9 @@ dvector3 collideResolveMultiple(bbox_t eBox, bbox_t *boxArr, int lenArr) {
 					}
 				}
 
-				if (noCollide)
+				if (noCollide) {
 					return resolves[j];
+				}
 			}
 		} 
 	}

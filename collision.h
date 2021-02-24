@@ -10,7 +10,6 @@ typedef struct {
 	dvector3 size;
 } bbox_t;
 
-void printfBBox(bbox_t);
 dvector3 collideResolveMultiple(bbox_t eBox, bbox_t *boxArr, int lenArr);
 
 #endif
