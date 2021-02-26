@@ -10,8 +10,8 @@
 #define VOXEL_HEIGHT 34
 
 extern const int VOXEL_Z_HEIGHT;
-extern const vector2 SCREEN_CENTER;
-extern vector2 camera;
+extern const v2i SCREEN_CENTER;
+extern v2i camera;
 
 extern SDL_Renderer *renderer;
 

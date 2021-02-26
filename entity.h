@@ -7,8 +7,8 @@
 
 typedef struct {
 	int sprite;
-	dvector3 pos;
-	dvector3 move; // speed is in blocks per second
+	v3d pos;
+	v3d move; // speed is in blocks per second
 	// TODO this should probably become a pointer
 	// maybe load entity sprite/bbox data from a json?
 	bbox_t bbox;

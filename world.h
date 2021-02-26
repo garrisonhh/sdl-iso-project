@@ -17,17 +17,17 @@ typedef struct {
 
 typedef struct {
 	block_t *blocks[CHUNK_SIZE];
-	vector3 loc;
+	v3i loc;
 } chunk_t;
 
 typedef struct {
 	chunk_t **chunks;
-	vector3 dims;
+	v3i dims;
 	int numChunks;
 	entity_t *player;
 } world_t;
 
-world_t *createWorld(vector3 dims);
+world_t *createWorld(v3i dims);
 void destroyWorld(world_t *);
 void tickWorld(world_t *, int ms);
 void generateWorld(world_t *);

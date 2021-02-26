@@ -5,7 +5,7 @@
 #include "vector.h"
 
 void initNoise(unsigned int, int, int);
-double noise(dvector2 *);
+double noise(v2d *);
 void quitNoise(void);
 
 #endif

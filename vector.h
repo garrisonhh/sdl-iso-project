@@ -4,38 +4,36 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-typedef SDL_Point vector2; // for consistency
+typedef SDL_Point v2i; // for consistency
 
 typedef struct {
-	int x;
-	int y;
-	int z;
-} vector3;
+	int x, y, z;
+} v3i;
 
 typedef struct {
-	double x;
-	double y;
-} dvector2;
+	double x, y;
+} v2d;
 
 typedef struct {
-	double x;
-	double y;
-	double z;
-} dvector3;
+	double x, y, z;
+} v3d;
 
-vector2 vector3ToIsometric(vector3, bool);
-vector2 dvector3ToIsometric(dvector3, bool);
-vector2 vector2Add(vector2, vector2);
-vector2 vector2Sub(vector2, vector2);
-vector3 vector3FromDvector3(dvector3);
-vector3 vector3Add(vector3, vector3);
-void printfDvector3(dvector3 v);
-dvector3 dvector3FromVector3(vector3);
-double dvector3Get(dvector3, int);
-void dvector3Set(dvector3 *, int, double);
-dvector3 dvector3Add(dvector3, dvector3);
-dvector3 dvector3Scale(dvector3, double);
-double dvector2DotProd(dvector2, dvector2);
-int flatten(vector3, int);
+v2i v3i_to_isometric(v3i, bool);
+v2i v3d_to_isometric(v3d, bool);
+v2i v2i_add(v2i, v2i);
+v2i v2i_sub(v2i, v2i);
+
+double v2d_dot(v2d, v2d);
+
+v3i v3i_from_v3d(v3d);
+v3i v3i_add(v3i, v3i);
+int v3i_flatten(v3i, int);
+
+v3d v3d_from_v3i(v3i);
+double v3d_get(v3d *, int);
+void v3d_set(v3d *, int, double);
+void v3d_print(v3d v);
+v3d v3d_add(v3d, v3d);
+v3d v3d_scale(v3d, double);
 
 #endif

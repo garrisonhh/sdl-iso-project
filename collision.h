@@ -6,10 +6,10 @@
 
 // bbox's are relative to entities
 typedef struct {
-	dvector3 offset;
-	dvector3 size;
+	v3d offset;
+	v3d size;
 } bbox_t;
 
-dvector3 collideResolveMultiple(bbox_t eBox, bbox_t *boxArr, int lenArr);
+v3d collideResolveMultiple(bbox_t eBox, bbox_t *boxArr, int lenArr);
 
 #endif

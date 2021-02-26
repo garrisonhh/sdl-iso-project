@@ -44,11 +44,41 @@ void onClose() {
 	SDL_Quit();
 }
 
+// TODO REMOVE
+#include "collision.h"
+
 int main(int argc, char *argv[]) {
+	goto a;
+	bbox_t boxes[27];
+	int numBoxes = 0;
+
+	for (int y = 0; y < 3; y++) {
+		for (int x = 0; x < 3; x++) {
+			boxes[numBoxes] = (bbox_t){(v3d){x, y, 0}, (v3d){1, 1, 1}};
+			numBoxes++;
+		}
+	}
+
+	boxes[numBoxes] = (bbox_t){(v3d){0, 0, 1}, (v3d){1, 1, 1}};
+	numBoxes++;
+
+	bbox_t eBox = {(v3d){.5, .5, .99}, (v3d){1, 1, 1}};
+
+	v3d result = collideResolveMultiple(eBox, boxes, numBoxes);
+
+	printf("final resolution: ");
+	v3d_print(result);
+	printf("\nfinal position: ");
+	v3d_print(v3d_add(eBox.offset, result));
+	printf("\n");
+
+	return 0;
+a:
+
 	init();
 	loadMedia();
 
-	vector3 dims = {2, 2, 1};
+	v3i dims = {2, 2, 1};
 	world_t *world = createWorld(dims);
 	generateWorld(world);
 
@@ -58,10 +88,10 @@ int main(int argc, char *argv[]) {
 	SDL_Event e;
 	const Uint8 *kbState = SDL_GetKeyboardState(NULL);
 
-	vector3 moveInputs;
+	v3i moveInputs;
 	const int SPEED = 3; // TODO move this somewhere better idk where
-	const dvector3 moveDown = {SPEED, SPEED, 0};
-	const dvector3 moveRight = {SPEED, -SPEED, 0};
+	const v3d moveDown = {SPEED, SPEED, 0};
+	const v3d moveRight = {SPEED, -SPEED, 0};
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
@@ -80,7 +110,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		// movement
-		moveInputs = (vector3){0, 0, 0};
+		moveInputs = (v3i){0, 0, 0};
 		if (kbState[SDL_SCANCODE_W])
 			moveInputs.y--;
 		if (kbState[SDL_SCANCODE_S])
@@ -94,9 +124,9 @@ int main(int argc, char *argv[]) {
 		if (kbState[SDL_SCANCODE_LCTRL])
 			moveInputs.z++;
 		
-		world->player->move = dvector3Add(
-			dvector3Scale(moveRight, moveInputs.x),
-			dvector3Scale(moveDown, moveInputs.y)
+		world->player->move = v3d_add(
+			v3d_scale(moveRight, moveInputs.x),
+			v3d_scale(moveDown, moveInputs.y)
 		);
 		world->player->move.z = moveInputs.z * 2;
 
@@ -106,7 +136,7 @@ int main(int argc, char *argv[]) {
 		updateCamera(world);
 		lastTime = thisTime;
 
-		printfDvector3(world->player->pos);
+		v3d_print(world->player->pos);
 		printf("\n");
 
 		// gfx

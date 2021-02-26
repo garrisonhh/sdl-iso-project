@@ -16,76 +16,76 @@ y     x
 in vector.*: functions dealing with point math and 3d/2d conversion
 */
 
-vector2 vector3ToIsometric(vector3 v, bool atCamera) {
-	vector2 iso = {
+v2i v3i_to_isometric(v3i v, bool at_camera) {
+	v2i iso = {
 		((v.x - v.y) * VOXEL_WIDTH) >> 1,
 		(((v.x + v.y) * VOXEL_WIDTH) >> 2) - (v.z * VOXEL_Z_HEIGHT)
 	};
 
-	if (atCamera)
-		return vector2Add(iso, camera);
+	if (at_camera)
+		return v2i_add(iso, camera);
 	return iso;
 }
 
-vector2 dvector3ToIsometric(dvector3 v, bool atCamera) {
-	vector2 iso = {
+v2i v3d_to_isometric(v3d v, bool at_camera) {
+	v2i iso = {
 		((v.x - v.y) * VOXEL_WIDTH) / 2,
 		(((v.x + v.y) * VOXEL_WIDTH) / 4) - (v.z * VOXEL_Z_HEIGHT)
 	};
 
-	if (atCamera)
-		return vector2Add(iso, camera);
+	if (at_camera)
+		return v2i_add(iso, camera);
 	return iso;
 }
 
-vector2 vector2Add(vector2 a, vector2 b) {
-	return (vector2){
+v2i v2i_add(v2i a, v2i b) {
+	return (v2i){
 		a.x + b.x,
 		a.y + b.y
 	};
 }
 
 // a - b
-vector2 vector2Sub(vector2 a, vector2 b) {
-	return (vector2){
+v2i v2i_sub(v2i a, v2i b) {
+	return (v2i){
 		a.x - b.x,
 		a.y - b.y
 	};
 }
 
-vector3 vector3FromDvector3(dvector3 v) {
-	return (vector3){
+v3i v3i_from_v3d(v3d v) {
+	return (v3i){
 		(int)v.x,
 		(int)v.y,
 		(int)v.z
 	};
 }
 
-vector3 vector3Add(vector3 a, vector3 b) {
-	return (vector3){
+v3i v3i_add(v3i a, v3i b) {
+	return (v3i){
 		a.x + b.x,
 		a.y + b.y,
 		a.z + b.z
 	};
 }
 
-void printfDvector3(dvector3 v) {
+void v3d_print(v3d v) {
 	printf("{%6.2f %6.2f %6.2f}", v.x, v.y, v.z);
 }
 
-dvector3 dvector3FromVector3(vector3 v) {
-	return (dvector3){v.x, v.y, v.z};
+v3d v3d_from_v3i(v3i v) {
+	return (v3d){v.x, v.y, v.z};
 }
 
-double dvector3Get(dvector3 v, int index) {
+double v3d_get(v3d *v, int index) {
 	if (index == 0)
-		return v.x;
+		return v->x;
 	else if (index == 1)
-		return v.y;
-	return v.z;
+		return v->y;
+	return v->z;
 }
 
-void dvector3Set(dvector3 *v, int index, double value) {
+void v3d_set(v3d *v, int index, double value) {
 	if (index == 0)
 		v->x = value;
 	else if (index == 1)
@@ -94,26 +94,26 @@ void dvector3Set(dvector3 *v, int index, double value) {
 		v->z = value;
 }
 
-dvector3 dvector3Add(dvector3 a, dvector3 b) {
-	return (dvector3){
+v3d v3d_add(v3d a, v3d b) {
+	return (v3d){
 		a.x + b.x,
 		a.y + b.y,
 		a.z + b.z
 	};
 }
 
-dvector3 dvector3Scale(dvector3 v, double scalar) {
-	return (dvector3){
+v3d v3d_scale(v3d v, double scalar) {
+	return (v3d){
 		v.x * scalar,
 		v.y * scalar,
 		v.z * scalar
 	};
 }
 
-int flatten(vector3 v, int size) {
+int v3i_flatten(v3i v, int size) {
 	return ((v.z * size) + v.y) * size + v.x;
 }
 
-double dvector2DotProd(dvector2 a, dvector2 b) {
+double v2d_dot(v2d a, v2d b) {
 	return a.x * b.x + a.y * b.y;
 }

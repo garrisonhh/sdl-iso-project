@@ -8,7 +8,7 @@
 #include "player.h"
 
 // initializes chunk with no blocks
-chunk_t *createChunk(vector3 loc) {
+chunk_t *createChunk(v3i loc) {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
 	if (chunk == NULL) {
 		printf("error: could not allocate a new chunk at (%i, %i, %i)\n", loc.x, loc.y, loc.z);
@@ -32,9 +32,9 @@ void destroyChunk(chunk_t *chunk) {
 }
 
 // this also creates the block.. separate functionality maybe? use block ids instead of tex ids? idk
-void setBlock(chunk_t *chunk, vector3 loc, int texture) {
+void setBlock(chunk_t *chunk, v3i loc, int texture) {
 	block_t *block = (block_t *)malloc(sizeof(block_t));
-	int index = flatten(loc, SIZE);
+	int index = v3i_flatten(loc, SIZE);
 	if (chunk->blocks[index] != NULL) {
 		free(chunk->blocks[index]);
 		chunk->blocks[index] = NULL;
@@ -54,15 +54,15 @@ void setBlock(chunk_t *chunk, vector3 loc, int texture) {
 	}
 }
 
-block_t *getBlock(chunk_t *chunk, vector3 loc) {
-	int blockIndex = flatten(loc, SIZE);
+block_t *getBlock(chunk_t *chunk, v3i loc) {
+	int blockIndex = v3i_flatten(loc, SIZE);
 
 	if (blockIndex >= 0 && blockIndex < CHUNK_SIZE)
 		return chunk->blocks[blockIndex];
 	return NULL;
 }
 
-world_t *createWorld(vector3 dims) {
+world_t *createWorld(v3i dims) {
 	world_t *world = (world_t *)malloc(sizeof(world_t));
 	if (world == NULL) {
 		printf("error: could not allocate memory for world.");
@@ -79,7 +79,7 @@ world_t *createWorld(vector3 dims) {
 	for (z = 0; z < world->dims.z; z++) {
 		for (y = 0; y < world->dims.y; y++) {
 			for (x = 0; x < world->dims.x; x++) {
-				vector3 loc = {x, y, z};
+				v3i loc = {x, y, z};
 				world->chunks[index++] = createChunk(loc);
 			}
 		}
@@ -101,22 +101,22 @@ void destroyWorld(world_t *world) {
 // TODO collision for entities larger than 1x1x1 (just some annoying math I don't feel like doing atm))
 void applyEntityCollision(entity_t *entity, world_t *world) {
 	int x, y, z, chunkIndex;
-	vector3 eLoc = vector3FromDvector3(entity->pos), absLoc, blockLoc;
-	dvector3 resolve;
+	v3i eLoc = v3i_from_v3d(entity->pos), absLoc, blockLoc;
+	v3d resolve;
 	bbox_t boxArr[27];
 	int lenArr = 0; 
 
 	for (z = -1; z <= 1; z++) {
 		for (y = -1; y <= 1; y++) {
 			for (x = -1; x <= 1; x++) {
-				absLoc = (vector3){x, y, z};
-				absLoc = vector3Add(eLoc, absLoc);
+				absLoc = (v3i){x, y, z};
+				absLoc = v3i_add(eLoc, absLoc);
 				chunkIndex = ((absLoc.z / SIZE) * world->dims.z + (absLoc.y / SIZE)) * world->dims.y + (absLoc.x / SIZE);
-				blockLoc = (vector3){absLoc.x % SIZE, absLoc.y % SIZE, absLoc.z % SIZE};
+				blockLoc = (v3i){absLoc.x % SIZE, absLoc.y % SIZE, absLoc.z % SIZE};
 
 				if (chunkIndex >= 0 && chunkIndex < world->numChunks
 						&& getBlock(world->chunks[chunkIndex], blockLoc) != NULL) {
-					boxArr[lenArr] = (bbox_t){dvector3FromVector3(absLoc), (dvector3){1, 1, 1}};
+					boxArr[lenArr] = (bbox_t){v3d_from_v3i(absLoc), (v3d){1, 1, 1}};
 					lenArr++;
 				}
 			}
@@ -125,7 +125,7 @@ void applyEntityCollision(entity_t *entity, world_t *world) {
 
 	if (lenArr > 0) {
 		resolve = collideResolveMultiple(absoluteBBox(entity), boxArr, lenArr);
-		entity->pos = dvector3Add(entity->pos, resolve);
+		entity->pos = v3d_add(entity->pos, resolve);
 	}
 }
 
@@ -145,8 +145,8 @@ void generateWorld(world_t *world) {
 	srand(time(0));
 	initNoise(time(0), world->dims.x, world->dims.y);
 
-	dvector2 pos;
-	vector3 loc;
+	v2d pos;
+	v3i loc;
 	int x, y, cx, cy, cz, val;
 	chunk_t* chunk;
 	for (y = 0; y < world->dims.y; y++) {

@@ -13,11 +13,11 @@
 // SDL stuff" rather than "renderer stuff"
 
 SDL_Renderer *renderer = NULL;
-vector2 camera = {0, 0};
+v2i camera = {0, 0};
 
-const vector2 SCREEN_CENTER = {SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2};
+const v2i SCREEN_CENTER = {SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2};
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
-vector2 texTexOffset = {
+v2i texTexOffset = {
 	-(VOXEL_WIDTH >> 1),
 	-VOXEL_Z_HEIGHT
 };
@@ -92,11 +92,11 @@ void destroyMedia() {
 }
 
 void updateCamera(world_t *world) {
-	camera = vector2Sub(SCREEN_CENTER, dvector3ToIsometric(world->player->pos, false));
+	camera = v2i_sub(SCREEN_CENTER, v3d_to_isometric(world->player->pos, false));
 }
 
 // technically nothing to do with rendering, maybe move somewhere else?
-SDL_Rect offsetRect(SDL_Rect *rect, vector2 *offset) {
+SDL_Rect offsetRect(SDL_Rect *rect, v2i *offset) {
 	SDL_Rect newRect = {
 		offset->x + rect->x,
 		offset->y + rect->y,
@@ -107,7 +107,7 @@ SDL_Rect offsetRect(SDL_Rect *rect, vector2 *offset) {
 }
 
 // exposeMask uses only the last 3 bits; right-left-top order (corresponding to XYZ)
-void renderVoxelTexture(vox_tex *voxelTexture, vector2 *pos, Uint8 exposeMask) {
+void renderVoxelTexture(vox_tex *voxelTexture, v2i *pos, Uint8 exposeMask) {
 	for (int i = 2; i >= 0; i--) {
 		if ((exposeMask >> i) & 1) {
 			SDL_Rect drawRect = offsetRect(&voxTexRects[i], pos);
@@ -135,7 +135,7 @@ void renderVoxelTexture(vox_tex *voxelTexture, vector2 *pos, Uint8 exposeMask) {
 // TODO entity sprite sorting into world
 // TODO make entity Z level visually apparent
 void renderEntity(entity_t *entity) {
-	vector2 screenPos = dvector3ToIsometric(entity->pos, true);
+	v2i screenPos = v3d_to_isometric(entity->pos, true);
 	sprite_t *sprite = sprites[entity->sprite];
 	SDL_Rect drawRect = {
 		screenPos.x + sprite->offsetX,
@@ -149,19 +149,19 @@ void renderEntity(entity_t *entity) {
 void renderChunk(chunk_t *chunk) {
 	int x, y, z, index = 0;
 	block_t *block;
-	vector2 screenPos;
-	vector3 blockLoc;
+	v2i screenPos;
+	v3i blockLoc;
 	for (z = 0; z < SIZE; z++) {
 		for (y = 0; y < SIZE; y++) {
 			for (x = 0; x < SIZE; x++) {
 				block = chunk->blocks[index++];
 				if (block != NULL && block->exposeMask > 0) {
-					blockLoc = (vector3){
+					blockLoc = (v3i){
 						x + chunk->loc.x * SIZE,
 						y + chunk->loc.y * SIZE,
 						z + chunk->loc.z * SIZE
 					};
-					screenPos = vector3ToIsometric(blockLoc, true);
+					screenPos = v3i_to_isometric(blockLoc, true);
 						switch (textures[block->texture]->type) {
 							case TEX_TEXTURE:
 								; // yes, this semicolon is necessary to compile without errors. I am not joking.
