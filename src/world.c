@@ -7,6 +7,8 @@
 #include "entity.h"
 #include "player.h"
 
+const v3d BLOCK_SIZE = {1, 1, 1};
+
 // initializes chunk with no blocks
 chunk_t *create_chunk(v3i loc) {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
@@ -50,12 +52,29 @@ void set_block(chunk_t *chunk, v3i loc, int texture) {
 	}
 }
 
-block_t *get_block(chunk_t *chunk, v3i loc) {
-	int block_index = v3i_flatten(loc, SIZE);
+block_t *get_block(world_t *world, v3i loc) {
+	v3i chunk_loc, block_loc;
+	int i, coord, chunk_index;
 
-	if (block_index >= 0 && block_index < CHUNK_SIZE)
-		return chunk->blocks[block_index];
-	return NULL;
+	// get chunk in world
+	for (i = 0; i < 3; i++) {
+		coord = v3i_get(&loc, i) / SIZE;
+		if (coord < 0 || v3i_get(&world->dims, i) <= coord)
+			return NULL;
+		v3i_set(&chunk_loc, i, coord);
+	}
+
+	// get block in chunk
+	for (i = 0; i < 3; i++) {
+		coord = v3i_get(&loc, i) % SIZE;
+		if (coord < 0 || SIZE <= coord)
+			return NULL;
+		v3i_set(&block_loc, i, coord);
+	}
+
+	chunk_index = (chunk_loc.z * world->dims.z + chunk_loc.y) * world->dims.y + chunk_loc.x;
+
+	return world->chunks[chunk_index]->blocks[v3i_flatten(block_loc, SIZE)];
 }
 
 world_t *world_create(v3i dims) {
@@ -95,8 +114,25 @@ void world_destroy(world_t *world) {
 }
 
 void world_tick(world_t *world, int ms) {
-	entity_tick(world->player, ms);
-	// TODO do I need this?
+	// tick player
+	bbox_t boxes[27];
+	int x, y, z, num_boxes = 0;
+	v3i player_loc, current_block;
+
+	player_loc = v3i_from_v3d(world->player->ray.pos);
+
+	for (z = -1; z <= 1; z++) {
+		for (y = -1; y <= 1; y++) {
+			for (x = -1; x <= 1; x++) {
+				current_block = (v3i){x, y, z};
+				current_block = v3i_add(player_loc, current_block);
+				if (get_block(world, current_block) != NULL)
+					boxes[num_boxes++] = (bbox_t){v3d_from_v3i(current_block), BLOCK_SIZE};
+			}
+		}
+	}
+
+	entity_tick(world->player, ms, boxes, num_boxes);
 }
 
 /*

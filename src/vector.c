@@ -61,6 +61,23 @@ v3i v3i_from_v3d(v3d v) {
 	};
 }
 
+int v3i_get(v3i *v, int index) {
+	if (index == 0)
+		return v->x;
+	else if (index == 1)
+		return v->y;
+	return v->z;
+}
+
+void v3i_set(v3i *v, int index, int value) {
+	if (index == 0)
+		v->x = value;
+	else if (index == 1)
+		v->y = value;
+	else
+		v->z = value;
+}
+
 v3i v3i_add(v3i a, v3i b) {
 	return (v3i){
 		a.x + b.x,
@@ -70,7 +87,7 @@ v3i v3i_add(v3i a, v3i b) {
 }
 
 void v3d_print(v3d v) {
-	printf("{%6.2f %6.2f %6.2f}", v.x, v.y, v.z);
+	printf("{%.4f, %.4f, %.4f}", v.x, v.y, v.z);
 }
 
 v3d v3d_from_v3i(v3i v) {

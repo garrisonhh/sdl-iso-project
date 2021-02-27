@@ -30,13 +30,13 @@ void render_destroy() {
 }
 
 void update_camera(world_t *world) {
-	camera = v2i_sub(SCREEN_CENTER, v3d_to_isometric(world->player->pos, false));
+	camera = v2i_sub(SCREEN_CENTER, v3d_to_isometric(world->player->ray.pos, false));
 }
 
 // TODO entity sprite sorting into world
 // TODO make entity Z level visually apparent
 void render_entity(entity_t *entity) {
-	v2i screen_pos = v3d_to_isometric(entity->pos, true);
+	v2i screen_pos = v3d_to_isometric(v3d_add(entity->ray.pos, v3d_scale(entity->size, -.5)), true);
 	sprite_t *sprite = sprites[entity->sprite];
 	render_sprite(sprite, screen_pos);
 }

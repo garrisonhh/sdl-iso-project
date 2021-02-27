@@ -26,6 +26,8 @@ v2i v2i_sub(v2i, v2i);
 double v2d_dot(v2d, v2d);
 
 v3i v3i_from_v3d(v3d);
+int v3i_get(v3i *, int);
+void v3i_set(v3i *, int, int);
 v3i v3i_add(v3i, v3i);
 int v3i_flatten(v3i, int);
 

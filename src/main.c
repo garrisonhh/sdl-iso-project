@@ -45,10 +45,35 @@ void on_close() {
 	SDL_Quit();
 }
 
-// TODO REMOVE
-#include "collision.h"
+#include "collision.h" // TODO REMOVE
 
 int main(int argc, char *argv[]) {
+	/*
+	// generate boxes
+	bbox_t boxes[50];
+	int num_boxes = 0;
+	int x, y, z;
+
+	for (x = 0; x < 3; x++) {
+		for (y = 0; y < 3; y++) {
+			for (z = 0; z < 1; z++) {
+				boxes[num_boxes++] = (bbox_t){(v3d){x, y, z}, (v3d){1, 1, 1}};
+			}
+		}
+	}
+
+	// entity_tick test
+	entity_t entity;
+	int ms = 10;
+
+	entity.ray = (ray_t){(v3d){1, 1, 1}, (v3d){1, 1, -.5}};
+	// entity.size = (v3d){1, 1, 1};
+
+	entity_tick(&entity, ms, boxes, num_boxes);
+	
+	return 0;
+	// TODO REMOVE ^^^
+	*/
 	init();
 	media_load();
 
@@ -98,11 +123,11 @@ int main(int argc, char *argv[]) {
 		if (kb_state[SDL_SCANCODE_LCTRL])
 			move_inputs.z++;
 		
-		world->player->move = v3d_add(
+		world->player->ray.dir = v3d_add(
 			v3d_scale(move_right, move_inputs.x),
 			v3d_scale(move_down, move_inputs.y)
 		);
-		world->player->move.z = move_inputs.z * 2;
+		world->player->ray.dir.z = move_inputs.z * 2;
 
 		// tick
 		this_time = SDL_GetTicks();
@@ -117,7 +142,7 @@ int main(int argc, char *argv[]) {
 		SDL_RenderPresent(renderer);
 
 		// so my laptop doesn't explode
-		SDL_Delay(5);
+		SDL_Delay(20);
 	}
 
 	world_destroy(world);
