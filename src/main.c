@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include "media.h"
 #include "render.h"
 #include "world.h"
 #include "expose.h"

@@ -1,7 +1,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <json-c/json.h>
+#include "vector.h"
 #include "render.h"
+#include "media.h"
 #include "sprites.h"
 
 sprite_t **sprites = NULL;
@@ -22,9 +24,8 @@ void sprites_load() {
 		sprites[i] = (sprite_t *)malloc(sizeof(sprite_t));
 		sprites[i]->texture = load_sdl_texture(path);
 	
-		SDL_QueryTexture(sprites[i]->texture, NULL, NULL, &sprites[i]->w, &sprites[i]->h);
-		sprites[i]->x = -(sprites[i]->w >> 1);
-		sprites[i]->y = -sprites[i]->h;
+		SDL_QueryTexture(sprites[i]->texture, NULL, NULL, &(sprites[i]->size.x), &(sprites[i]->size.y));
+		sprites[i]->pos = (v2i){-(sprites[i]->size.x >> 1), -sprites[i]->size.y};
 	}
 }
 
@@ -36,4 +37,14 @@ void sprites_destroy() {
 	}
 	free(sprites);
 	sprites = NULL;
+}
+
+void render_sprite(sprite_t *sprite, v2i pos) {
+	SDL_Rect draw_rect = {
+		pos.x + sprite->pos.x,
+		pos.y + sprite->pos.y,
+		sprite->size.x,
+		sprite->size.y
+	};
+	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
 }

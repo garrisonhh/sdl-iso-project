@@ -2,6 +2,8 @@
 #define TEXTURES_H
 
 #include <SDL2/SDL.h>
+#include <stdint.h>
+#include "vector.h"
 
 typedef enum {
 	TEX_TEXTURE = 0,
@@ -24,6 +26,9 @@ extern texture_t **textures;
 
 void textures_load(void);
 void textures_destroy(void);
+void render_tex_texture(SDL_Texture *, v2i);
+vox_tex *load_voxel_texture(char *);
+void render_voxel_texture(vox_tex *, v2i, Uint8 expose_mask);
 
 #endif
 
