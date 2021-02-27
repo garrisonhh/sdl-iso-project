@@ -10,9 +10,9 @@
 #define M_PI (3.14159265358979323846)
 #endif
 
-v2d *perlinVectors;
-v2i perlinDims;
-int perlinSize;
+v2d *perlin_vectors;
+v2i perlin_dims;
+int perlin_size;
 
 // 0 <= x <= 1
 double lerp(double a, double b, double x) {
@@ -23,42 +23,43 @@ double lerp2d(double corners[4], v2d *point) {
 	return lerp(lerp(corners[0], corners[1], point->x), lerp(corners[2], corners[3], point->x), point->y);
 }
 
-void initNoise(unsigned int seed, int w, int h) {
-	perlinDims.x = w;
-	perlinDims.y = h;
-	perlinSize = (h + 1) * (w + 1);
-	perlinVectors = (v2d *)malloc(sizeof(v2d) * perlinSize);
-	for (int i = 0; i < perlinSize; i++) {
-		perlinVectors[i].x = (double)(2 * (rand() % 2) - 1);
-		perlinVectors[i].y = (double)(2 * (rand() % 2) - 1);
+void noise_init(unsigned int seed, int w, int h) {
+	perlin_dims.x = w;
+	perlin_dims.y = h;
+	perlin_size = (h + 1) * (w + 1);
+	perlin_vectors = (v2d *)malloc(sizeof(v2d) * perlin_size);
+	for (int i = 0; i < perlin_size; i++) {
+		perlin_vectors[i].x = (double)(2 * (rand() % 2) - 1);
+		perlin_vectors[i].y = (double)(2 * (rand() % 2) - 1);
 	}
 }
 
-double noise(v2d *point) {
-	v2d *modPt = (v2d *)malloc(sizeof(v2d));
-	modPt->x = fmod(point->x, 1);
-	modPt->y = fmod(point->y, 1);
+// TODO why the fuck am I using pointers here?
+double noise_at(v2d *point) {
+	v2d *mod_pt = (v2d *)malloc(sizeof(v2d));
+	mod_pt->x = fmod(point->x, 1);
+	mod_pt->y = fmod(point->y, 1);
 
 	v2d corner;
-	double dotCorners[4], value;
+	double dot_corners[4], value;
 	int i, j, pX = (int)point->x, pY = (int)point->y;
 	for (j = 0; j < 2; j++) {
 		for (i = 0; i < 2; i++) {
-			corner.x = i ? 1 - modPt->x : modPt->x;
-			corner.y = j ? 1 - modPt->y : modPt->y;
-			dotCorners[j * 2 + i] = v2d_dot(
+			corner.x = i ? 1 - mod_pt->x : mod_pt->x;
+			corner.y = j ? 1 - mod_pt->y : mod_pt->y;
+			dot_corners[j * 2 + i] = v2d_dot(
 				corner,
-				perlinVectors[(pY + j) * (perlinDims.x + 1) + (pX + i)]
+				perlin_vectors[(pY + j) * (perlin_dims.x + 1) + (pX + i)]
 			);
 		}
 	}
 	
-	value = lerp2d(dotCorners, modPt);
-	free(modPt);
+	value = lerp2d(dot_corners, mod_pt);
+	free(mod_pt);
 	return value;
 }
 
-void quitNoise() {
-	free(perlinVectors);
-	perlinVectors = NULL;
+void noise_quit() {
+	free(perlin_vectors);
+	perlin_vectors = NULL;
 }

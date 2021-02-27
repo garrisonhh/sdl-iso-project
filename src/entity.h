@@ -14,8 +14,8 @@ typedef struct {
 	bbox_t bbox;
 } entity_t;
 
-void destroyEntity(entity_t *);
-void tickEntity(entity_t *, int ms);
-bbox_t absoluteBBox(entity_t *);
+void entity_destroy(entity_t *);
+void entity_tick(entity_t *, int ms);
+bbox_t entity_abs_bbox(entity_t *);
 
 #endif

@@ -3,6 +3,6 @@
 
 #include "world.h"
 
-void exposeWorld(world_t *);
+void expose_world(world_t *);
 
 #endif

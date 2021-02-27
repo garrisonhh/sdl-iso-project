@@ -24,18 +24,18 @@ void init() {
 		exit(1);
 	}
 	
-	initRenderer(window);
-	int imgFlags = IMG_INIT_PNG;
-	if (!(IMG_Init(imgFlags) & imgFlags)) {
+	render_init(window);
+	int img_flags = IMG_INIT_PNG;
+	if (!(IMG_Init(img_flags) & img_flags)) {
 		printf("SDL_image could not initialize:\n%s\n", IMG_GetError());
 		exit(1);
 	}
 }
 
 // naming this "close" results in seg fault lmao. func name conflict in sdl somewhere?
-void onClose() {
-	destroyMedia();
-	destroyRenderer();
+void on_close() {
+	media_destroy();
+	render_destroy();
 
 	SDL_DestroyWindow(window);
 	window = NULL;
@@ -48,50 +48,23 @@ void onClose() {
 #include "collision.h"
 
 int main(int argc, char *argv[]) {
-	goto a;
-	bbox_t boxes[27];
-	int numBoxes = 0;
-
-	for (int y = 0; y < 3; y++) {
-		for (int x = 0; x < 3; x++) {
-			boxes[numBoxes] = (bbox_t){(v3d){x, y, 0}, (v3d){1, 1, 1}};
-			numBoxes++;
-		}
-	}
-
-	boxes[numBoxes] = (bbox_t){(v3d){0, 0, 1}, (v3d){1, 1, 1}};
-	numBoxes++;
-
-	bbox_t eBox = {(v3d){.5, .5, .99}, (v3d){1, 1, 1}};
-
-	v3d result = collideResolveMultiple(eBox, boxes, numBoxes);
-
-	printf("final resolution: ");
-	v3d_print(result);
-	printf("\nfinal position: ");
-	v3d_print(v3d_add(eBox.offset, result));
-	printf("\n");
-
-	return 0;
-a:
-
 	init();
-	loadMedia();
+	media_load();
 
 	v3i dims = {2, 2, 1};
-	world_t *world = createWorld(dims);
-	generateWorld(world);
+	world_t *world = world_create(dims);
+	world_generate(world);
 
-	unsigned int lastTime, thisTime = SDL_GetTicks();
+	unsigned int last_time, this_time = SDL_GetTicks();
 
 	bool quit = false;
 	SDL_Event e;
-	const Uint8 *kbState = SDL_GetKeyboardState(NULL);
+	const Uint8 *kb_state = SDL_GetKeyboardState(NULL);
 
-	v3i moveInputs;
+	v3i move_inputs;
 	const int SPEED = 3; // TODO move this somewhere better idk where
-	const v3d moveDown = {SPEED, SPEED, 0};
-	const v3d moveRight = {SPEED, -SPEED, 0};
+	const v3d move_down = {SPEED, SPEED, 0};
+	const v3d move_right = {SPEED, -SPEED, 0};
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
@@ -110,48 +83,45 @@ a:
 		}
 
 		// movement
-		moveInputs = (v3i){0, 0, 0};
-		if (kbState[SDL_SCANCODE_W])
-			moveInputs.y--;
-		if (kbState[SDL_SCANCODE_S])
-			moveInputs.y++;
-		if (kbState[SDL_SCANCODE_A])
-			moveInputs.x--;
-		if (kbState[SDL_SCANCODE_D])
-			moveInputs.x++;
-		if (kbState[SDL_SCANCODE_LSHIFT])
-			moveInputs.z--;
-		if (kbState[SDL_SCANCODE_LCTRL])
-			moveInputs.z++;
+		move_inputs = (v3i){0, 0, 0};
+		if (kb_state[SDL_SCANCODE_W])
+			move_inputs.y--;
+		if (kb_state[SDL_SCANCODE_S])
+			move_inputs.y++;
+		if (kb_state[SDL_SCANCODE_A])
+			move_inputs.x--;
+		if (kb_state[SDL_SCANCODE_D])
+			move_inputs.x++;
+		if (kb_state[SDL_SCANCODE_LSHIFT])
+			move_inputs.z--;
+		if (kb_state[SDL_SCANCODE_LCTRL])
+			move_inputs.z++;
 		
 		world->player->move = v3d_add(
-			v3d_scale(moveRight, moveInputs.x),
-			v3d_scale(moveDown, moveInputs.y)
+			v3d_scale(move_right, move_inputs.x),
+			v3d_scale(move_down, move_inputs.y)
 		);
-		world->player->move.z = moveInputs.z * 2;
+		world->player->move.z = move_inputs.z * 2;
 
 		// tick
-		thisTime = SDL_GetTicks();
-		tickWorld(world, thisTime - lastTime);
-		updateCamera(world);
-		lastTime = thisTime;
-
-		v3d_print(world->player->pos);
-		printf("\n");
+		this_time = SDL_GetTicks();
+		world_tick(world, this_time - last_time);
+		update_camera(world);
+		last_time = this_time;
 
 		// gfx
-		exposeWorld(world);
+		expose_world(world);
 		SDL_RenderClear(renderer);
-		renderWorld(world);
+		render_world(world);
 		SDL_RenderPresent(renderer);
 
 		// so my laptop doesn't explode
 		SDL_Delay(5);
 	}
 
-	destroyWorld(world);
+	world_destroy(world);
 	world = NULL;
-	onClose();
+	on_close();
 	
 	return 0;
 }

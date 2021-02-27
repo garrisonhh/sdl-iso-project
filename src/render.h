@@ -15,12 +15,12 @@ extern v2i camera;
 
 extern SDL_Renderer *renderer;
 
-SDL_Texture *loadSDLTexture(char *path);
-void initRenderer(SDL_Window *);
-void destroyRenderer(void);
-void loadMedia(void);
-void destroyMedia(void);
-void updateCamera(world_t *);
-void renderWorld(world_t *);
+SDL_Texture *load_sdl_texture(char *path);
+void render_init(SDL_Window *);
+void render_destroy(void);
+void media_load(void);
+void media_destroy(void);
+void update_camera(world_t *);
+void render_world(world_t *);
 
 #endif

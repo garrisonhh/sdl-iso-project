@@ -4,8 +4,8 @@
 
 #include "vector.h"
 
-void initNoise(unsigned int, int, int);
-double noise(v2d *);
-void quitNoise(void);
+void noise_init(unsigned int, int, int);
+double noise_at(v2d *);
+void noise_quit(void);
 
 #endif

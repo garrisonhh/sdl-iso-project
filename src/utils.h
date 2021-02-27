@@ -3,6 +3,6 @@
 
 #include <stdbool.h>
 
-bool fisClose(double a, double b);
+bool d_close(double a, double b);
 
 #endif

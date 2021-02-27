@@ -16,14 +16,14 @@ typedef struct {
 typedef struct {
 	block_tex_type type;
 	SDL_Texture *texture;
-	vox_tex *voxelTexture;
+	vox_tex *voxel_texture;
 	bool transparent;
 } texture_t;
 
 extern texture_t **textures;
 
-void loadTextures(void);
-void destroyTextures(void);
+void textures_load(void);
+void textures_destroy(void);
 
 #endif
 

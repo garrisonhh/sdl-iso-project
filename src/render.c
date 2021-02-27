@@ -17,11 +17,11 @@ v2i camera = {0, 0};
 
 const v2i SCREEN_CENTER = {SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2};
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
-v2i texTexOffset = {
+v2i tex_tex_offset = {
 	-(VOXEL_WIDTH >> 1),
 	-VOXEL_Z_HEIGHT
 };
-SDL_Rect voxTexRects[3] = { // used to render sides of vox_tex; t-l-r to correspond with bitmask rshifts
+SDL_Rect vox_tex_rects[3] = { // used to render sides of vox_tex; t-l-r to correspond with bitmask rshifts
 	{
 		-(VOXEL_WIDTH >> 1),
 		-VOXEL_Z_HEIGHT,
@@ -41,13 +41,13 @@ SDL_Rect voxTexRects[3] = { // used to render sides of vox_tex; t-l-r to corresp
 		VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
 	},
 };
-Uint8 voxTexShades[] = { // flat shading values (out of 255) for each side t-l-r
+Uint8 vox_tex_shades[] = { // flat shading values (out of 255) for each side t-l-r
 	255,
 	223,
 	191
 };
 
-void initRenderer(SDL_Window *window) {
+void render_init(SDL_Window *window) {
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	if (renderer == NULL) {
 		printf("unable to create renderer:\n%s\n", SDL_GetError());
@@ -58,45 +58,46 @@ void initRenderer(SDL_Window *window) {
 	SDL_RenderSetScale(renderer, 2, 2); // TODO un-hardcode scaling
 }
 
-void destroyRenderer() {
+void render_destroy() {
 	SDL_DestroyRenderer(renderer);
 	renderer = NULL;
 }
 
-SDL_Texture *loadSDLTexture(char *path) {
-	SDL_Texture *newTexture = NULL;
-	SDL_Surface *loadedSurface = IMG_Load(path);
-	if (loadedSurface == NULL) {
+SDL_Texture *load_sdl_texture(char *path) {
+	SDL_Texture *new_texture = NULL;
+	SDL_Surface *loaded_surface = IMG_Load(path);
+	if (loaded_surface == NULL) {
 		printf("unable to load image %s:\n%s\n", path, IMG_GetError());
 		exit(1);
 	}
 
-	newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
-	if (newTexture == NULL) {
+	new_texture = SDL_CreateTextureFromSurface(renderer, loaded_surface);
+	if (new_texture == NULL) {
 		printf("unable to create texture from %s:\n%s\n", path, SDL_GetError());
 		exit(1);
 	}
 
-	SDL_FreeSurface(loadedSurface);
-	return newTexture;
+	SDL_FreeSurface(loaded_surface);
+	return new_texture;
 }
 
-void loadMedia() {
-	loadTextures();
-	loadSprites();
+void media_load() {
+	textures_load();
+	sprites_load();
 }
 
-void destroyMedia() {
-	destroyTextures();
-	destroySprites();
+void media_destroy() {
+	textures_destroy();
+	sprites_destroy();
 }
 
-void updateCamera(world_t *world) {
+// TODO separate this vvv from this ^^^
+void update_camera(world_t *world) {
 	camera = v2i_sub(SCREEN_CENTER, v3d_to_isometric(world->player->pos, false));
 }
 
 // technically nothing to do with rendering, maybe move somewhere else?
-SDL_Rect offsetRect(SDL_Rect *rect, v2i *offset) {
+SDL_Rect offset_rect(SDL_Rect *rect, v2i *offset) {
 	SDL_Rect newRect = {
 		offset->x + rect->x,
 		offset->y + rect->y,
@@ -106,26 +107,26 @@ SDL_Rect offsetRect(SDL_Rect *rect, v2i *offset) {
 	return newRect;
 }
 
-// exposeMask uses only the last 3 bits; right-left-top order (corresponding to XYZ)
-void renderVoxelTexture(vox_tex *voxelTexture, v2i *pos, Uint8 exposeMask) {
+// expose_mask uses only the last 3 bits; right-left-top order (corresponding to XYZ)
+void render_voxel_texture(vox_tex *voxel_texture, v2i *pos, Uint8 expose_mask) {
 	for (int i = 2; i >= 0; i--) {
-		if ((exposeMask >> i) & 1) {
-			SDL_Rect drawRect = offsetRect(&voxTexRects[i], pos);
-			Uint8 shade = voxTexShades[i];
+		if ((expose_mask >> i) & 1) {
+			SDL_Rect draw_rect = offset_rect(&vox_tex_rects[i], pos);
+			Uint8 shade = vox_tex_shades[i];
 			if (i == 0) {
-				SDL_SetTextureColorMod(voxelTexture->top, shade, shade, shade);
+				SDL_SetTextureColorMod(voxel_texture->top, shade, shade, shade);
 			} else {
-				SDL_SetTextureColorMod(voxelTexture->side, shade, shade, shade);
+				SDL_SetTextureColorMod(voxel_texture->side, shade, shade, shade);
 			}
 			switch (i) {
 			case 0:
-				SDL_RenderCopy(renderer, voxelTexture->top, NULL, &drawRect);
+				SDL_RenderCopy(renderer, voxel_texture->top, NULL, &draw_rect);
 				break;
 			case 1:
-				SDL_RenderCopy(renderer, voxelTexture->side, NULL, &drawRect);
+				SDL_RenderCopy(renderer, voxel_texture->side, NULL, &draw_rect);
 				break;
 			case 2:
-				SDL_RenderCopyEx(renderer, voxelTexture->side, NULL, &drawRect, 0, NULL, SDL_FLIP_HORIZONTAL);
+				SDL_RenderCopyEx(renderer, voxel_texture->side, NULL, &draw_rect, 0, NULL, SDL_FLIP_HORIZONTAL);
 				break;
 			}
 		}
@@ -134,47 +135,47 @@ void renderVoxelTexture(vox_tex *voxelTexture, v2i *pos, Uint8 exposeMask) {
 
 // TODO entity sprite sorting into world
 // TODO make entity Z level visually apparent
-void renderEntity(entity_t *entity) {
-	v2i screenPos = v3d_to_isometric(entity->pos, true);
+void render_entity(entity_t *entity) {
+	v2i screen_pos = v3d_to_isometric(entity->pos, true);
 	sprite_t *sprite = sprites[entity->sprite];
-	SDL_Rect drawRect = {
-		screenPos.x + sprite->offsetX,
-		screenPos.y + sprite->offsetY,
+	SDL_Rect draw_rect = {
+		screen_pos.x + sprite->x,
+		screen_pos.y + sprite->y,
 		sprite->w,
 		sprite->h
 	};
-	SDL_RenderCopy(renderer, sprite->texture, NULL, &drawRect);
+	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
 }
 
-void renderChunk(chunk_t *chunk) {
+void render_chunk(chunk_t *chunk) {
 	int x, y, z, index = 0;
 	block_t *block;
-	v2i screenPos;
-	v3i blockLoc;
+	v2i screen_pos;
+	v3i block_loc;
 	for (z = 0; z < SIZE; z++) {
 		for (y = 0; y < SIZE; y++) {
 			for (x = 0; x < SIZE; x++) {
 				block = chunk->blocks[index++];
-				if (block != NULL && block->exposeMask > 0) {
-					blockLoc = (v3i){
+				if (block != NULL && block->expose_mask > 0) {
+					block_loc = (v3i){
 						x + chunk->loc.x * SIZE,
 						y + chunk->loc.y * SIZE,
 						z + chunk->loc.z * SIZE
 					};
-					screenPos = v3i_to_isometric(blockLoc, true);
-						switch (textures[block->texture]->type) {
-							case TEX_TEXTURE:
-								; // yes, this semicolon is necessary to compile without errors. I am not joking.
-								SDL_Rect drawRect = {
-									screenPos.x + texTexOffset.x,
-									screenPos.y + texTexOffset.y,
-									VOXEL_WIDTH,
-									VOXEL_HEIGHT
-								};
-								SDL_RenderCopy(renderer, textures[block->texture]->texture, NULL, &drawRect);
-								break;
+					screen_pos = v3i_to_isometric(block_loc, true);
+					switch (textures[block->texture]->type) {
+						case TEX_TEXTURE:
+							; // yes, this semicolon is necessary to compile without errors. I am not joking.
+							SDL_Rect draw_rect = {
+								screen_pos.x + tex_tex_offset.x,
+								screen_pos.y + tex_tex_offset.y,
+								VOXEL_WIDTH,
+								VOXEL_HEIGHT
+							};
+							SDL_RenderCopy(renderer, textures[block->texture]->texture, NULL, &draw_rect);
+							break;
 						case TEX_VOXELTEXTURE:
-								renderVoxelTexture(textures[block->texture]->voxelTexture, &screenPos, block->exposeMask);
+								render_voxel_texture(textures[block->texture]->voxel_texture, &screen_pos, block->expose_mask);
 								break;
 					}
 				}
@@ -183,11 +184,11 @@ void renderChunk(chunk_t *chunk) {
 	}
 }
 
-void renderWorld(world_t *world) {
-	for (int i = 0; i < world->numChunks; i++) {
-		renderChunk(world->chunks[i]);
+void render_world(world_t *world) {
+	for (int i = 0; i < world->num_chunks; i++) {
+		render_chunk(world->chunks[i]);
 	}
 
-	renderEntity(world->player); // TODO entity_t sorting into chunk rendering
+	render_entity(world->player); // TODO entity_t sorting into chunk rendering
 }
 

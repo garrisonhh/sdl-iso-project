@@ -3,7 +3,6 @@
 
 #include "entity.h"
 
-entity_t *createPlayer(void);
-
+entity_t *player_create(void);
 
 #endif

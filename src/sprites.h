@@ -5,16 +5,13 @@
 
 typedef struct {
 	SDL_Texture *texture;
-	// offsets are relative to entity_t position
-	int offsetX;
-	int offsetY;
-	int w;
-	int h;
+	// x, y are relative to entity_t position
+	int x, y, w, h;
 } sprite_t;
 
 extern sprite_t **sprites;
 
-void loadSprites(void);
-void destroySprites(void);
+void sprites_load(void);
+void sprites_destroy(void);
 
 #endif

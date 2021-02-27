@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-typedef SDL_Point v2i; // for consistency
+typedef SDL_Point v2i;
 
 typedef struct {
 	int x, y, z;

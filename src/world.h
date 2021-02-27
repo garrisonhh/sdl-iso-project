@@ -11,8 +11,8 @@
 
 typedef struct {
 	int texture;
-	Uint8 exposeMask;
-	bool updateExpose;
+	Uint8 expose_mask;
+	bool expose_update;
 } block_t;
 
 typedef struct {
@@ -23,13 +23,13 @@ typedef struct {
 typedef struct {
 	chunk_t **chunks;
 	v3i dims;
-	int numChunks;
+	int num_chunks;
 	entity_t *player;
 } world_t;
 
-world_t *createWorld(v3i dims);
-void destroyWorld(world_t *);
-void tickWorld(world_t *, int ms);
-void generateWorld(world_t *);
+world_t *world_create(v3i dims);
+void world_destroy(world_t *);
+void world_tick(world_t *, int ms);
+void world_generate(world_t *);
 
 #endif
