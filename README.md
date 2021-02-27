@@ -1,19 +1,12 @@
 ## TODOs
-0) frickin collision detection bug hunting
-	- I am going nuts
-	- Use a god damn library next time you idiot
 1) entity type
-	- sprite rendering
+	- x sprite rendering
 		- render sorting
 		- animations
-	- player entity with controls
-		- collision with world (stick to AABB for now)
-			- save entity-entity collision for later
-		- camera movement
 2) basic gameplay elements
 	- x simple procedural world with some ~~value~~ perlin noise
 		- structures like trees
-		- render distance
+	- render distance
 
 character/art stuff:
 - "the animator's survival kit"
