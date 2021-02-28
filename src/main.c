@@ -45,35 +45,7 @@ void on_close() {
 	SDL_Quit();
 }
 
-#include "collision.h" // TODO REMOVE
-
 int main(int argc, char *argv[]) {
-	/*
-	// generate boxes
-	bbox_t boxes[50];
-	int num_boxes = 0;
-	int x, y, z;
-
-	for (x = 0; x < 3; x++) {
-		for (y = 0; y < 3; y++) {
-			for (z = 0; z < 1; z++) {
-				boxes[num_boxes++] = (bbox_t){(v3d){x, y, z}, (v3d){1, 1, 1}};
-			}
-		}
-	}
-
-	// entity_tick test
-	entity_t entity;
-	int ms = 10;
-
-	entity.ray = (ray_t){(v3d){1, 1, 1}, (v3d){1, 1, -.5}};
-	// entity.size = (v3d){1, 1, 1};
-
-	entity_tick(&entity, ms, boxes, num_boxes);
-	
-	return 0;
-	// TODO REMOVE ^^^
-	*/
 	init();
 	media_load();
 

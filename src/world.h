@@ -10,6 +10,11 @@
 #define CHUNK_SIZE 4096
 
 typedef struct {
+	entity_t **arr;
+	int size, max_size;
+} entity_bucket;
+
+typedef struct {
 	int texture;
 	Uint8 expose_mask;
 	bool expose_update;
@@ -17,6 +22,7 @@ typedef struct {
 
 typedef struct {
 	block_t *blocks[CHUNK_SIZE];
+	entity_bucket *buckets[CHUNK_SIZE];
 	v3i loc;
 } chunk_t;
 

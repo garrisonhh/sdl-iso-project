@@ -9,13 +9,15 @@
 
 const v3d BLOCK_SIZE = {1, 1, 1};
 
-// initializes chunk with no blocks
 chunk_t *create_chunk(v3i loc) {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
+
 	for (int i = 0; i < CHUNK_SIZE; i++) {
 		chunk->blocks[i] = NULL;
+		chunk->buckets[i] = NULL;
 	}
 	chunk->loc = loc;
+
 	return chunk;
 }
 
@@ -25,11 +27,65 @@ void destroy_chunk(chunk_t *chunk) {
 			free(chunk->blocks[i]);
 			chunk->blocks[i] = NULL;
 		}
+		if (chunk->buckets[i] != NULL) {
+			free(chunk->buckets[i]);
+			chunk->buckets[i] = NULL;
+		}
 	}
 	free(chunk);
 }
 
+entity_bucket *create_bucket() {
+	entity_bucket *bucket = (entity_bucket *)malloc(sizeof(entity_bucket));
+	
+	bucket->arr = (entity_t **)malloc(sizeof(entity_t *) * 2);
+	bucket->size = 0;
+	bucket->max_size = 2;
+
+	return bucket;
+}
+
+void destroy_bucket(entity_bucket *bucket) {
+	free(bucket->arr);
+	bucket->arr = NULL;
+	free(bucket);
+	bucket = NULL;
+}
+
+// loc is a block loc not a chunk loc
+chunk_t *get_chunk(world_t *world, v3i loc) {
+	int i, coord, chunk_index;
+	v3i chunk_loc;
+
+	for (i = 0; i < 3; i++) {
+		coord = v3i_get(&loc, i) / SIZE;
+		if (coord < 0 || v3i_get(&world->dims, i) <= coord)
+			return NULL;
+		v3i_set(&chunk_loc, i, coord);
+	}
+
+	chunk_index = (chunk_loc.z * world->dims.z + chunk_loc.y) * world->dims.y + chunk_loc.x;
+
+	return world->chunks[chunk_index];
+}
+
+// takes an absolute location and returns index within its chunk
+int block_index_in_chunk(v3i loc) {
+	v3i block_loc;
+	int i, coord;
+
+	for (i = 0; i < 3; i++) {
+		coord = v3i_get(&loc, i) % SIZE;
+		if (coord < 0)
+			coord += SIZE;
+		v3i_set(&block_loc, i, coord);
+	}
+
+	return v3i_flatten(block_loc, SIZE);
+}
+
 // this also creates the block.. separate functionality maybe? use block ids instead of tex ids? idk
+// TODO make this take world rather than chunk as parameter
 void set_block(chunk_t *chunk, v3i loc, int texture) {
 	block_t *block = (block_t *)malloc(sizeof(block_t));
 	int index = v3i_flatten(loc, SIZE);
@@ -53,53 +109,84 @@ void set_block(chunk_t *chunk, v3i loc, int texture) {
 }
 
 block_t *get_block(world_t *world, v3i loc) {
-	v3i chunk_loc, block_loc;
-	int i, coord, chunk_index;
+	chunk_t *chunk = get_chunk(world, loc);
+	return chunk == NULL ? NULL : chunk->blocks[block_index_in_chunk(loc)];
+}
 
-	// get chunk in world
-	for (i = 0; i < 3; i++) {
-		coord = v3i_get(&loc, i) / SIZE;
-		if (coord < 0 || v3i_get(&world->dims, i) <= coord)
-			return NULL;
-		v3i_set(&chunk_loc, i, coord);
+void bucket_add(world_t *world, v3i loc, entity_t *entity) {
+	entity_bucket *bucket;
+	int index;
+	chunk_t *chunk;
+
+	chunk = get_chunk(world, loc);
+	index = block_index_in_chunk(loc);
+
+	if (chunk->buckets[index] == NULL)
+		chunk->buckets[index] = create_bucket();
+	
+	bucket = chunk->buckets[index];
+	bucket->arr[bucket->size++] = entity;
+
+	if (bucket->size == bucket->max_size) {
+		bucket->max_size <<= 1;
+		bucket->arr = (entity_t **)realloc(bucket->arr, sizeof(entity_t *) * bucket->max_size);
 	}
+}
 
-	// get block in chunk
-	for (i = 0; i < 3; i++) {
-		coord = v3i_get(&loc, i) % SIZE;
-		if (coord < 0 || SIZE <= coord)
-			return NULL;
-		v3i_set(&block_loc, i, coord);
+void bucket_remove(world_t *world, v3i loc, entity_t *entity) {
+	entity_bucket *bucket;
+	int index, i, j;
+	chunk_t *chunk;
+
+	chunk = get_chunk(world, loc);
+	index = block_index_in_chunk(loc);
+
+	if (chunk->buckets[index] == NULL) {
+		printf("error: attempted to remove an entity from a bucket that doesn't exist.\n");
+		exit(1);
 	}
+	
+	bucket = chunk->buckets[index];
+	
+	for (i = 0; i < bucket->size; i++) {
+		if (bucket->arr[i] == entity) {
+			for (j = i + 1; j < bucket->size; j++)
+				bucket->arr[j - 1] = bucket->arr[j];
+			bucket->size--;
 
-	chunk_index = (chunk_loc.z * world->dims.z + chunk_loc.y) * world->dims.y + chunk_loc.x;
-
-	return world->chunks[chunk_index]->blocks[v3i_flatten(block_loc, SIZE)];
+			// cross your fingers and hope it doesn't leak
+			if (bucket->size == 0) {
+				destroy_bucket(bucket);
+				chunk->buckets[index] = NULL;
+			} else if (bucket->size < bucket->max_size >> 1) {
+				bucket->max_size >>= 1;
+				bucket->arr = (entity_t **)realloc(bucket->arr, sizeof(entity_t *) * bucket->max_size);
+			}
+			break;
+		}
+	}
 }
 
 world_t *world_create(v3i dims) {
+	int x, y, z, index = 0;
 	world_t *world = (world_t *)malloc(sizeof(world_t));
-	if (world == NULL) {
-		printf("error: could not allocate memory for world.");
-		exit(1);
-	}
+	v3i loc;
+
 	world->dims = dims;
 	world->num_chunks = world->dims.x * world->dims.y * world->dims.z;
 	world->chunks = (chunk_t **)malloc(sizeof(chunk_t*) * world->num_chunks);
-	if (world->chunks == NULL) {
-		printf("error: could not allocate memory for world chunks.");
-		exit(1);
-	}
-	int x, y, z, index = 0;
+
 	for (z = 0; z < world->dims.z; z++) {
 		for (y = 0; y < world->dims.y; y++) {
 			for (x = 0; x < world->dims.x; x++) {
-				v3i loc = {x, y, z};
+				loc = (v3i){x, y, z};
 				world->chunks[index++] = create_chunk(loc);
 			}
 		}
 	}
 	world->player = player_create();
+	bucket_add(world, v3i_from_v3d(world->player->ray.pos), world->player); 
+
 	return world;
 }
 
@@ -114,7 +201,8 @@ void world_destroy(world_t *world) {
 }
 
 void world_tick(world_t *world, int ms) {
-	// tick player
+	// TODO this code needs to go somewhere else
+	// find boxes surrounding player
 	bbox_t boxes[27];
 	int x, y, z, num_boxes = 0;
 	v3i player_loc, current_block;
@@ -132,16 +220,21 @@ void world_tick(world_t *world, int ms) {
 		}
 	}
 
+	// apply movement + collision; sort ptr into relevant bucket
+	int last_bucket, this_bucket;
+	v3i this_player_loc;
+
+	last_bucket = v3i_flatten(player_loc, SIZE);
 	entity_tick(world->player, ms, boxes, num_boxes);
+	this_player_loc = v3i_from_v3d(world->player->ray.pos);
+	this_bucket = v3i_flatten(this_player_loc, SIZE);
+
+	if (last_bucket != this_bucket) {
+		bucket_remove(world, player_loc, world->player);
+		bucket_add(world, this_player_loc, world->player);
+	}
 }
 
-/*
-perlin noise:
-1) generate random vectors for each point on a grid
-	- implementation will randomly choose a slope 1 or -1 diagonal; determined using a 2-bit value at each point
-2) for each point within a grid square, calculate the dot product of the vector from the point to each corner and the vector associated with the corner
-3) use a linear interpolation formula (cosine based or similar) to interpolate all 4 values
-*/
 void world_generate(world_t *world) {
 	srand(time(0));
 	noise_init(time(0), world->dims.x, world->dims.y);

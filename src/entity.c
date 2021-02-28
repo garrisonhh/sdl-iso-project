@@ -2,8 +2,6 @@
 #include "vector.h"
 #include "collision.h"
 
-#include <stdio.h> // TODO REMOVE
-
 void entity_destroy(entity_t *entity) {
 	free(entity);
 	entity = NULL;

@@ -33,8 +33,6 @@ void update_camera(world_t *world) {
 	camera = v2i_sub(SCREEN_CENTER, v3d_to_isometric(world->player->ray.pos, false));
 }
 
-// TODO entity sprite sorting into world
-// TODO make entity Z level visually apparent
 void render_entity(entity_t *entity) {
 	v2i screen_pos = v3d_to_isometric(v3d_add(entity->ray.pos, v3d_scale(entity->size, -.5)), true);
 	sprite_t *sprite = sprites[entity->sprite];
@@ -42,24 +40,32 @@ void render_entity(entity_t *entity) {
 }
 
 void render_chunk(chunk_t *chunk) {
-	int x, y, z, index = 0;
+	int x, y, z, index = 0, i;
 	block_t *block;
+	entity_bucket *bucket;
 	v2i screen_pos;
 	v3i block_loc;
+
 	for (z = 0; z < SIZE; z++) {
 		for (y = 0; y < SIZE; y++) {
 			for (x = 0; x < SIZE; x++) {
-				block = chunk->blocks[index++];
+				// entities
+				bucket = chunk->buckets[index];
+				if (bucket != NULL) {
+					// TODO sort or presort multiple entities in a bucket
+					for (i = 0; i < bucket->size; i++)
+						render_entity(bucket->arr[i]);
+				}
+
+				// block
+				block = chunk->blocks[index];
 				if (block != NULL && block->expose_mask > 0) {
-					block_loc = (v3i){
-						x + chunk->loc.x * SIZE,
-						y + chunk->loc.y * SIZE,
-						z + chunk->loc.z * SIZE
-					};
+					block_loc = (v3i){x, y, z};
+					block_loc = v3i_add(block_loc, v3i_scale(chunk->loc, SIZE));
 					screen_pos = v3i_to_isometric(block_loc, true);
+
 					switch (textures[block->texture]->type) {
 						case TEX_TEXTURE:
-							; // yes, this semicolon is necessary to compile without errors. I am not joking.
 							render_tex_texture(textures[block->texture]->texture, screen_pos);
 							break;
 						case TEX_VOXELTEXTURE:
@@ -69,6 +75,8 @@ void render_chunk(chunk_t *chunk) {
 							break;
 					}
 				}
+
+				index++;
 			}
 		}
 	}
@@ -78,7 +86,5 @@ void render_world(world_t *world) {
 	for (int i = 0; i < world->num_chunks; i++) {
 		render_chunk(world->chunks[i]);
 	}
-
-	render_entity(world->player); // TODO entity_t sorting into chunk rendering
 }
 

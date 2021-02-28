@@ -53,6 +53,10 @@ v2i v2i_sub(v2i a, v2i b) {
 	};
 }
 
+void v3i_print(v3i v) {
+	printf("{%d, %d, %d}", v.x, v.y, v.z);
+}
+
 v3i v3i_from_v3d(v3d v) {
 	return (v3i){
 		(int)v.x,
@@ -83,6 +87,14 @@ v3i v3i_add(v3i a, v3i b) {
 		a.x + b.x,
 		a.y + b.y,
 		a.z + b.z
+	};
+}
+
+v3i v3i_scale(v3i v, int scalar) {
+	return (v3i){
+		v.x * scalar,
+		v.y * scalar,
+		v.z * scalar
 	};
 }
 
