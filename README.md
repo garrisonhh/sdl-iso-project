@@ -1,7 +1,7 @@
 ## TODOs
 1) entity type
 	- x sprite rendering
-		- render sorting
+		- x render sorting
 		- animations
 2) basic gameplay elements
 	- x simple procedural world with some ~~value~~ perlin noise
