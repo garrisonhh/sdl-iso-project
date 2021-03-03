@@ -1,14 +1,6 @@
 #include <math.h>
 #include "vector.h"
-
-/* 
- * apparently M_PI isn't always defined in math.h between c versions?
- * gcc defines M_PI anyways, but it isn't the standard and that
- * would break using another compiler. the c language, dude
- */
-#ifndef M_PI
-#define M_PI (3.14159265358979323846)
-#endif
+#include "utils.h"
 
 v2d *perlin_vectors;
 v2i perlin_dims;

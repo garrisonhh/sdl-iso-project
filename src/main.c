@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
 
 		// gfx
 		expose_world(world);
-		SDL_RenderClear(renderer);
+		render_clear_screen();
 		render_world(world);
 		SDL_RenderPresent(renderer);
 
