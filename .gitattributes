@@ -1,0 +1,4 @@
+# this file fixes github randomly detecting random files to be c++
+
+*.c linguist-language=C
+*.h linguist-lanugage=C
