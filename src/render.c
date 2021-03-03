@@ -52,9 +52,12 @@ void render_chunk(chunk_t *chunk) {
 				// entities
 				bucket = chunk->buckets[index];
 				if (bucket != NULL) {
-					// TODO sort or presort multiple entities in a bucket
+					// TODO presort multiple entities in buckets
 					for (i = 0; i < bucket->size; i++)
 						render_entity(bucket->arr[i]);
+
+					// TODO figure out shadows
+					// render_shadow(...)
 				}
 
 				// block

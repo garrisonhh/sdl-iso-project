@@ -7,6 +7,7 @@
 #include "entity.h"
 #include "player.h"
 
+#define GRAVITY -20
 const v3d BLOCK_SIZE = {1, 1, 1};
 
 chunk_t *create_chunk(v3i loc) {
@@ -119,6 +120,10 @@ void bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	chunk_t *chunk;
 
 	chunk = get_chunk(world, loc);
+
+	if (chunk == NULL)
+		return;
+
 	index = block_index_in_chunk(loc);
 
 	if (chunk->buckets[index] == NULL)
@@ -139,6 +144,10 @@ void bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 	chunk_t *chunk;
 
 	chunk = get_chunk(world, loc);
+	
+	if (chunk == NULL)
+		return;
+
 	index = block_index_in_chunk(loc);
 
 	if (chunk->buckets[index] == NULL) {
@@ -223,6 +232,8 @@ void world_tick(world_t *world, int ms) {
 	// apply movement + collision; sort ptr into relevant bucket
 	int last_bucket, this_bucket;
 	v3i this_player_loc;
+
+	v3d_set(&world->player->ray.dir, 2, v3d_get(&world->player->ray.dir, 2) + (GRAVITY * ((double)ms / 1000))); // TODO repetition of entity.c, move this fucking code
 
 	last_bucket = v3i_flatten(player_loc, SIZE);
 	entity_tick(world->player, ms, boxes, num_boxes);

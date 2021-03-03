@@ -22,6 +22,7 @@ void entity_tick(entity_t *entity, int ms, bbox_t *boxes, int num_boxes) {
 
 	sort_bboxes_by_vector_polarity(boxes, num_boxes, scaled_ray.dir);
 
+	// resolve collisions by altering entity->ray.dir
 	for (i = 0; i < num_boxes; i++) {
 		current_box = boxes[i];
 		current_box.pos = v3d_add(current_box.pos, box_offset);
@@ -30,6 +31,9 @@ void entity_tick(entity_t *entity, int ms, bbox_t *boxes, int num_boxes) {
 		ray_bbox_intersection(NULL, &resolved_dir, &axis, scaled_ray, current_box);
 		if (axis >= 0) {
 			scaled_ray.dir = resolved_dir;
+
+			// kill inertia on collided axes
+			v3d_set(&entity->ray.dir, axis, 0);
 		}
 	}
 

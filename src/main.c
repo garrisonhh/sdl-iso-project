@@ -9,6 +9,7 @@
 #include "render.h"
 #include "world.h"
 #include "expose.h"
+#include "utils.h"
 
 SDL_Window *window = NULL;
 
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
 	init();
 	media_load();
 
-	v3i dims = {2, 2, 1};
+	v3i dims = {4, 4, 2};
 	world_t *world = world_create(dims);
 	world_generate(world);
 
@@ -63,6 +64,8 @@ int main(int argc, char *argv[]) {
 	const int SPEED = 3; // TODO move this somewhere better idk where
 	const v3d move_down = {SPEED, SPEED, 0};
 	const v3d move_right = {SPEED, -SPEED, 0};
+	v3d move;
+	bool jump = false;
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
@@ -74,6 +77,9 @@ int main(int argc, char *argv[]) {
 					switch (e.key.keysym.sym) { // nothing wrong with this. very normal code.
 						case SDLK_ESCAPE:
 							quit = true;
+							break;
+						case SDLK_SPACE:
+							jump = true;
 							break;
 					}
 					break;
@@ -90,16 +96,19 @@ int main(int argc, char *argv[]) {
 			move_inputs.x--;
 		if (kb_state[SDL_SCANCODE_D])
 			move_inputs.x++;
-		if (kb_state[SDL_SCANCODE_LSHIFT])
-			move_inputs.z--;
-		if (kb_state[SDL_SCANCODE_LCTRL])
-			move_inputs.z++;
-		
-		world->player->ray.dir = v3d_add(
+
+		move = v3d_add(
 			v3d_scale(move_right, move_inputs.x),
 			v3d_scale(move_down, move_inputs.y)
 		);
-		world->player->ray.dir.z = move_inputs.z * 2;
+
+		world->player->ray.dir.x = move.x;
+		world->player->ray.dir.y = move.y;
+
+		if (jump) {
+			world->player->ray.dir.z += 9.0;
+			jump = false;
+		}
 
 		// tick
 		this_time = SDL_GetTicks();

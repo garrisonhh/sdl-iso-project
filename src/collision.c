@@ -46,7 +46,7 @@ bbox_t ray_to_bbox(ray_t ray) {
 	return box;
 }
 
-// outputs intersection point, resolved_dir to modify ray.dir by, and axis of intersection
+// outputs intersection point, resolved_dir to replace ray.dir with, and axis of intersection
 void ray_bbox_intersection(v3d *intersection, v3d *resolved_dir, int *axis_inter, ray_t ray, bbox_t box) {
 	double plane, plane_vel;
 	double dim_start, dim_len;
@@ -56,16 +56,15 @@ void ray_bbox_intersection(v3d *intersection, v3d *resolved_dir, int *axis_inter
 	bool collide;
 
 	for (i = 2; i >= 0; i--) {
-		// find near plane of face on this axis
+		// find near plane of face on this axis 
 		plane_vel = v3d_get(&ray.dir, i);
 		plane = v3d_get(&box.pos, i);
 	
 		if (v3d_get(&ray.dir, i) < 0)
 			plane += v3d_get(&box.size, i);
 
-		// if ray is not parallel to axis...
 		if (!d_close(plane_vel, 0)) {
-			// find collision b/t line and face 
+			// ray is not parallel, safe to find line-box intersection
 			collide = true;
 			for (j = 0; j < 3; j++) {
 				if (j == i)
@@ -91,38 +90,19 @@ void ray_bbox_intersection(v3d *intersection, v3d *resolved_dir, int *axis_inter
 			if (collide) {
 				v3d_set(&isect, i, plane);
 
-				// check if collision is also within ray
-				// ray_start = v3d_get(&ray.pos, i);
-				// ray_len = v3d_get(&ray.dir, i);
+				// check collision in bounds of ray
+				if (bbox_bbox_collide(ray_to_bbox(ray), box)) {
+					if (intersection != NULL)
+						*intersection = isect;
+					if (resolved_dir != NULL) {
+						*resolved_dir = ray.dir;
+						v3d_set(resolved_dir, i, plane - v3d_get(&ray.pos, i)); // pixel fucking perfect :)
+					}
+					if (axis_inter != NULL)
+						*axis_inter = i;
 
-				if (!bbox_bbox_collide(ray_to_bbox(ray), box))
-					collide = false;
-
-				/*
-				if (!((ray_start <= plane && plane <= ray_start + ray_len)
-				   || (ray_start >= plane && plane >= ray_start + ray_len)
-				   || d_close(ray_start, plane) || d_close(ray_start + ray_len, plane))) {
-					collide = false;
-				}*/
-			}
-	
-			if (collide) {
-				/*
-				printf("colliding with bbox: ");
-				bbox_print(box);
-				printf("\n");
-				*/
-
-				if (intersection != NULL)
-					*intersection = isect;
-				if (resolved_dir != NULL) {
-					*resolved_dir = ray.dir;
-					v3d_set(resolved_dir, i, plane - v3d_get(&ray.pos, i)); // pixel fucking perfect :)
+					return;
 				}
-				if (axis_inter != NULL)
-					*axis_inter = i;
-
-				return;
 			}
 		}
 	}
