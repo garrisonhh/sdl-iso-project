@@ -27,8 +27,8 @@ typedef struct {
 } chunk_t;
 
 typedef struct {
-	chunk_t **chunks;
 	v3i dims;
+	chunk_t **chunks;
 	int num_chunks;
 	entity_t *player;
 } world_t;

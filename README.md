@@ -5,7 +5,9 @@
 	- world render at once
 		- exposeWorld and renderWorld fix
 		- shadow fix
-2) basic gameplay elements
+2) universal entities
+	- player code is currently duct taped together across world, render, and entity
+3) basic gameplay elements
 	- x simple procedural world with some ~~value~~ perlin noise
 		- recursive noise function
 		- structures like trees

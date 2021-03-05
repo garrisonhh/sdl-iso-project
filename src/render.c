@@ -5,9 +5,10 @@
 #include <stdbool.h>
 #include <math.h>
 #include "render.h"
-#include "vector.h"
 #include "textures.h"
 #include "sprites.h"
+#include "vector.h"
+#include "utils.h"
 
 #define BG_GRAY 31
 #define SHADOW_ALPHA 63
@@ -102,66 +103,60 @@ void render_shadow(v2i center, int r) {
 	}
 }
 
-void render_chunk(chunk_t *chunk) {
-	int x, y, z, index = 0, i, shadow_z;
+void render_world(world_t *world) {
+	int cx, cy, cz, x, y, z;
+	int chunk_index = 0, block_index = 0, i, shadow_z;
+	chunk_t *chunk;
 	block_t *block;
 	entity_bucket *bucket;
 	v2i screen_pos;
 	v3i block_loc, shadow_loc;
 	v3d shadow_pos;
 
-	for (z = 0; z < SIZE; z++) {
-		for (y = 0; y < SIZE; y++) {
-			for (x = 0; x < SIZE; x++) {
-				// entities
-				bucket = chunk->buckets[index];
-				if (bucket != NULL) {
-					// TODO precalculate shadows on entity movement
-					for (shadow_z = (int)bucket->arr[0]->ray.pos.z; shadow_z >= 0; shadow_z--) {
-						shadow_loc = (v3i){x, y, shadow_z};
-						if (chunk->blocks[v3i_flatten(shadow_loc, SIZE)] != NULL) {
-							shadow_pos = bucket->arr[0]->ray.pos;
-							shadow_pos.z = shadow_z + 1;
-							render_shadow(v3d_to_isometric(shadow_pos, true), 8);
-							break;
-						}
-					}
-					
-					// TODO presort multiple entities in buckets
-					for (i = 0; i < bucket->size; i++)
-						render_entity(bucket->arr[i]);
-				}
+	FOR_XYZ(cx, cy, cz, world->dims.x, world->dims.y, world->dims.z) {
+		chunk = world->chunks[chunk_index++];
 
-				// block
-				block = chunk->blocks[index];
-				if (block != NULL && block->expose_mask > 0) {
-					block_loc = (v3i){x, y, z};
-					block_loc = v3i_add(block_loc, v3i_scale(chunk->loc, SIZE));
-					screen_pos = v3i_to_isometric(block_loc, true);
+		FOR_XYZ(x, y, z, SIZE, SIZE, SIZE) {
+			bucket = chunk->buckets[block_index];
+			if (bucket != NULL) {
 
-					switch (textures[block->texture]->type) {
-						case TEX_TEXTURE:
-							render_tex_texture(textures[block->texture]->texture, screen_pos);
-							break;
-						case TEX_VOXELTEXTURE:
-							render_voxel_texture(textures[block->texture]->voxel_texture,
-												 screen_pos,
-												 block->expose_mask);
-							break;
+				// TODO precalculate shadows on entity movement
+				for (shadow_z = (int)bucket->arr[0]->ray.pos.z; shadow_z >= 0; shadow_z--) {
+					shadow_loc = (v3i){x, y, shadow_z};
+					if (chunk->blocks[v3i_flatten(shadow_loc, SIZE)] != NULL) {
+						shadow_pos = bucket->arr[0]->ray.pos;
+						shadow_pos.z = shadow_z + 1;
+						render_shadow(v3d_to_isometric(shadow_pos, true), 8);
+						break;
 					}
 				}
-
-				index++;
+				
+				// TODO presort multiple entities in buckets
+				for (i = 0; i < bucket->size; i++)
+					render_entity(bucket->arr[i]);
 			}
-		}
-	}
-}
 
-void render_world(world_t *world) {
-	// TODO render entire world at once, chunk-by-chunk won't work for shadows and
-	// will continue to be a problem
-	for (int i = 0; i < world->num_chunks; i++) {
-		render_chunk(world->chunks[i]);
+			block = chunk->blocks[block_index];
+			if (block != NULL && block->expose_mask > 0) {
+				block_loc = (v3i){x, y, z};
+				block_loc = v3i_add(block_loc, v3i_scale(chunk->loc, SIZE));
+				screen_pos = v3i_to_isometric(block_loc, true);
+
+				switch (textures[block->texture]->type) {
+					case TEX_TEXTURE:
+						render_tex_texture(textures[block->texture]->texture, screen_pos);
+						break;
+					case TEX_VOXELTEXTURE:
+						render_voxel_texture(textures[block->texture]->voxel_texture,
+											 screen_pos,
+											 block->expose_mask);
+						break;
+				}
+			}
+
+			block_index++;
+		}
+		block_index = 0;
 	}
 }
 
