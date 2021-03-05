@@ -5,14 +5,10 @@
 #include <stdint.h>
 #include "vector.h"
 #include "entity.h"
+#include "entity_bucket.h"
 
 #define SIZE 16
 #define CHUNK_SIZE 4096
-
-typedef struct {
-	entity_t **arr;
-	int size, max_size;
-} entity_bucket;
 
 typedef struct {
 	int texture;
@@ -30,6 +26,7 @@ typedef struct {
 	v3i dims;
 	chunk_t **chunks;
 	int num_chunks;
+	entity_bucket *entities;
 	entity_t *player;
 } world_t;
 

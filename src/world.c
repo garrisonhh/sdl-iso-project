@@ -2,27 +2,30 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
+#include "utils.h"
 #include "world.h"
 #include "noise.h"
 #include "entity.h"
+#include "entity_bucket.h"
 #include "player.h"
 
 #define GRAVITY -20
 const v3d BLOCK_SIZE = {1, 1, 1};
 
-chunk_t *create_chunk(v3i loc) {
+chunk_t *chunk_create(v3i loc) {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
 
 	for (int i = 0; i < CHUNK_SIZE; i++) {
 		chunk->blocks[i] = NULL;
 		chunk->buckets[i] = NULL;
 	}
+
 	chunk->loc = loc;
 
 	return chunk;
 }
 
-void destroy_chunk(chunk_t *chunk) {
+void chunk_destroy(chunk_t *chunk) {
 	for (int i = 0; i < CHUNK_SIZE; i++) {
 		if (chunk->blocks[i] != NULL) {
 			free(chunk->blocks[i]);
@@ -34,23 +37,6 @@ void destroy_chunk(chunk_t *chunk) {
 		}
 	}
 	free(chunk);
-}
-
-entity_bucket *create_bucket() {
-	entity_bucket *bucket = (entity_bucket *)malloc(sizeof(entity_bucket));
-	
-	bucket->arr = (entity_t **)malloc(sizeof(entity_t *) * 2);
-	bucket->size = 0;
-	bucket->max_size = 2;
-
-	return bucket;
-}
-
-void destroy_bucket(entity_bucket *bucket) {
-	free(bucket->arr);
-	bucket->arr = NULL;
-	free(bucket);
-	bucket = NULL;
 }
 
 // loc is a block loc not a chunk loc
@@ -113,9 +99,7 @@ block_t *get_block(world_t *world, v3i loc) {
 	chunk_t *chunk = get_chunk(world, loc);
 	return chunk == NULL ? NULL : chunk->blocks[block_index_in_chunk(loc)];
 }
-
-void bucket_add(world_t *world, v3i loc, entity_t *entity) {
-	entity_bucket *bucket;
+void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	int index;
 	chunk_t *chunk;
 
@@ -127,20 +111,13 @@ void bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	index = block_index_in_chunk(loc);
 
 	if (chunk->buckets[index] == NULL)
-		chunk->buckets[index] = create_bucket();
+		chunk->buckets[index] = bucket_create();
 	
-	bucket = chunk->buckets[index];
-	bucket->arr[bucket->size++] = entity;
-
-	if (bucket->size == bucket->max_size) {
-		bucket->max_size <<= 1;
-		bucket->arr = (entity_t **)realloc(bucket->arr, sizeof(entity_t *) * bucket->max_size);
-	}
+	bucket_add(chunk->buckets[index], entity);
 }
 
-void bucket_remove(world_t *world, v3i loc, entity_t *entity) {
-	entity_bucket *bucket;
-	int index, i, j;
+void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
+	int index;
 	chunk_t *chunk;
 
 	chunk = get_chunk(world, loc);
@@ -149,30 +126,11 @@ void bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 		return;
 
 	index = block_index_in_chunk(loc);
-
-	if (chunk->buckets[index] == NULL) {
-		printf("error: attempted to remove an entity from a bucket that doesn't exist.\n");
-		exit(1);
-	}
+	bucket_remove(chunk->buckets[index], entity);
 	
-	bucket = chunk->buckets[index];
-	
-	for (i = 0; i < bucket->size; i++) {
-		if (bucket->arr[i] == entity) {
-			for (j = i + 1; j < bucket->size; j++)
-				bucket->arr[j - 1] = bucket->arr[j];
-			bucket->size--;
-
-			// cross your fingers and hope it doesn't leak
-			if (bucket->size == 0) {
-				destroy_bucket(bucket);
-				chunk->buckets[index] = NULL;
-			} else if (bucket->size < bucket->max_size >> 1) {
-				bucket->max_size >>= 1;
-				bucket->arr = (entity_t **)realloc(bucket->arr, sizeof(entity_t *) * bucket->max_size);
-			}
-			break;
-		}
+	if (chunk->buckets[index]->size == 0) {
+		bucket_destroy(chunk->buckets[index]);
+		chunk->buckets[index] = NULL;
 	}
 }
 
@@ -185,23 +143,23 @@ world_t *world_create(v3i dims) {
 	world->num_chunks = world->dims.x * world->dims.y * world->dims.z;
 	world->chunks = (chunk_t **)malloc(sizeof(chunk_t*) * world->num_chunks);
 
-	for (z = 0; z < world->dims.z; z++) {
-		for (y = 0; y < world->dims.y; y++) {
-			for (x = 0; x < world->dims.x; x++) {
-				loc = (v3i){x, y, z};
-				world->chunks[index++] = create_chunk(loc);
-			}
-		}
+	FOR_XYZ(x, y, z, world->dims.x, world->dims.y, world->dims.z) {
+		loc = (v3i){x, y, z};
+		world->chunks[index++] = chunk_create(loc);
 	}
+
 	world->player = player_create();
-	bucket_add(world, v3i_from_v3d(world->player->ray.pos), world->player); 
+	world->entities = bucket_create();
+
+	block_bucket_add(world, v3i_from_v3d(world->player->ray.pos), world->player); 
+	bucket_add(world->entities, world->player);
 
 	return world;
 }
 
 void world_destroy(world_t *world) {
 	for (int i = 0; i < world->num_chunks; i++) {
-		destroy_chunk(world->chunks[i]);
+		chunk_destroy(world->chunks[i]);
 		world->chunks[i] = NULL;
 	}
 	entity_destroy(world->player);
@@ -241,24 +199,25 @@ void world_tick(world_t *world, int ms) {
 	this_bucket = v3i_flatten(this_player_loc, SIZE);
 
 	if (last_bucket != this_bucket) {
-		bucket_remove(world, player_loc, world->player);
-		bucket_add(world, this_player_loc, world->player);
+		block_bucket_remove(world, player_loc, world->player);
+		block_bucket_add(world, this_player_loc, world->player);
 	}
 }
 
 void world_generate(world_t *world) {
-	srand(time(0));
-
 	v2i dims = {world->dims.x, world->dims.y};
-	noise_init(time(0), dims);
-
 	v2d pos;
 	v3i loc;
 	int x, y, cx, cy, cz, val;
 	chunk_t* chunk;
+
+	srand(time(0));
+	noise_init(time(0), dims);
+
 	for (y = 0; y < world->dims.y; y++) {
 		for (x = 0; x < world->dims.x; x++) {
 			chunk = world->chunks[y * world->dims.x + x];
+
 			for (cy = 0; cy < SIZE; cy++) {
 				for (cx = 0; cx < SIZE; cx++) {
 					pos.x = (double)(x * SIZE + cx) / (double)SIZE;
@@ -266,11 +225,14 @@ void world_generate(world_t *world) {
 					loc.x = cx;
 					loc.y = cy;
 					val = (int)((1.0 + noise_at(pos)) * (SIZE / 2));
+
 					for (cz = 0; cz < val; cz++) {
 						loc.z = cz;
 						set_block(chunk, loc, 0); // dirt in ground
 					}
+
 					set_block(chunk, loc, 1); // grass on top
+
 					// randomly scattered bushes
 					if ((rand() % 20) == 0) {
 						loc.z++;
