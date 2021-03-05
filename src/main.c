@@ -1,5 +1,4 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -26,29 +25,23 @@ void init() {
 		exit(1);
 	}
 	
-	render_init(window);
-	int img_flags = IMG_INIT_PNG;
-	if (!(IMG_Init(img_flags) & img_flags)) {
-		printf("SDL_image could not initialize:\n%s\n", IMG_GetError());
-		exit(1);
-	}
+	render_init(window);	
+	media_init();
 }
 
 // naming this "close" results in seg fault lmao. func name conflict in sdl somewhere?
 void on_close() {
-	media_destroy();
+	media_quit();
 	render_destroy();
 
 	SDL_DestroyWindow(window);
 	window = NULL;
 
-	IMG_Quit();
 	SDL_Quit();
 }
 
 int main(int argc, char *argv[]) {
 	init();
-	media_load();
 
 	v3i dims = {4, 4, 2};
 	world_t *world = world_create(dims);
@@ -83,6 +76,12 @@ int main(int argc, char *argv[]) {
 							break;
 					}
 					break;
+				case SDL_MOUSEWHEEL:
+					if (e.wheel.y >= 0)
+						camera_set_scale(camera_scale + 1);
+					else if (camera_scale > 1)
+						camera_set_scale(camera_scale - 1);
+					break;
 			}
 		}
 
@@ -113,7 +112,7 @@ int main(int argc, char *argv[]) {
 		// tick
 		this_time = SDL_GetTicks();
 		world_tick(world, this_time - last_time);
-		update_camera(world);
+		camera_update(world);
 		last_time = this_time;
 
 		// gfx

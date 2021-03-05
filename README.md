@@ -1,5 +1,6 @@
 ## TODOs
 1) camera stuff
+	- x proper scaling
 	- occlusion
 	- world render at once
 		- exposeWorld and renderWorld fix
@@ -9,10 +10,9 @@
 		- recursive noise function
 		- structures like trees
 	- render distance
-3) entity type
-	- x sprite rendering
-		- x render sorting
-		- animations
+N) ideas for whenever
+	- dynamic shadows
+	- sprite animations
 
 character/art stuff:
 - "the animator's survival kit"

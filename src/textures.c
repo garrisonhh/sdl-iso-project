@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <json-c/json.h>
+#include <stdlib.h>
 #include "vector.h"
 #include "media.h"
 #include "render.h"
@@ -9,36 +10,44 @@
 texture_t **textures = NULL;
 int num_textures;
 
-const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
-v2i tex_tex_offset = {
-	-(VOXEL_WIDTH >> 1),
-	-VOXEL_Z_HEIGHT
-};
-SDL_Rect vox_tex_rects[3] = { // used to render sides of vox_tex; t-l-r to correspond with bitmask rshifts
-	{
-		-(VOXEL_WIDTH >> 1),
-		-VOXEL_Z_HEIGHT,
-		VOXEL_WIDTH,
-		VOXEL_WIDTH >> 1
-	},
-	{
-		-(VOXEL_WIDTH >> 1),
-		-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
-		VOXEL_WIDTH >> 1,
-		VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
-	},
-	{
-		0,
-		-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
-		VOXEL_WIDTH >> 1,
-		VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
-	},
-};
+v2i tex_tex_offset;
+SDL_Rect vox_tex_rects[3];
 Uint8 vox_tex_shades[] = { // flat shading values (out of 255) for each side t-l-r
 	255,
 	223,
 	191
 };
+
+// workaround for C's weird global constant rules
+void textures_init() {
+	tex_tex_offset = (v2i){
+		-(VOXEL_WIDTH >> 1),
+		-VOXEL_Z_HEIGHT
+	};
+
+	SDL_Rect vox_tex_rects_tmp[3] = {
+		{
+			-(VOXEL_WIDTH >> 1),
+			-VOXEL_Z_HEIGHT,
+			VOXEL_WIDTH,
+			VOXEL_WIDTH >> 1
+		},
+		{
+			-(VOXEL_WIDTH >> 1),
+			-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
+			VOXEL_WIDTH >> 1,
+			VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
+		},
+		{
+			0,
+			-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
+			VOXEL_WIDTH >> 1,
+			VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
+		},
+	};
+
+	memcpy(vox_tex_rects, vox_tex_rects_tmp, sizeof vox_tex_rects_tmp);
+}
 
 void textures_load() {
 	json_object *tex_arr_obj;

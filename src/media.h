@@ -3,8 +3,8 @@
 
 #include <SDL2/SDL.h>
 
-void media_load(void);
-void media_destroy(void);
+void media_init(void);
+void media_quit(void);
 SDL_Texture *load_sdl_texture(char *path);
 
 #endif

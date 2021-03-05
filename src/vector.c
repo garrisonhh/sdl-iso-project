@@ -5,39 +5,6 @@
 #include "vector.h"
 #include "render.h"
 
-/*
-   z
-   |
-   |
-   .
-  / \
- /   \
-y     x
-in vector.*: functions dealing with point math and 3d/2d conversion
-*/
-
-v2i v3i_to_isometric(v3i v, bool at_camera) {
-	v2i iso = {
-		((v.x - v.y) * VOXEL_WIDTH) >> 1,
-		(((v.x + v.y) * VOXEL_WIDTH) >> 2) - (v.z * VOXEL_Z_HEIGHT)
-	};
-
-	if (at_camera)
-		return v2i_add(iso, camera);
-	return iso;
-}
-
-v2i v3d_to_isometric(v3d v, bool at_camera) {
-	v2i iso = {
-		((v.x - v.y) * VOXEL_WIDTH) / 2,
-		(((v.x + v.y) * VOXEL_WIDTH) / 4) - (v.z * VOXEL_Z_HEIGHT)
-	};
-
-	if (at_camera)
-		return v2i_add(iso, camera);
-	return iso;
-}
-
 v2i v2i_add(v2i a, v2i b) {
 	return (v2i){
 		a.x + b.x,

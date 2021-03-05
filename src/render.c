@@ -9,13 +9,16 @@
 #include "textures.h"
 #include "sprites.h"
 
-#define BG_GRAY 50
-#define SHADOW_ALPHA 127
+#define BG_GRAY 31
+#define SHADOW_ALPHA 63
+
+const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 
 SDL_Renderer *renderer = NULL;
-v2i camera = {0, 0};
 
-const v2i SCREEN_CENTER = {SCREEN_WIDTH >> 2, SCREEN_HEIGHT >> 2};
+v2i camera = {0, 0};
+int camera_scale;
+v2i screen_center;
 
 void render_init(SDL_Window *window) {
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -26,7 +29,9 @@ void render_init(SDL_Window *window) {
 
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
-	SDL_RenderSetScale(renderer, 2, 2); // TODO un-hardcode scaling
+	SDL_RenderSetIntegerScale(renderer, true);
+
+	camera_set_scale(2);
 }
 
 void render_destroy() {
@@ -39,8 +44,36 @@ void render_clear_screen() {
 	SDL_RenderClear(renderer);
 }
 
-void update_camera(world_t *world) {
-	camera = v2i_sub(SCREEN_CENTER, v3d_to_isometric(world->player->ray.pos, false));
+v2i v3i_to_isometric(v3i v, bool at_camera) {
+	v2i iso = {
+		((v.x - v.y) * VOXEL_WIDTH) >> 1,
+		(((v.x + v.y) * VOXEL_WIDTH) >> 2) - (v.z * VOXEL_Z_HEIGHT)
+	};
+
+	if (at_camera)
+		return v2i_add(iso, camera);
+	return iso;
+}
+
+v2i v3d_to_isometric(v3d v, bool at_camera) {
+	v2i iso = {
+		((v.x - v.y) * VOXEL_WIDTH) / 2,
+		(((v.x + v.y) * VOXEL_WIDTH) / 4) - (v.z * VOXEL_Z_HEIGHT)
+	};
+
+	if (at_camera)
+		return v2i_add(iso, camera);
+	return iso;
+}
+
+void camera_update(world_t *world) {
+	camera = v2i_sub(screen_center, v3d_to_isometric(world->player->ray.pos, false));
+}
+
+void camera_set_scale(int scale) {
+	camera_scale = scale;
+	screen_center = (v2i){(SCREEN_WIDTH / camera_scale) >> 1, (SCREEN_HEIGHT / camera_scale) >> 1};
+	SDL_RenderSetScale(renderer, camera_scale, camera_scale);
 }
 
 void render_entity(entity_t *entity) {
@@ -49,8 +82,7 @@ void render_entity(entity_t *entity) {
 	render_sprite(sprite, screen_pos);
 }
 
-// renders "circle" (scaled for isometric) at center
-// this might bottleneck but unsure
+// renders 2-1 ellipse at center
 void render_shadow(v2i center, int r) {
 	int i, rx = r, ry = r >> 1, ix = r;
 	float y = 0.0, y_step = 1 / (float)ry;
@@ -78,7 +110,6 @@ void render_chunk(chunk_t *chunk) {
 	v3i block_loc, shadow_loc;
 	v3d shadow_pos;
 
-	// TODO change order from z-y-x to y-x-z or x-y-z (z last)
 	for (z = 0; z < SIZE; z++) {
 		for (y = 0; y < SIZE; y++) {
 			for (x = 0; x < SIZE; x++) {

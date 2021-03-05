@@ -4,14 +4,22 @@
 #include "textures.h"
 #include "sprites.h"
 
-void media_load() {
+void media_init() {
+	int img_flags = IMG_INIT_PNG;
+	if (!(IMG_Init(img_flags) & img_flags)) {
+		printf("SDL_image could not initialize:\n%s\n", IMG_GetError());
+		exit(1);
+	}
+
+	textures_init();
 	textures_load();
 	sprites_load();
 }
 
-void media_destroy() {
+void media_quit() {
 	textures_destroy();
 	sprites_destroy();
+	IMG_Quit();
 }
 
 SDL_Texture *load_sdl_texture(char *path) {
