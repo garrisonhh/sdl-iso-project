@@ -78,6 +78,7 @@ void render_chunk(chunk_t *chunk) {
 	v3i block_loc, shadow_loc;
 	v3d shadow_pos;
 
+	// TODO change order from z-y-x to y-x-z or x-y-z (z last)
 	for (z = 0; z < SIZE; z++) {
 		for (y = 0; y < SIZE; y++) {
 			for (x = 0; x < SIZE; x++) {

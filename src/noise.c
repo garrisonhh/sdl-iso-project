@@ -15,10 +15,9 @@ double lerp2d(double corners[4], v2d *point) {
 	return lerp(lerp(corners[0], corners[1], point->x), lerp(corners[2], corners[3], point->x), point->y);
 }
 
-void noise_init(unsigned int seed, int w, int h) {
-	perlin_dims.x = w;
-	perlin_dims.y = h;
-	perlin_size = (h + 1) * (w + 1);
+void noise_init(unsigned int seed, v2i dims) {
+	perlin_dims = dims;
+	perlin_size = (dims.y + 1) * (dims.x + 1);
 	perlin_vectors = (v2d *)malloc(sizeof(v2d) * perlin_size);
 	for (int i = 0; i < perlin_size; i++) {
 		perlin_vectors[i].x = (double)(2 * (rand() % 2) - 1);
@@ -26,15 +25,14 @@ void noise_init(unsigned int seed, int w, int h) {
 	}
 }
 
-// TODO why the fuck am I using pointers here?
-double noise_at(v2d *point) {
+double noise_at(v2d point) {
 	v2d *mod_pt = (v2d *)malloc(sizeof(v2d));
-	mod_pt->x = fmod(point->x, 1);
-	mod_pt->y = fmod(point->y, 1);
+	mod_pt->x = fmod(point.x, 1);
+	mod_pt->y = fmod(point.y, 1);
 
 	v2d corner;
 	double dot_corners[4], value;
-	int i, j, pX = (int)point->x, pY = (int)point->y;
+	int i, j, pX = (int)point.x, pY = (int)point.y;
 	for (j = 0; j < 2; j++) {
 		for (i = 0; i < 2; i++) {
 			corner.x = i ? 1 - mod_pt->x : mod_pt->x;

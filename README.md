@@ -1,12 +1,18 @@
 ## TODOs
-1) entity type
+1) camera stuff
+	- occlusion
+	- world render at once
+		- exposeWorld and renderWorld fix
+		- shadow fix
+2) basic gameplay elements
+	- x simple procedural world with some ~~value~~ perlin noise
+		- recursive noise function
+		- structures like trees
+	- render distance
+3) entity type
 	- x sprite rendering
 		- x render sorting
 		- animations
-2) basic gameplay elements
-	- x simple procedural world with some ~~value~~ perlin noise
-		- structures like trees
-	- render distance
 
 character/art stuff:
 - "the animator's survival kit"

@@ -248,7 +248,9 @@ void world_tick(world_t *world, int ms) {
 
 void world_generate(world_t *world) {
 	srand(time(0));
-	noise_init(time(0), world->dims.x, world->dims.y);
+
+	v2i dims = {world->dims.x, world->dims.y};
+	noise_init(time(0), dims);
 
 	v2d pos;
 	v3i loc;
@@ -263,7 +265,7 @@ void world_generate(world_t *world) {
 					pos.y = (double)(y * SIZE + cy) / (double)SIZE;
 					loc.x = cx;
 					loc.y = cy;
-					val = (int)((1.0 + noise_at(&pos)) * (SIZE / 2));
+					val = (int)((1.0 + noise_at(pos)) * (SIZE / 2));
 					for (cz = 0; cz < val; cz++) {
 						loc.z = cz;
 						set_block(chunk, loc, 0); // dirt in ground
