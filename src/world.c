@@ -20,8 +20,6 @@ chunk_t *chunk_create(v3i loc) {
 		chunk->buckets[i] = NULL;
 	}
 
-	chunk->loc = loc;
-
 	return chunk;
 }
 
@@ -167,43 +165,6 @@ void world_destroy(world_t *world) {
 	free(world);
 }
 
-void world_tick(world_t *world, int ms) {
-	// TODO this code needs to go somewhere else
-	// find boxes surrounding player
-	bbox_t boxes[27];
-	int x, y, z, num_boxes = 0;
-	v3i player_loc, current_block;
-
-	player_loc = v3i_from_v3d(world->player->ray.pos);
-
-	for (z = -1; z <= 1; z++) {
-		for (y = -1; y <= 1; y++) {
-			for (x = -1; x <= 1; x++) {
-				current_block = (v3i){x, y, z};
-				current_block = v3i_add(player_loc, current_block);
-				if (get_block(world, current_block) != NULL)
-					boxes[num_boxes++] = (bbox_t){v3d_from_v3i(current_block), BLOCK_SIZE};
-			}
-		}
-	}
-
-	// apply movement + collision; sort ptr into relevant bucket
-	int last_bucket, this_bucket;
-	v3i this_player_loc;
-
-	v3d_set(&world->player->ray.dir, 2, v3d_get(&world->player->ray.dir, 2) + (GRAVITY * ((double)ms / 1000))); // TODO repetition of entity.c, move this fucking code
-
-	last_bucket = v3i_flatten(player_loc, SIZE);
-	entity_tick(world->player, ms, boxes, num_boxes);
-	this_player_loc = v3i_from_v3d(world->player->ray.pos);
-	this_bucket = v3i_flatten(this_player_loc, SIZE);
-
-	if (last_bucket != this_bucket) {
-		block_bucket_remove(world, player_loc, world->player);
-		block_bucket_add(world, this_player_loc, world->player);
-	}
-}
-
 void world_generate(world_t *world) {
 	v2i dims = {world->dims.x, world->dims.y};
 	v2d pos;
@@ -244,4 +205,41 @@ void world_generate(world_t *world) {
 	}
 
 	noise_quit();
+}
+
+void world_tick(world_t *world, int ms) {
+	// TODO this code needs to go somewhere else
+	// find boxes surrounding player
+	bbox_t boxes[27];
+	int x, y, z, num_boxes = 0;
+	v3i player_loc, current_block;
+
+	player_loc = v3i_from_v3d(world->player->ray.pos);
+
+	for (z = -1; z <= 1; z++) {
+		for (y = -1; y <= 1; y++) {
+			for (x = -1; x <= 1; x++) {
+				current_block = (v3i){x, y, z};
+				current_block = v3i_add(player_loc, current_block);
+				if (get_block(world, current_block) != NULL)
+					boxes[num_boxes++] = (bbox_t){v3d_from_v3i(current_block), BLOCK_SIZE};
+			}
+		}
+	}
+
+	// apply movement + collision; sort ptr into relevant bucket
+	int last_bucket, this_bucket;
+	v3i this_player_loc;
+
+	v3d_set(&world->player->ray.dir, 2, v3d_get(&world->player->ray.dir, 2) + (GRAVITY * ((double)ms / 1000))); // TODO repetition of entity.c, move this fucking code
+
+	last_bucket = v3i_flatten(player_loc, SIZE);
+	entity_tick(world->player, ms, boxes, num_boxes);
+	this_player_loc = v3i_from_v3d(world->player->ray.pos);
+	this_bucket = v3i_flatten(this_player_loc, SIZE);
+
+	if (last_bucket != this_bucket) {
+		block_bucket_remove(world, player_loc, world->player);
+		block_bucket_add(world, this_player_loc, world->player);
+	}
 }

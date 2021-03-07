@@ -19,7 +19,6 @@ typedef struct {
 typedef struct {
 	block_t *blocks[CHUNK_SIZE];
 	entity_bucket *buckets[CHUNK_SIZE];
-	v3i loc;
 } chunk_t;
 
 typedef struct {
@@ -32,7 +31,7 @@ typedef struct {
 
 world_t *world_create(v3i dims);
 void world_destroy(world_t *);
-void world_tick(world_t *, int ms);
 void world_generate(world_t *);
+void world_tick(world_t *, int ms);
 
 #endif

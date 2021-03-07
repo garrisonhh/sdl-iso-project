@@ -17,6 +17,7 @@
 #define MIN(a, b) (a < b ? a : b)
 
 // most useful god damn macro on the planet holy shit
+#define FOR_XY(x, y, mx, my) for (y = 0; y < my; y++) for (x = 0; x < mx; x++)
 #define FOR_XYZ(x, y, z, mx, my, mz) for (z = 0; z < mz; z++) for (y = 0; y < my; y++) for (x = 0; x < mx; x++)
 
 bool d_close(double a, double b);

@@ -104,59 +104,57 @@ void render_shadow(v2i center, int r) {
 }
 
 void render_world(world_t *world) {
-	int cx, cy, cz, x, y, z;
-	int chunk_index = 0, block_index = 0, i, shadow_z;
+	int cx, cy, cz, x, y, z, i;
+	int chunk_origin = 0, block_origin = 0;
+	int chunk_index = 0, block_index = 0;
+	int chunk_z_step = world->dims.y * world->dims.x, block_z_step = SIZE * SIZE;
 	chunk_t *chunk;
 	block_t *block;
 	entity_bucket *bucket;
 	v2i screen_pos;
-	v3i block_loc, shadow_loc;
-	v3d shadow_pos;
+	v3i block_loc;
 
-	FOR_XYZ(cx, cy, cz, world->dims.x, world->dims.y, world->dims.z) {
-		chunk = world->chunks[chunk_index++];
+	for (cz = 0; cz < world->dims.z; cz++) {
+		block_origin = 0;
 
-		FOR_XYZ(x, y, z, SIZE, SIZE, SIZE) {
-			bucket = chunk->buckets[block_index];
-			if (bucket != NULL) {
+		for (z = 0; z < SIZE; z++) {
+			chunk_index = chunk_origin;
 
-				// TODO precalculate shadows on entity movement
-				for (shadow_z = (int)bucket->arr[0]->ray.pos.z; shadow_z >= 0; shadow_z--) {
-					shadow_loc = (v3i){x, y, shadow_z};
-					if (chunk->blocks[v3i_flatten(shadow_loc, SIZE)] != NULL) {
-						shadow_pos = bucket->arr[0]->ray.pos;
-						shadow_pos.z = shadow_z + 1;
-						render_shadow(v3d_to_isometric(shadow_pos, true), 8);
-						break;
+			FOR_XY (cx, cy, world->dims.x, world->dims.y) {
+				chunk = world->chunks[chunk_index++];
+				block_index = block_origin;
+
+				FOR_XY (x, y, SIZE, SIZE) {
+					bucket = chunk->buckets[block_index];
+					block = chunk->blocks[block_index];
+					block_index++;
+
+					if (bucket != NULL) {
+						for (i = 0; i < bucket->size; i++)
+							render_entity(bucket->arr[i]);
+					}
+					
+					if (block != NULL && block->expose_mask > 0) {
+						block_loc = (v3i){cx * SIZE + x, cy * SIZE + y, cz * SIZE + z};
+						screen_pos = v3i_to_isometric(block_loc, true);
+
+						switch (textures[block->texture]->type) {
+							case TEX_TEXTURE:
+								render_tex_texture(textures[block->texture]->texture, screen_pos);
+								break;
+							case TEX_VOXELTEXTURE:
+								render_voxel_texture(textures[block->texture]->voxel_texture,
+													 screen_pos,
+													 block->expose_mask);
+								break;
+						}
 					}
 				}
-				
-				// TODO presort multiple entities in buckets
-				for (i = 0; i < bucket->size; i++)
-					render_entity(bucket->arr[i]);
 			}
 
-			block = chunk->blocks[block_index];
-			if (block != NULL && block->expose_mask > 0) {
-				block_loc = (v3i){x, y, z};
-				block_loc = v3i_add(block_loc, v3i_scale(chunk->loc, SIZE));
-				screen_pos = v3i_to_isometric(block_loc, true);
-
-				switch (textures[block->texture]->type) {
-					case TEX_TEXTURE:
-						render_tex_texture(textures[block->texture]->texture, screen_pos);
-						break;
-					case TEX_VOXELTEXTURE:
-						render_voxel_texture(textures[block->texture]->voxel_texture,
-											 screen_pos,
-											 block->expose_mask);
-						break;
-				}
-			}
-
-			block_index++;
+			block_origin += block_z_step;
 		}
-		block_index = 0;
+
+		chunk_origin += chunk_z_step;
 	}
 }
-
