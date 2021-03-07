@@ -22,6 +22,11 @@ v2i camera = {0, 0};
 int camera_scale;
 v2i screen_center;
 
+typedef struct {
+	v2i loc;
+	int radius;
+} shadow_t;
+
 void render_init(SDL_Window *window) {
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	if (renderer == NULL) {
@@ -115,11 +120,57 @@ void render_world(world_t *world) {
 	v2i screen_pos;
 	v3i block_loc;
 
+	entity_t *entity;
+	int max_z = world->dims.z * SIZE;
+	list_t *shadows[max_z];
+	list_t *level_shadows;
+	shadow_t *shadow;
+	v3d shadow_pos;
+	v3i shadow_loc;
+
+	// generate shadows and z sort
+	for (z = 0; z < max_z; z++)
+		shadows[z] = NULL;
+
+	for (i = 0; i < world->entities->size; i++) {
+		entity = world->entities->items[i];
+		shadow_pos = entity->ray.pos;
+		shadow_pos.z -= entity->size.z / 2;
+		shadow_loc = v3i_from_v3d(shadow_pos);
+
+		while (shadow_loc.z >= 0) {
+			if (get_block(world, shadow_loc) != NULL)
+				break;
+			shadow_loc.z--;
+		}
+
+		shadow_loc.z++;
+		shadow_pos.z = shadow_loc.z;
+
+		shadow = (shadow_t *)malloc(sizeof(shadow));
+		shadow->loc = v3d_to_isometric(shadow_pos, true);
+		shadow->radius = (int)((entity->size.x * VOXEL_WIDTH) / 2);
+
+		if (shadows[shadow_loc.z] == NULL)
+			shadows[shadow_loc.z] = list_create();
+
+		list_add(shadows[shadow_loc.z], shadow);
+	}
+
+	// render all
 	for (cz = 0; cz < world->dims.z; cz++) {
 		block_origin = 0;
 
 		for (z = 0; z < SIZE; z++) {
 			chunk_index = chunk_origin;
+			level_shadows = shadows[cz * SIZE + z];
+
+			if (level_shadows != NULL) {
+				for (i = 0; i < level_shadows->size; i++) {
+					render_shadow(((shadow_t *)level_shadows->items[i])->loc,
+								  ((shadow_t *)level_shadows->items[i])->radius);
+				}
+			}
 
 			FOR_XY (cx, cy, world->dims.x, world->dims.y) {
 				chunk = world->chunks[chunk_index++];
@@ -145,8 +196,7 @@ void render_world(world_t *world) {
 								break;
 							case TEX_VOXELTEXTURE:
 								render_voxel_texture(textures[block->texture]->voxel_texture,
-													 screen_pos,
-													 block->expose_mask);
+													 screen_pos, block->expose_mask);
 								break;
 						}
 					}
@@ -157,5 +207,14 @@ void render_world(world_t *world) {
 		}
 
 		chunk_origin += chunk_z_step;
+	}
+
+	// destroy shadows
+	for (z = 0; z < max_z; z++) {
+		if (shadows[z] != NULL) {
+			for (i = 0; i < shadows[z]->size; i++)
+				free(shadows[z]->items[i]);
+			list_destroy(shadows[z]);
+		}
 	}
 }

@@ -33,5 +33,6 @@ world_t *world_create(v3i dims);
 void world_destroy(world_t *);
 void world_generate(world_t *);
 void world_tick(world_t *, int ms);
+block_t *get_block(world_t *, v3i loc);
 
 #endif
