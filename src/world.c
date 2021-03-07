@@ -6,7 +6,7 @@
 #include "world.h"
 #include "noise.h"
 #include "entity.h"
-#include "entity_bucket.h"
+#include "list.h"
 #include "player.h"
 
 #define GRAVITY -20
@@ -109,9 +109,9 @@ void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	index = block_index_in_chunk(loc);
 
 	if (chunk->buckets[index] == NULL)
-		chunk->buckets[index] = bucket_create();
+		chunk->buckets[index] = list_create();
 	
-	bucket_add(chunk->buckets[index], entity);
+	list_add(chunk->buckets[index], entity);
 }
 
 void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
@@ -124,10 +124,10 @@ void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 		return;
 
 	index = block_index_in_chunk(loc);
-	bucket_remove(chunk->buckets[index], entity);
+	list_remove(chunk->buckets[index], entity);
 	
 	if (chunk->buckets[index]->size == 0) {
-		bucket_destroy(chunk->buckets[index]);
+		list_destroy(chunk->buckets[index]);
 		chunk->buckets[index] = NULL;
 	}
 }
@@ -147,10 +147,10 @@ world_t *world_create(v3i dims) {
 	}
 
 	world->player = player_create();
-	world->entities = bucket_create();
+	world->entities = list_create();
 
 	block_bucket_add(world, v3i_from_v3d(world->player->ray.pos), world->player); 
-	bucket_add(world->entities, world->player);
+	list_add(world->entities, world->player);
 
 	return world;
 }

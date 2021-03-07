@@ -8,6 +8,7 @@
 #include "textures.h"
 #include "sprites.h"
 #include "vector.h"
+#include "list.h"
 #include "utils.h"
 
 #define BG_GRAY 31
@@ -110,7 +111,7 @@ void render_world(world_t *world) {
 	int chunk_z_step = world->dims.y * world->dims.x, block_z_step = SIZE * SIZE;
 	chunk_t *chunk;
 	block_t *block;
-	entity_bucket *bucket;
+	list_t *bucket;
 	v2i screen_pos;
 	v3i block_loc;
 
@@ -131,7 +132,7 @@ void render_world(world_t *world) {
 
 					if (bucket != NULL) {
 						for (i = 0; i < bucket->size; i++)
-							render_entity(bucket->arr[i]);
+							render_entity(bucket->items[i]);
 					}
 					
 					if (block != NULL && block->expose_mask > 0) {
