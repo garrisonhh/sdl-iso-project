@@ -69,18 +69,21 @@ int block_index_in_chunk(v3i loc) {
 	return v3i_flatten(block_loc, SIZE);
 }
 
-// this also creates the block.. separate functionality maybe? use block ids instead of tex ids? idk
-// TODO make this take world rather than chunk as parameter
-void set_block(chunk_t *chunk, v3i loc, int texture) {
+void set_block(world_t *world, v3i loc, int texture) {
+	chunk_t *chunk = get_chunk(world, loc);
+
+	if (chunk == NULL)
+		return;
+
+	int index = block_index_in_chunk(loc);
 	block_t *block = (block_t *)malloc(sizeof(block_t));
-	int index = v3i_flatten(loc, SIZE);
-	if (chunk->blocks[index] != NULL) {
-		free(chunk->blocks[index]);
-		chunk->blocks[index] = NULL;
-	}
 	block->texture = texture;
 	block->expose_mask = 7;
 	block->expose_update = true;
+
+	if (chunk->blocks[index] != NULL)
+		free(chunk->blocks[index]);
+
 	chunk->blocks[index] = block;
 
 	// tell any surrounding blocks to update expose mask on next frame
@@ -97,6 +100,7 @@ block_t *get_block(world_t *world, v3i loc) {
 	chunk_t *chunk = get_chunk(world, loc);
 	return chunk == NULL ? NULL : chunk->blocks[block_index_in_chunk(loc)];
 }
+
 void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	int index;
 	chunk_t *chunk;
@@ -165,39 +169,38 @@ void world_destroy(world_t *world) {
 	free(world);
 }
 
+// this function is practically legacy code, venture forth if you beware...
 void world_generate(world_t *world) {
 	v2i dims = {world->dims.x, world->dims.y};
 	v2d pos;
 	v3i loc;
 	int x, y, cx, cy, cz, val;
-	chunk_t* chunk;
 
 	srand(time(0));
 	noise_init(time(0), dims);
 
 	for (y = 0; y < world->dims.y; y++) {
 		for (x = 0; x < world->dims.x; x++) {
-			chunk = world->chunks[y * world->dims.x + x];
-
 			for (cy = 0; cy < SIZE; cy++) {
 				for (cx = 0; cx < SIZE; cx++) {
 					pos.x = (double)(x * SIZE + cx) / (double)SIZE;
 					pos.y = (double)(y * SIZE + cy) / (double)SIZE;
-					loc.x = cx;
-					loc.y = cy;
-					val = (int)((1.0 + noise_at(pos)) * (SIZE / 2));
+					val = (int)((1.0 + noise_at(pos)) * (SIZE / 4));
+
+					loc.x = x * SIZE + cx;
+					loc.y = y * SIZE + cy;
 
 					for (cz = 0; cz < val; cz++) {
 						loc.z = cz;
-						set_block(chunk, loc, 0); // dirt in ground
+						set_block(world, loc, 0); // dirt in ground
 					}
 
-					set_block(chunk, loc, 1); // grass on top
+					set_block(world, loc, 1); // grass on top
 
 					// randomly scattered bushes
 					if ((rand() % 20) == 0) {
 						loc.z++;
-						set_block(chunk, loc, 2);
+						set_block(world, loc, 2);
 					}
 				}
 			}
