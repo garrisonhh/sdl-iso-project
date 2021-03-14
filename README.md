@@ -2,18 +2,22 @@
 1) camera stuff
 	- x proper scaling
 	- occlusion
-	- world render at once
-		- exposeWorld and renderWorld fix
-		- shadow fix
+	- x world render at once
+		- exposeWorld over chunk borders
+		- x shadow fix
 2) universal entities
-	- player code is currently duct taped together across world, render, and entity
-3) basic gameplay elements
-	- x simple procedural world with some ~~value~~ perlin noise
-		- recursive noise function
-		- structures like trees
-	- render distance
+	- organize and generalize existing player code 
+3) smart entities
+	- a\*
+	- explore ai stuff
+N) content
+	- wildlife
+	- fleshing out procgen
+		- natural structures
+	- other creatures
+		- people who live in artificial structures
 N) ideas for whenever
-	- dynamic shadows
+	- dynamic block lighting
 	- sprite animations
 
 character/art stuff:

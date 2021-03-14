@@ -9,6 +9,7 @@
 
 #define SIZE 16
 #define CHUNK_SIZE 4096
+#define GRAVITY (-20)
 
 typedef struct {
 	int texture;
