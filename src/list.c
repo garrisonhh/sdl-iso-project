@@ -13,9 +13,14 @@ list_t *list_create() {
 
 void list_destroy(list_t *list) {
 	free(list->items);
-	list->items = NULL;
 	free(list);
-	list = NULL;
+}
+
+// also destroys items in list, this is usually undesired behavior
+void list_deep_destroy(list_t *list) {
+	for (size_t i = 0; i < list->size; i++)
+		free(list->items[i]);
+	list_destroy(list);
 }
 
 void list_add(list_t *list, void *item) {
