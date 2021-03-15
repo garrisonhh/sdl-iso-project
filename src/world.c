@@ -4,12 +4,10 @@
 #include <time.h>
 #include "utils.h"
 #include "world.h"
-#include "noise.h"
 #include "entity.h"
+#include "noise.h"
 #include "list.h"
 #include "player.h"
-
-const v3d BLOCK_SIZE = {1, 1, 1};
 
 chunk_t *chunk_create(v3i loc) {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
@@ -210,40 +208,25 @@ void world_generate(world_t *world) {
 }
 
 void world_tick(world_t *world, int ms) {
-	// TODO this code needs to go somewhere else
-	// find boxes surrounding player
-	bbox_t boxes[27];
-	int x, y, z, num_boxes = 0;
-	v3i player_loc, current_block;
-
-	player_loc = v3i_from_v3d(world->player->ray.pos);
-
-	for (z = -1; z <= 1; z++) {
-		for (y = -1; y <= 1; y++) {
-			for (x = -1; x <= 1; x++) {
-				current_block = (v3i){x, y, z};
-				current_block = v3i_add(player_loc, current_block);
-				if (get_block(world, current_block) != NULL)
-					boxes[num_boxes++] = (bbox_t){v3d_from_v3i(current_block), BLOCK_SIZE};
-			}
-		}
-	}
-
-	// apply movement + collision; sort ptr into relevant bucket
+	// TODO entities handle their own buckets?
+	entity_t *entity;
 	int last_bucket, this_bucket;
-	v3i this_player_loc;
+	v3i last_loc, this_loc;
 
-	world->player->ray.dir.z += GRAVITY * ((double)ms / 1000); // TODO repetition of entity.c, move code
+	for (size_t i = 0; i < world->entities->size; i++) {
+		entity = world->entities->items[i];
 
-	last_bucket = v3i_flatten(player_loc, SIZE);
+		last_loc = v3i_from_v3d(entity->ray.pos);
+		last_bucket = v3i_flatten(last_loc, SIZE);
 
-	entity_tick(world->player, ms, boxes, num_boxes);
+		entity_tick(entity, (struct world_t *)world, ms);
 
-	this_player_loc = v3i_from_v3d(world->player->ray.pos);
-	this_bucket = v3i_flatten(this_player_loc, SIZE);
+		this_loc = v3i_from_v3d(entity->ray.pos);
+		this_bucket = v3i_flatten(this_loc, SIZE);
 
-	if (last_bucket != this_bucket) {
-		block_bucket_remove(world, player_loc, world->player);
-		block_bucket_add(world, this_player_loc, world->player);
+		if (last_bucket != this_bucket) {
+			block_bucket_remove(world, last_loc, entity);
+			block_bucket_add(world, this_loc, entity);
+		}
 	}
 }

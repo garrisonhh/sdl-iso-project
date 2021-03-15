@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "list.h"
 #include "collision.h"
 #include "vector.h"
 #include "world.h"
 #include "utils.h"
 
+const v3d BLOCK_SIZE = {1, 1, 1};
 v3d BBOX_SORT_POLARITY = {1, 1, 1};
 
 bool collides(double a, double b, double x) {
@@ -148,8 +150,8 @@ int bbox_compare(const void *a, const void *b) {
 	return 1;
 }
 
-void sort_bboxes_by_vector_polarity(bbox_t *boxes, int num_boxes, v3d v) {
+void sort_bboxes_by_vector_polarity(list_t *boxes, v3d v) {
 	for (int i = 0; i < 3; i++)
 		v3d_set(&BBOX_SORT_POLARITY, i, (v3d_get(&v, i) > 0 ? 1 : -1));
-	qsort(boxes, num_boxes, sizeof(bbox_t), bbox_compare);
+	qsort(boxes->items, boxes->size, sizeof(bbox_t *), bbox_compare);
 }

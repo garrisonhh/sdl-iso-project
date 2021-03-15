@@ -16,7 +16,7 @@ void list_destroy(list_t *list) {
 	free(list);
 }
 
-// also destroys items in list, this is usually undesired behavior
+// also destroys items in list
 void list_deep_destroy(list_t *list) {
 	for (size_t i = 0; i < list->size; i++)
 		free(list->items[i]);
