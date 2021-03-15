@@ -10,17 +10,19 @@
 3) smart entities
 	- a\*
 	- explore ai stuff
-N) content
+
+#### ideas
+- content
 	- wildlife
 	- fleshing out procgen
 		- natural structures
 	- other creatures
 		- people who live in artificial structures
-N) ideas for whenever
+- tech for whenever
 	- dynamic block lighting
 	- sprite animations
 
-character/art stuff:
+#### character/art stuff:
 - "the animator's survival kit"
 - don't think about everything at once
 	- design -> animating
@@ -28,6 +30,5 @@ character/art stuff:
 	- art you wanna take elements from
 - sketch
 	- keyframes
-
 
 *to view 4-space tabs (like I use in editing), append "?ts=4" to url of a page*
