@@ -6,17 +6,20 @@
 
 typedef SDL_Point v2i;
 
-typedef struct {
+struct v3i {
 	int x, y, z;
-} v3i;
+};
+typedef struct v3i v3i;
 
-typedef struct {
+struct v2d {
 	double x, y;
-} v2d;
+};
+typedef struct v2d v2d;
 
-typedef struct {
+struct v3d {
 	double x, y, z;
-} v3d;
+};
+typedef struct v3d v3d;
 
 v2i v2i_add(v2i, v2i);
 v2i v2i_sub(v2i, v2i);

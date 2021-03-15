@@ -1,10 +1,11 @@
 #ifndef ENTITY_BUCKET_H
 #define ENTITY_BUCKET_H
 
-typedef struct {
+struct list_t {
 	void **items;
 	int size, max_size;
-} list_t;
+};
+typedef struct list_t list_t;
 
 list_t *list_create(void);
 void list_destroy(list_t *);

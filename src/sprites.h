@@ -4,11 +4,12 @@
 #include <SDL2/SDL.h>
 #include "vector.h"
 
-typedef struct {
+struct sprite_t {
 	SDL_Texture *texture;
 	// x, y are relative to entity_t position
 	v2i pos, size;
-} sprite_t;
+};
+typedef struct sprite_t sprite_t;
 
 extern sprite_t **sprites;
 

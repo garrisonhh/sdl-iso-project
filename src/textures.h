@@ -5,22 +5,25 @@
 #include <stdint.h>
 #include "vector.h"
 
-typedef enum {
+enum block_tex_type {
 	TEX_TEXTURE = 0,
 	TEX_VOXELTEXTURE = 1
-} block_tex_type;   
+};
+typedef enum block_tex_type block_tex_type;   
 
-typedef struct {
+struct vox_tex {
 	SDL_Texture* top;
 	SDL_Texture* side; // use SDL_RenderCopyEx to render flipped
-} vox_tex;
+};
+typedef struct vox_tex vox_tex;
 
-typedef struct {
+struct texture_t {
 	block_tex_type type;
 	SDL_Texture *texture;
 	vox_tex *voxel_texture;
 	bool transparent;
-} texture_t;
+};
+typedef struct texture_t texture_t;
 
 extern texture_t **textures;
 
