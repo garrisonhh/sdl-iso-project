@@ -9,6 +9,16 @@
 #include "list.h"
 #include "player.h"
 
+block_t *block_create(int texture) {
+	block_t *block = (block_t *)malloc(sizeof(block_t));
+
+	block->texture = texture;
+	block->expose_mask = 0;
+	block->expose_update = true;
+
+	return block;
+}
+
 chunk_t *chunk_create() {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
 
@@ -34,7 +44,7 @@ void chunk_destroy(chunk_t *chunk) {
 	free(chunk);
 }
 
-// bool chunk_get() TODO ?
+// chunk_t *chunk_get()? maybe completely unnecessary honestly
 
 // returns whether successful (chunk exists), pastes results in pointers if not null
 bool chunk_block_indices(world_t *world, v3i loc, unsigned int *chunk_result, unsigned int *block_result) {
@@ -68,34 +78,18 @@ block_t *block_get(world_t *world, v3i loc) {
 	return world->chunks[chunk_index]->blocks[block_index];
 }
 
-/*
 void block_set(world_t *world, v3i loc, int texture) {
-	chunk_t *chunk = get_chunk(world, loc);
-
-	if (chunk == NULL)
+	unsigned int chunk_index, block_index;
+	
+	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
 		return;
 
-	int index = block_index_in_chunk(loc);
-	block_t *block = (block_t *)malloc(sizeof(block_t));
-	block->texture = texture;
-	block->expose_mask = 7;
-	block->expose_update = true;
+	chunk_t *chunk = world->chunks[chunk_index];
 
-	if (chunk->blocks[index] != NULL)
-		free(chunk->blocks[index]);
-
-	chunk->blocks[index] = block;
-
-	// tell any surrounding blocks to update expose mask on next frame
-	for (int offset = 1; offset < CHUNK_SIZE; offset *= SIZE) {
-		if (index - offset < 0) {
-			break;
-		} else if (chunk->blocks[index - offset] != NULL) {
-			chunk->blocks[index - offset]->expose_update = true;
-		}
-	}
+	if (chunk->blocks[block_index] != NULL)
+		free(chunk->blocks[block_index]);
+	chunk->blocks[block_index] = block_create(texture);
 }
-*/
 
 void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	unsigned int chunk_index, block_index;
@@ -159,48 +153,37 @@ void world_destroy(world_t *world) {
 	free(world);
 }
 
-/*
-// this function is practically legacy code, venture forth if you beware...
+// TODO apply texture hashing
 void world_generate(world_t *world) {
-	v2i dims = {world->dims.x, world->dims.y};
-	v2d pos;
+	unsigned int x, y, z;
+	int noise_val;
+	v2d noise_pos;
+	v2i dims = {world->size >> 1, world->size >> 1};
 	v3i loc;
-	int x, y, cx, cy, cz, val;
 
 	srand(time(0));
-	noise_init(time(0), dims);
+	noise_init(dims);
 
-	for (y = 0; y < world->dims.y; y++) {
-		for (x = 0; x < world->dims.x; x++) {
-			for (cy = 0; cy < SIZE; cy++) {
-				for (cx = 0; cx < SIZE; cx++) {
-					pos.x = (double)(x * SIZE + cx) / (double)SIZE;
-					pos.y = (double)(y * SIZE + cy) / (double)SIZE;
-					val = (int)((1.0 + noise_at(pos)) * (SIZE / 4));
+	FOR_XY(x, y, world->size * 16, world->size * 16) {
+		loc = (v3i){x, y, 0};
+		noise_pos = (v2d){(double)(x / 2), (double)(y / 2)};
+		noise_val = (int)((1.0 + noise_at(noise_pos)) * ((double)world->size / 4));
 
-					loc.x = x * SIZE + cx;
-					loc.y = y * SIZE + cy;
+		for (z = 0; z < noise_val; z++) {
+			loc.z = z;
+			block_set(world, loc, 0); // dirt
+		}
+		
+		block_set(world, loc, 1); // grass
 
-					for (cz = 0; cz < val; cz++) {
-						loc.z = cz;
-						set_block(world, loc, 0); // dirt in ground
-					}
-
-					set_block(world, loc, 1); // grass on top
-
-					// randomly scattered bushes
-					if ((rand() % 20) == 0) {
-						loc.z++;
-						set_block(world, loc, 2);
-					}
-				}
-			}
+		if (rand() % 20 == 0) {
+			loc.z++;
+			block_set(world, loc, 2); // bush
 		}
 	}
 
 	noise_quit();
 }
-*/
 
 void world_tick(world_t *world, int ms) {
 	// should bucket wrangling happen in entity.c?
