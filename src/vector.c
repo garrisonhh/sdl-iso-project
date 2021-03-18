@@ -64,6 +64,10 @@ v3i v3i_scale(v3i v, int scalar) {
 	};
 }
 
+int v3i_compare(v3i a, v3i b) {
+	return ((((a.z - b.z) << 1) + (a.y - b.y)) << 1) + a.x - b.x;
+}
+
 v3d v3d_from_v3i(v3i v) {
 	return (v3d){v.x, v.y, v.z};
 }

@@ -3,11 +3,9 @@
 	- x proper scaling
 	- occlusion
 	- x world render at once
-		- exposeWorld over chunk borders
+		- exposure over chunk borders
 		- x shadow fix
-2) universal entities
-	- organize and generalize existing player code 
-3) smart entities
+2) smart entities
 	- a\*
 	- explore ai stuff
 
