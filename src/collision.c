@@ -118,14 +118,6 @@ void ray_bbox_intersection(v3d *intersection, v3d *resolved_dir, int *axis_inter
 		*axis_inter = -1;
 }
 
-void bbox_print(bbox_t box) {
-	printf("{");
-	v3d_print(box.pos);
-	printf(", ");
-	v3d_print(box.size);
-	printf("}");
-}
-
 v3d bbox_center(bbox_t box) {
 	return v3d_add(box.pos, v3d_scale(box.size, .5));
 }

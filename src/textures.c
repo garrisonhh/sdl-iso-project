@@ -7,6 +7,7 @@
 #include "render.h"
 #include "textures.h"
 
+// TODO texture name hashing? then store hash instead of key for instant access
 texture_t **textures = NULL;
 int num_textures;
 

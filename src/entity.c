@@ -26,7 +26,7 @@ list_t *entity_surrounding_bboxes(entity_t *entity, world_t *world) {
 				current_block = (v3i){x, y, z};
 				current_block = v3i_add(entity_loc, current_block);
 
-				if (get_block(world, current_block) != NULL) {
+				if (block_get(world, current_block) != NULL) {
 					block_box = (bbox_t *)malloc(sizeof(bbox_t));
 
 					block_box->pos = v3d_from_v3i(current_block);
@@ -47,7 +47,7 @@ void entity_tick(entity_t *entity, struct world_t *world, int ms) {
 	bbox_t current_box;
 	v3d resolved_dir, box_offset;
 	double time;
-	int i, axis;
+	int axis;
 
 	time = (double)ms / 1000;
 	entity->ray.dir.z += GRAVITY * time;
@@ -61,7 +61,7 @@ void entity_tick(entity_t *entity, struct world_t *world, int ms) {
 	boxes = entity_surrounding_bboxes(entity, world);
 	sort_bboxes_by_vector_polarity(boxes, scaled_ray.dir);
 
-	for (i = 0; i < boxes->size; i++) {
+	for (size_t i = 0; i < boxes->size; i++) {
 		current_box = *(bbox_t *)boxes->items[i];
 		current_box.pos = v3d_add(current_box.pos, box_offset);
 		current_box.size = v3d_add(current_box.size, entity->size);

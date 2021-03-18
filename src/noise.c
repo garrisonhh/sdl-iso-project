@@ -15,7 +15,7 @@ double lerp2d(double corners[4], v2d *point) {
 	return lerp(lerp(corners[0], corners[1], point->x), lerp(corners[2], corners[3], point->x), point->y);
 }
 
-void noise_init(unsigned int seed, v2i dims) {
+void noise_init(v2i dims) {
 	perlin_dims = dims;
 	perlin_size = (dims.y + 1) * (dims.x + 1);
 	perlin_vectors = (v2d *)malloc(sizeof(v2d) * perlin_size);

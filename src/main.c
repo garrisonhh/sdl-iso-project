@@ -17,9 +17,11 @@ void init() {
 		printf("SDL could not initialize:\n%s\n", SDL_GetError());
 		exit(1);
 	}
-	window = SDL_CreateWindow("render this bitch",
+
+	window = SDL_CreateWindow("sdl-iso-project",
 							  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT,
 							  SDL_WINDOW_SHOWN);
+
 	if (window == NULL) {
 		printf("window could not be created:\n%s\n", SDL_GetError());
 		exit(1);
@@ -43,8 +45,7 @@ void on_close() {
 int main(int argc, char *argv[]) {
 	init();
 
-	v3i dims = {4, 4, 2};
-	world_t *world = world_create(dims);
+	world_t *world = world_create(4);
 	world_generate(world);
 
 	unsigned int last_time, this_time = SDL_GetTicks();
@@ -54,7 +55,7 @@ int main(int argc, char *argv[]) {
 	const Uint8 *kb_state = SDL_GetKeyboardState(NULL);
 
 	v3i move_inputs;
-	const int SPEED = 3; // TODO move this somewhere better idk where
+	const int SPEED = 3; // TODO move this somewhere better (part of player entity?)
 	const v3d move_down = {SPEED, SPEED, 0};
 	const v3d move_right = {SPEED, -SPEED, 0};
 	v3d move;
