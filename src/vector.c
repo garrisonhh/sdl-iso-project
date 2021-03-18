@@ -12,7 +12,6 @@ v2i v2i_add(v2i a, v2i b) {
 	};
 }
 
-// a - b
 v2i v2i_sub(v2i a, v2i b) {
 	return (v2i){
 		a.x - b.x,
@@ -20,8 +19,8 @@ v2i v2i_sub(v2i a, v2i b) {
 	};
 }
 
-void v3i_print(v3i v) {
-	printf("{%d, %d, %d}", v.x, v.y, v.z);
+double v2d_dot(v2d a, v2d b) {
+	return a.x * b.x + a.y * b.y;
 }
 
 v3i v3i_from_v3d(v3d v) {
@@ -65,10 +64,6 @@ v3i v3i_scale(v3i v, int scalar) {
 	};
 }
 
-void v3d_print(v3d v) {
-	printf("{%.4f, %.4f, %.4f}", v.x, v.y, v.z);
-}
-
 v3d v3d_from_v3i(v3i v) {
 	return (v3d){v.x, v.y, v.z};
 }
@@ -104,12 +99,4 @@ v3d v3d_scale(v3d v, double scalar) {
 		v.y * scalar,
 		v.z * scalar
 	};
-}
-
-int v3i_flatten(v3i v, int size) {
-	return ((v.z * size) + v.y) * size + v.x;
-}
-
-double v2d_dot(v2d a, v2d b) {
-	return a.x * b.x + a.y * b.y;
 }
