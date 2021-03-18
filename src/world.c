@@ -9,7 +9,7 @@
 #include "list.h"
 #include "player.h"
 
-chunk_t *chunk_create(v3i loc) {
+chunk_t *chunk_create() {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
 
 	for (int i = 0; i < CHUNK_SIZE; i++) {
@@ -34,39 +34,42 @@ void chunk_destroy(chunk_t *chunk) {
 	free(chunk);
 }
 
-// loc is a block loc not a chunk loc
-chunk_t *get_chunk(world_t *world, v3i loc) {
-	int i, coord, chunk_index;
-	v3i chunk_loc;
+// bool chunk_get() TODO ?
+
+// returns whether successful (chunk exists), pastes results in pointers if not null
+bool chunk_block_indices(world_t *world, v3i loc, unsigned int *chunk_result, unsigned int *block_result) {
+	unsigned int chunk_index = 0, block_index = 0;
+	int dim, i;
 
 	for (i = 0; i < 3; i++) {
-		coord = v3i_get(&loc, i) / SIZE;
-		if (coord < 0 || v3i_get(&world->dims, i) <= coord)
-			return NULL;
-		v3i_set(&chunk_loc, i, coord);
+		chunk_index <<= world->size_power;
+		block_index <<= 4;
+
+		dim = v3i_get(&loc, i);
+
+		chunk_index |= (dim >> 4) & world->chunk_mask;
+		block_index |= dim & 0xF;
 	}
 
-	chunk_index = (chunk_loc.z * world->dims.z + chunk_loc.y) * world->dims.y + chunk_loc.x;
+	if (chunk_index >= world->num_chunks)
+		return false;
 
-	return world->chunks[chunk_index];
+	*chunk_result = chunk_index;
+	*block_result = block_index;
+
+	return true;
 }
 
-// takes an absolute location and returns index within its chunk
-int block_index_in_chunk(v3i loc) {
-	v3i block_loc;
-	int i, coord;
+block_t *block_get(world_t *world, v3i loc) {
+	unsigned int chunk_index, block_index;
 
-	for (i = 0; i < 3; i++) {
-		coord = v3i_get(&loc, i) % SIZE;
-		if (coord < 0)
-			coord += SIZE;
-		v3i_set(&block_loc, i, coord);
-	}
-
-	return v3i_flatten(block_loc, SIZE);
+	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
+		return NULL;
+	return world->chunks[chunk_index]->blocks[block_index];
 }
 
-void set_block(world_t *world, v3i loc, int texture) {
+/*
+void block_set(world_t *world, v3i loc, int texture) {
 	chunk_t *chunk = get_chunk(world, loc);
 
 	if (chunk == NULL)
@@ -92,60 +95,49 @@ void set_block(world_t *world, v3i loc, int texture) {
 		}
 	}
 }
-
-block_t *get_block(world_t *world, v3i loc) {
-	chunk_t *chunk = get_chunk(world, loc);
-	return chunk == NULL ? NULL : chunk->blocks[block_index_in_chunk(loc)];
-}
+*/
 
 void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
-	int index;
-	chunk_t *chunk;
-
-	chunk = get_chunk(world, loc);
-
-	if (chunk == NULL)
+	unsigned int chunk_index, block_index;
+	
+	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
 		return;
 
-	index = block_index_in_chunk(loc);
+	chunk_t *chunk = world->chunks[chunk_index];
 
-	if (chunk->buckets[index] == NULL)
-		chunk->buckets[index] = list_create();
+	if (chunk->buckets[block_index] == NULL)
+		chunk->buckets[block_index] = list_create();
 	
-	list_add(chunk->buckets[index], entity);
+	list_add(chunk->buckets[block_index], entity);
 }
 
 void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
-	int index;
-	chunk_t *chunk;
-
-	chunk = get_chunk(world, loc);
+	unsigned int chunk_index, block_index;
 	
-	if (chunk == NULL)
+	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
 		return;
 
-	index = block_index_in_chunk(loc);
-	list_remove(chunk->buckets[index], entity);
+	chunk_t *chunk = world->chunks[chunk_index];
+
+	list_remove(chunk->buckets[block_index], entity);
 	
-	if (chunk->buckets[index]->size == 0) {
-		list_destroy(chunk->buckets[index]);
-		chunk->buckets[index] = NULL;
+	if (chunk->buckets[block_index]->size == 0) {
+		list_destroy(chunk->buckets[block_index]);
+		chunk->buckets[block_index] = NULL;
 	}
 }
 
-world_t *world_create(v3i dims) {
-	int x, y, z, index = 0;
+// sizes are a power of 2
+world_t *world_create(uint16_t size_power) {
 	world_t *world = (world_t *)malloc(sizeof(world_t));
-	v3i loc;
 
-	world->dims = dims;
-	world->num_chunks = world->dims.x * world->dims.y * world->dims.z;
-	world->chunks = (chunk_t **)malloc(sizeof(chunk_t*) * world->num_chunks);
+	world->size_power = size_power;
+	world->size = 1 << world->size_power;
+	world->chunk_mask = world->size - 1;
+	world->chunks = (chunk_t **)malloc(sizeof(chunk_t *) * world->size);
 
-	FOR_XYZ(x, y, z, world->dims.x, world->dims.y, world->dims.z) {
-		loc = (v3i){x, y, z};
-		world->chunks[index++] = chunk_create(loc);
-	}
+	for (int i = 0; i < world->size; i++)
+		world->chunks[i] = chunk_create();
 
 	world->player = player_create();
 	world->entities = list_create();
@@ -157,15 +149,17 @@ world_t *world_create(v3i dims) {
 }
 
 void world_destroy(world_t *world) {
-	for (int i = 0; i < world->num_chunks; i++) {
+	for (int i = 0; i < world->size; i++) {
 		chunk_destroy(world->chunks[i]);
 		world->chunks[i] = NULL;
 	}
+
 	entity_destroy(world->player);
 	free(world->chunks);
 	free(world);
 }
 
+/*
 // this function is practically legacy code, venture forth if you beware...
 void world_generate(world_t *world) {
 	v2i dims = {world->dims.x, world->dims.y};
@@ -206,25 +200,23 @@ void world_generate(world_t *world) {
 
 	noise_quit();
 }
+*/
 
 void world_tick(world_t *world, int ms) {
-	// TODO entities handle their own buckets?
+	// should bucket wrangling happen in entity.c?
 	entity_t *entity;
-	int last_bucket, this_bucket;
 	v3i last_loc, this_loc;
 
 	for (size_t i = 0; i < world->entities->size; i++) {
 		entity = world->entities->items[i];
 
 		last_loc = v3i_from_v3d(entity->ray.pos);
-		last_bucket = v3i_flatten(last_loc, SIZE);
 
-		entity_tick(entity, (struct world_t *)world, ms);
+		entity_tick(entity, world, ms);
 
 		this_loc = v3i_from_v3d(entity->ray.pos);
-		this_bucket = v3i_flatten(this_loc, SIZE);
 
-		if (last_bucket != this_bucket) {
+		if (v3i_compare(last_loc, this_loc)) {
 			block_bucket_remove(world, last_loc, entity);
 			block_bucket_add(world, this_loc, entity);
 		}

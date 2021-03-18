@@ -2,17 +2,18 @@
 #define WORLD_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "vector.h"
 #include "entity.h"
 #include "list.h"
 
-#define SIZE 16
-#define CHUNK_SIZE 4096
+#define CHUNK_SIZE 4096 // 0x000 -> 0xFFF
 #define GRAVITY (-20)
 
+// TODO typed blocks (some blocks need updates)
 struct block_t {
 	int texture;
-	Uint8 expose_mask;
+	uint8_t expose_mask;
 	bool expose_update;
 };
 typedef struct block_t block_t;
@@ -24,18 +25,17 @@ struct chunk_t {
 typedef struct chunk_t chunk_t;
 
 struct world_t {
-	v3i dims;
 	chunk_t **chunks;
-	int num_chunks;
+	unsigned int num_chunks, size, size_power, chunk_mask;
 	list_t *entities;
 	struct entity_t *player;
 };
 typedef struct world_t world_t;
 
-world_t *world_create(v3i dims);
+world_t *world_create(uint16_t);
 void world_destroy(world_t *);
 void world_generate(world_t *);
 void world_tick(world_t *, int ms);
-block_t *get_block(world_t *, v3i loc);
+block_t *block_get(world_t *, v3i loc);
 
 #endif
