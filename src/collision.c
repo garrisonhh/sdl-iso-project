@@ -7,8 +7,8 @@
 #include "world.h"
 #include "utils.h"
 
-const v3d BLOCK_SIZE = {1, 1, 1};
-v3d BBOX_SORT_POLARITY = {1, 1, 1};
+const v3d BLOCK_SIZE = {1.0, 1.0, 1.0};
+v3i BBOX_SORT_POLARITY = {1, 1, 1};
 
 bool collides(double a, double b, double x) {
 	return (a < x) && (x < b);
@@ -48,8 +48,9 @@ bbox_t ray_to_bbox(ray_t ray) {
 	return box;
 }
 
-// outputs intersection point, resolved_dir to replace ray.dir with, and axis of intersection
-void ray_bbox_intersection(v3d *intersection, v3d *resolved_dir, int *axis_inter, ray_t ray, bbox_t box) {
+// returns axis of intersection (-1 for no intersection)
+// outputs values into intersection and resolved_dir
+int ray_bbox_intersection(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_dir) {
 	double plane, plane_vel;
 	double dim_start, dim_len;
 	double axis_vel, axis_res;
@@ -100,22 +101,14 @@ void ray_bbox_intersection(v3d *intersection, v3d *resolved_dir, int *axis_inter
 						*resolved_dir = ray.dir;
 						v3d_set(resolved_dir, i, plane - v3d_get(&ray.pos, i)); // pixel fucking perfect :)
 					}
-					if (axis_inter != NULL)
-						*axis_inter = i;
-
-					return;
+					return i;
 				}
 			}
 		}
 	}
 
 	// no collision on any of the box faces
-	if (intersection != NULL)
-		intersection = NULL;
-	if (resolved_dir != NULL)
-		resolved_dir = NULL;
-	if (axis_inter != NULL)
-		*axis_inter = -1;
+	return -1;
 }
 
 v3d bbox_center(bbox_t box) {
@@ -123,15 +116,15 @@ v3d bbox_center(bbox_t box) {
 }
 
 int bbox_compare(const void *a, const void *b) {
-	v3d center_a = bbox_center(*(bbox_t *)a);
-	v3d center_b = bbox_center(*(bbox_t *)b);
+	v3d center_a = bbox_center(**(bbox_t **)a);
+	v3d center_b = bbox_center(**(bbox_t **)b);
 	int i;
 	double comparison, polarity;
 
 	// TODO simplify the if statement, should be possible
 	for (i = 2; i >= 0; i--) {
 		comparison = v3d_get(&center_b, i) - v3d_get(&center_a, i);
-		polarity = v3d_get(&BBOX_SORT_POLARITY, i) > 0;
+		polarity = v3i_get(&BBOX_SORT_POLARITY, i) > 0;
 
 		if (d_close(comparison, 0))
 			continue;
@@ -146,6 +139,6 @@ int bbox_compare(const void *a, const void *b) {
 
 void sort_bboxes_by_vector_polarity(list_t *boxes, v3d v) {
 	for (int i = 0; i < 3; i++)
-		v3d_set(&BBOX_SORT_POLARITY, i, (v3d_get(&v, i) > 0 ? 1 : -1));
+		v3i_set(&BBOX_SORT_POLARITY, i, (v3d_get(&v, i) >= 0 ? 1 : -1));
 	qsort(boxes->items, boxes->size, sizeof(void *), bbox_compare);
 }

@@ -12,7 +12,7 @@ struct world_t; // forward declaration to avoid header hell
 struct entity_t {
 	int sprite;
 	ray_t ray;
-	v3d size;
+	v3d size, center;
 };
 typedef struct entity_t entity_t;
 

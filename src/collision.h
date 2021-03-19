@@ -18,7 +18,7 @@ struct ray_t {
 };
 typedef struct ray_t ray_t;
 
-void ray_bbox_intersection(v3d *, v3d *, int *, ray_t, bbox_t);
+int ray_bbox_intersection(ray_t, bbox_t, v3d *, v3d *);
 void sort_bboxes_by_vector_polarity(list_t *, v3d);
 
 #endif

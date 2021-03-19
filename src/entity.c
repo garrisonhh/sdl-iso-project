@@ -32,8 +32,8 @@ list_t *entity_surrounding_bboxes(entity_t *entity, world_t *world) {
 				 || world->chunks[chunk_index]->blocks[block_index] != NULL) {
 					block_box = (bbox_t *)malloc(sizeof(bbox_t));
 
-					block_box->pos = v3d_from_v3i(current_block);
-					block_box->size = BLOCK_SIZE;
+					block_box->pos = v3d_sub(v3d_from_v3i(current_block), entity->center);
+	 				block_box->size = v3d_add(BLOCK_SIZE, entity->size);
 
 					list_add(boxes, block_box);
 				}
@@ -47,8 +47,7 @@ list_t *entity_surrounding_bboxes(entity_t *entity, world_t *world) {
 void entity_tick(entity_t *entity, struct world_t *world, int ms) {
 	list_t *boxes;
 	ray_t scaled_ray;
-	bbox_t current_box;
-	v3d resolved_dir, box_offset;
+	v3d resolved_dir;
 	double time;
 	int axis;
 
@@ -57,20 +56,13 @@ void entity_tick(entity_t *entity, struct world_t *world, int ms) {
 
 	scaled_ray = entity->ray;
 	scaled_ray.dir = v3d_scale(scaled_ray.dir, time);
-	resolved_dir = (v3d){0, 0, 0};
-	box_offset = v3d_scale(entity->size, -.5);
 
 	// collision resolution
 	boxes = entity_surrounding_bboxes(entity, world);
 	sort_bboxes_by_vector_polarity(boxes, scaled_ray.dir);
 
 	for (size_t i = 0; i < boxes->size; i++) {
-		current_box = *(bbox_t *)boxes->items[i];
-		current_box.pos = v3d_add(current_box.pos, box_offset);
-		current_box.size = v3d_add(current_box.size, entity->size);
-
-		ray_bbox_intersection(NULL, &resolved_dir, &axis, scaled_ray, current_box);
-		if (axis >= 0) {
+		if ((axis = ray_bbox_intersection(scaled_ray, *(bbox_t *)boxes->items[i], NULL, &resolved_dir)) >= 0) {
 			scaled_ray.dir = resolved_dir;
 
 			// kill inertia on collided axes
