@@ -97,6 +97,14 @@ v3d v3d_add(v3d a, v3d b) {
 	};
 }
 
+v3d v3d_sub(v3d a, v3d b) {
+	return (v3d){
+		a.x - b.x,
+		a.y - b.y,
+		a.z - b.z
+	};
+}
+
 v3d v3d_scale(v3d v, double scalar) {
 	return (v3d){
 		v.x * scalar,
