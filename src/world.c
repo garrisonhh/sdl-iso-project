@@ -131,8 +131,10 @@ void block_set(world_t *world, v3i loc, int texture) {
 void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	unsigned int chunk_index, block_index;
 	
-	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
-		return;
+	if (!chunk_block_indices(world, loc, &chunk_index, &block_index)) {
+		printf("adding to out of bounds entity bucket.\n");
+		exit(1);
+	}
 
 	chunk_t *chunk = world->chunks[chunk_index];
 
@@ -145,8 +147,10 @@ void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 	unsigned int chunk_index, block_index;
 	
-	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
-		return;
+	if (!chunk_block_indices(world, loc, &chunk_index, &block_index)) {
+		printf("removing from out of bounds entity bucket.\n");
+		exit(1);
+	}
 
 	chunk_t *chunk = world->chunks[chunk_index];
 

@@ -9,9 +9,13 @@ void entity_destroy(entity_t *entity) {
 	free(entity);
 }
 
-// TODO int -> size_t for conventions
-// TODO entities larger than 3x3 (or 1x1? unsure what is the largest supported)
-// list_deep_destroy() when done with data
+/*
+ * TODO entities larger than 3x3 (or 1x1? unsure what is the largest supported)
+ * TODO support speeds of more than 1 block per frame
+ * both can be solved by making a box around the entity of size entity.size, and then combining
+ * that with the shape of the scaled_ray, and then checking any blocks which might collide with
+ * that box.
+ */
 list_t *entity_surrounding_bboxes(entity_t *entity, world_t *world) {
 	list_t *boxes;
 	v3i entity_loc, current_block;
@@ -44,14 +48,14 @@ list_t *entity_surrounding_bboxes(entity_t *entity, world_t *world) {
 	return boxes;
 }
 
-void entity_tick(entity_t *entity, struct world_t *world, int ms) {
+void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 	list_t *boxes;
 	ray_t scaled_ray;
 	v3d resolved_dir;
 	double time;
 	int axis;
 
-	time = (double)ms / 1000;
+	time = ms / 1000;
 	entity->ray.dir.z += GRAVITY * time;
 
 	scaled_ray = entity->ray;

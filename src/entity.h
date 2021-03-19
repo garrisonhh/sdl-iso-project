@@ -17,6 +17,6 @@ struct entity_t {
 typedef struct entity_t entity_t;
 
 void entity_destroy(entity_t *);
-void entity_tick(entity_t *, struct world_t *, int ms);
+void entity_tick(entity_t *, struct world_t *, double);
 
 #endif

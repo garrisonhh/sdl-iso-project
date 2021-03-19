@@ -30,17 +30,6 @@ bool bbox_bbox_collide(bbox_t a, bbox_t b) {
 	return true;
 }
 
-/*
-bool inside_bbox(bbox_t bbox, v3d point) {
-	double val;
-	for (int i = 0; i < 3; i++) {
-		val = v3d_get(&bbox.pos, i);
-		if (!(collides(val, val + v3d_get(&bbox.size, i), v3d_get(&point, i))))
-			return false;
-	}
-	return true;
-}*/
-
 bbox_t ray_to_bbox(ray_t ray) {
 	bbox_t box;
 	box.pos = ray.pos;
