@@ -25,6 +25,7 @@ void noise_init(v2i dims) {
 	}
 }
 
+// TODO rewrite this, it's not that complicated just unreadable shitty code
 double noise_at(v2d point) {
 	v2d *mod_pt = (v2d *)malloc(sizeof(v2d));
 	mod_pt->x = fmod(point.x, 1);
@@ -33,7 +34,7 @@ double noise_at(v2d point) {
 	v2d corner;
 	double dot_corners[4], value;
 	int i, j, pX = (int)point.x, pY = (int)point.y;
-	for (j = 0; j < 2; j++) {
+	for (j = 0; j <= 1; j++) {
 		for (i = 0; i < 2; i++) {
 			corner.x = i ? 1 - mod_pt->x : mod_pt->x;
 			corner.y = j ? 1 - mod_pt->y : mod_pt->y;

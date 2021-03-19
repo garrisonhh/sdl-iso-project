@@ -7,7 +7,6 @@
 #include "media.h"
 #include "render.h"
 #include "world.h"
-#include "expose.h"
 #include "utils.h"
 
 SDL_Window *window = NULL;
@@ -117,7 +116,6 @@ int main(int argc, char *argv[]) {
 		last_time = this_time;
 
 		// gfx
-		expose_world(world);
 		render_clear_screen();
 		render_world(world);
 		SDL_RenderPresent(renderer);

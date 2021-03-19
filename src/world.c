@@ -8,13 +8,14 @@
 #include "noise.h"
 #include "list.h"
 #include "player.h"
+#include "textures.h"
 
 block_t *block_create(int texture) {
 	block_t *block = (block_t *)malloc(sizeof(block_t));
 
 	block->texture = texture;
-	block->expose_mask = 0;
-	block->expose_update = true;
+	block->expose_mask = 0x7;
+	// block->expose_update = true;
 
 	return block;
 }
@@ -70,6 +71,39 @@ bool chunk_block_indices(world_t *world, v3i loc, unsigned int *chunk_result, un
 	return true;
 }
 
+bool block_transparent(block_t *block) {
+	return textures[block->texture]->transparent;
+}
+
+void block_update_exposure(world_t *world, v3i loc) {
+	unsigned int chunk_index, block_index;
+	block_t *block, *other_block;
+	v3i other_loc;
+	bool exposed;
+
+	block = block_get(world, loc);
+	exposed = block == NULL || block_transparent(block);
+
+	for (int i = 0; i < 3; i++) {
+		other_loc = loc;
+		v3i_set(&other_loc, i, v3i_get(&other_loc, i) - 1);
+
+		if (chunk_block_indices(world, other_loc, &chunk_index, &block_index)) {
+			other_block = world->chunks[chunk_index]->blocks[block_index];
+
+			if (other_block != NULL) {
+				if (block_transparent(other_block))
+					continue;
+
+				if (exposed)
+					other_block->expose_mask |= 0x04 >> i; // 0b00100
+				else
+					other_block->expose_mask &= 0x1b >> i; // 0b11011
+			}
+		}
+	}
+}
+
 block_t *block_get(world_t *world, v3i loc) {
 	unsigned int chunk_index, block_index;
 
@@ -88,7 +122,10 @@ void block_set(world_t *world, v3i loc, int texture) {
 
 	if (chunk->blocks[block_index] != NULL)
 		free(chunk->blocks[block_index]);
+
 	chunk->blocks[block_index] = block_create(texture);
+
+	block_update_exposure(world, loc);
 }
 
 void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
@@ -155,7 +192,7 @@ void world_destroy(world_t *world) {
 	free(world);
 }
 
-// TODO apply texture hashing
+// TODO texture hashing
 void world_generate(world_t *world) {
 	unsigned int x, y, z;
 	int noise_val;
@@ -169,7 +206,7 @@ void world_generate(world_t *world) {
 	FOR_XY(x, y, world->block_size, world->block_size) {
 		loc = (v3i){x, y, 0};
 		noise_pos = (v2d){(double)x / 32.0, (double)y / 32.0};
-		noise_val = (int)((1.0 + noise_at(noise_pos)) * (double)world->size);
+		noise_val = (int)(((1.0 + noise_at(noise_pos)) / 2) * (double)(world->block_size));
 
 		for (z = 0; z < noise_val; z++) {
 			loc.z = z;
