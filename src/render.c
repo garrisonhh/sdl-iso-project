@@ -10,6 +10,7 @@
 #include "vector.h"
 #include "list.h"
 #include "utils.h"
+#include "world.h"
 
 #define BG_GRAY 31
 #define SHADOW_ALPHA 63
@@ -22,10 +23,11 @@ v2i camera = {0, 0};
 int camera_scale;
 v2i screen_center;
 
-typedef struct {
+struct shadow_t {
 	v2i loc;
 	int radius;
-} shadow_t;
+};
+typedef struct shadow_t shadow_t;
 
 void render_init(SDL_Window *window) {
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -90,7 +92,9 @@ void render_entity(entity_t *entity) {
 }
 
 // renders 2-1 ellipse at center
-void render_shadow(v2i center, int r) {
+void render_shadow(shadow_t shadow) {
+	v2i center = shadow.loc;
+	int r = shadow.radius;
 	int i, rx = r, ry = r >> 1, ix = r;
 	float y = 0.0, y_step = 1 / (float)ry;
 
@@ -110,26 +114,21 @@ void render_shadow(v2i center, int r) {
 }
 
 void render_world(world_t *world) {
-	int cx, cy, cz, x, y, z, i;
-	int chunk_origin = 0, block_origin = 0;
-	int chunk_index = 0, block_index = 0;
-	int chunk_z_step = world->dims.y * world->dims.x, block_z_step = SIZE * SIZE;
-	chunk_t *chunk;
+	int x, y, z, i;
+	unsigned int chunk_index, block_index;
 	block_t *block;
 	list_t *bucket;
 	v2i screen_pos;
 	v3i block_loc;
 
 	entity_t *entity;
-	int max_z = world->dims.z * SIZE;
-	list_t *shadows[max_z];
-	list_t *level_shadows;
+	list_t *shadows[world->block_size];
 	shadow_t *shadow;
 	v3d shadow_pos;
 	v3i shadow_loc;
 
 	// generate shadows and z sort
-	for (z = 0; z < max_z; z++)
+	for (z = 0; z < world->block_size; z++)
 		shadows[z] = NULL;
 
 	for (i = 0; i < world->entities->size; i++) {
@@ -139,7 +138,7 @@ void render_world(world_t *world) {
 		shadow_loc = v3i_from_v3d(shadow_pos);
 
 		while (shadow_loc.z >= 0) {
-			if (get_block(world, shadow_loc) != NULL)
+			if (block_get(world, shadow_loc) != NULL)
 				break;
 			shadow_loc.z--;
 		}
@@ -158,63 +157,39 @@ void render_world(world_t *world) {
 	}
 
 	// render all
-	for (cz = 0; cz < world->dims.z; cz++) {
-		block_origin = 0;
+	for (z = 0; z < world->block_size; z++) {
+		if (shadows[z] != NULL)
+			for (i = 0; i < shadows[z]->size; i++)
+				render_shadow(*(shadow_t *)shadows[z]->items[i]);
 
-		for (z = 0; z < SIZE; z++) {
-			chunk_index = chunk_origin;
-			level_shadows = shadows[cz * SIZE + z];
+		FOR_XY (x, y, world->block_size, world->block_size) {
+			block_loc = (v3i){x, y, z};
+			chunk_block_indices(world, block_loc, &chunk_index, &block_index);
 
-			if (level_shadows != NULL) {
-				for (i = 0; i < level_shadows->size; i++) {
-					render_shadow(((shadow_t *)level_shadows->items[i])->loc,
-								  ((shadow_t *)level_shadows->items[i])->radius);
+			if ((bucket = world->chunks[chunk_index]->buckets[block_index]) != NULL)
+				for (i = 0; i < bucket->size; i++)
+					render_entity(bucket->items[i]);
+			
+			if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL && block->expose_mask) {
+				screen_pos = v3i_to_isometric(block_loc, true);
+
+				switch (textures[block->texture]->type) {
+					case TEX_TEXTURE:
+						render_tex_texture(textures[block->texture]->texture, screen_pos);
+						break;
+					case TEX_VOXELTEXTURE:
+						render_voxel_texture(textures[block->texture]->voxel_texture,
+											 screen_pos, block->expose_mask);
+						break;
 				}
 			}
-
-			FOR_XY (cx, cy, world->dims.x, world->dims.y) {
-				chunk = world->chunks[chunk_index++];
-				block_index = block_origin;
-
-				FOR_XY (x, y, SIZE, SIZE) {
-					bucket = chunk->buckets[block_index];
-					block = chunk->blocks[block_index];
-					block_index++;
-
-					if (bucket != NULL) {
-						for (i = 0; i < bucket->size; i++)
-							render_entity(bucket->items[i]);
-					}
-					
-					if (block != NULL && block->expose_mask > 0) {
-						block_loc = (v3i){cx * SIZE + x, cy * SIZE + y, cz * SIZE + z};
-						screen_pos = v3i_to_isometric(block_loc, true);
-
-						switch (textures[block->texture]->type) {
-							case TEX_TEXTURE:
-								render_tex_texture(textures[block->texture]->texture, screen_pos);
-								break;
-							case TEX_VOXELTEXTURE:
-								render_voxel_texture(textures[block->texture]->voxel_texture,
-													 screen_pos, block->expose_mask);
-								break;
-						}
-					}
-				}
-			}
-
-			block_origin += block_z_step;
 		}
-
-		chunk_origin += chunk_z_step;
 	}
 
 	// destroy shadows
-	for (z = 0; z < max_z; z++) {
+	for (z = 0; z < world->block_size; z++) {
 		if (shadows[z] != NULL) {
-			for (i = 0; i < shadows[z]->size; i++)
-				free(shadows[z]->items[i]);
-			list_destroy(shadows[z]);
+			list_deep_destroy(shadows[z]);
 		}
 	}
 }

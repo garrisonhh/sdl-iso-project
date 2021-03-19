@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "entity.h"
 #include "vector.h"
 #include "collision.h"
@@ -16,6 +17,7 @@ list_t *entity_surrounding_bboxes(entity_t *entity, world_t *world) {
 	v3i entity_loc, current_block;
 	bbox_t *block_box;
 	int x, y, z;
+	unsigned int chunk_index, block_index;
 
 	boxes = list_create();
 	entity_loc = v3i_from_v3d(entity->ray.pos);
@@ -26,7 +28,9 @@ list_t *entity_surrounding_bboxes(entity_t *entity, world_t *world) {
 				current_block = (v3i){x, y, z};
 				current_block = v3i_add(entity_loc, current_block);
 
-				if (block_get(world, current_block) != NULL) {
+				chunk_block_indices(world, current_block, &chunk_index, &block_index);
+
+				if (world->chunks[chunk_index] == NULL || world->chunks[chunk_index]->blocks[block_index] != NULL) {
 					block_box = (bbox_t *)malloc(sizeof(bbox_t));
 
 					block_box->pos = v3d_from_v3i(current_block);

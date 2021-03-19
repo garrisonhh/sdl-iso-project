@@ -2,37 +2,42 @@
 #include <stdint.h>
 #include "world.h"
 #include "textures.h"
+#include "utils.h"
 
-void expose_chunk(chunk_t *chunk) {
-	Uint8 new_mask;
-	int index, offset, next_offset;
-	for (index = 0; index < CHUNK_SIZE; index++) {
-		if (chunk->blocks[index] != NULL && chunk->blocks[index]->expose_update) {
-			new_mask = 0;
-			offset = 1; // the index offset of the next block to check
-			next_offset = SIZE; // the range of current width-height-depths that aren't edges
-			while (offset < CHUNK_SIZE) {
-				new_mask <<= 1;
-				if ((index % next_offset) + offset < next_offset) {
-					if (chunk->blocks[index + offset] == NULL
-							|| textures[chunk->blocks[index + offset]->texture]->transparent) {
-						new_mask |= 1; // block face is exposed
-					}
-				} else {
-					new_mask |= 1; // block is on an edge
+bool block_transparent(block_t *block) {
+	return textures[block->texture]->transparent;
+}
+
+// TODO dynamic block exposure
+// instead of checking every block every frame, update relevant blocks on block_set() calls
+// will be a LOT faster i think...
+void expose_world(world_t *world) {
+	uint8_t new_mask;
+	int x, y, z, i;
+	v3i loc, other_loc;
+	block_t *block, *other_block;
+
+	FOR_XYZ(x, y, z, world->block_size, world->block_size, world->block_size) {
+		loc = (v3i){x, y, z};
+
+		if ((block = block_get(world, loc)) != NULL && block->expose_update) {
+			if (block_transparent(block)) {
+				block->expose_mask = 0x7;
+			} else {
+				new_mask = 0;
+
+				for (i = 0; i < 3; i++) {
+					new_mask <<= 1;
+					
+					other_loc = loc;
+					v3i_set(&other_loc, i, v3i_get(&loc, i) + 1);
+
+					if ((other_block = block_get(world, other_loc)) == NULL || block_transparent(other_block))
+						new_mask |= 1;
 				}
-				offset = next_offset;
-				next_offset *= SIZE;
+
+				block->expose_mask = new_mask;
 			}
-			chunk->blocks[index]->expose_mask = new_mask;
-			chunk->blocks[index]->expose_update = false;
 		}
 	}
 }
-
-void expose_world(world_t *world) {
-	for (int i = 0; i < world->num_chunks; i++) {
-		expose_chunk(world->chunks[i]);
-	}
-}
-

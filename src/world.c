@@ -57,12 +57,12 @@ bool chunk_block_indices(world_t *world, v3i loc, unsigned int *chunk_result, un
 
 		dim = v3i_get(&loc, i);
 
+		if (dim < 0 || dim >= world->block_size)
+			return false;
+
 		chunk_index |= (dim >> 4) & world->chunk_mask;
 		block_index |= dim & 0xF;
 	}
-
-	if (chunk_index >= world->num_chunks)
-		return false;
 
 	*chunk_result = chunk_index;
 	*block_result = block_index;
@@ -127,10 +127,12 @@ world_t *world_create(uint16_t size_power) {
 
 	world->size_power = size_power;
 	world->size = 1 << world->size_power;
+	world->block_size = world->size << 4;
 	world->chunk_mask = world->size - 1;
-	world->chunks = (chunk_t **)malloc(sizeof(chunk_t *) * world->size);
+	world->num_chunks = 1 << (world->size_power * 3);
+	world->chunks = (chunk_t **)malloc(sizeof(chunk_t *) * world->num_chunks);
 
-	for (int i = 0; i < world->size; i++)
+	for (int i = 0; i < world->num_chunks; i++)
 		world->chunks[i] = chunk_create();
 
 	world->player = player_create();
@@ -164,10 +166,10 @@ void world_generate(world_t *world) {
 	srand(time(0));
 	noise_init(dims);
 
-	FOR_XY(x, y, world->size * 16, world->size * 16) {
+	FOR_XY(x, y, world->block_size, world->block_size) {
 		loc = (v3i){x, y, 0};
-		noise_pos = (v2d){(double)(x / 2), (double)(y / 2)};
-		noise_val = (int)((1.0 + noise_at(noise_pos)) * ((double)world->size / 4));
+		noise_pos = (v2d){(double)x / 32.0, (double)y / 32.0};
+		noise_val = (int)((1.0 + noise_at(noise_pos)) * (double)world->size);
 
 		for (z = 0; z < noise_val; z++) {
 			loc.z = z;

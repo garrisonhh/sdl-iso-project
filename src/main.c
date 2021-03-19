@@ -45,10 +45,10 @@ void on_close() {
 int main(int argc, char *argv[]) {
 	init();
 
-	world_t *world = world_create(4);
+	world_t *world = world_create(1);
 	world_generate(world);
 
-	unsigned int last_time, this_time = SDL_GetTicks();
+	unsigned int last_time = SDL_GetTicks(), this_time;
 
 	bool quit = false;
 	SDL_Event e;

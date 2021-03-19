@@ -3,7 +3,7 @@
 	- x proper scaling
 	- occlusion
 	- x world render at once
-		- exposure over chunk borders
+		- x exposure over chunk borders
 		- x shadow fix
 2) smart entities
 	- a\*

@@ -26,7 +26,9 @@ typedef struct chunk_t chunk_t;
 
 struct world_t {
 	chunk_t **chunks;
-	unsigned int num_chunks, size, size_power, chunk_mask;
+	unsigned int num_chunks, chunk_mask;
+	unsigned int size, size_power;
+	unsigned int block_size;
 	list_t *entities;
 	struct entity_t *player;
 };
@@ -36,6 +38,7 @@ world_t *world_create(uint16_t);
 void world_destroy(world_t *);
 void world_generate(world_t *);
 void world_tick(world_t *, int ms);
+bool chunk_block_indices(world_t *, v3i, unsigned int *, unsigned int *);
 block_t *block_get(world_t *, v3i loc);
 
 #endif
