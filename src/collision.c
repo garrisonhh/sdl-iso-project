@@ -123,10 +123,12 @@ v3d bbox_center(bbox_t box) {
 }
 
 int bbox_compare(const void *a, const void *b) {
-	v3d center_a = bbox_center(*(bbox_t *)a), center_b = bbox_center(*(bbox_t *)b);
+	v3d center_a = bbox_center(*(bbox_t *)a);
+	v3d center_b = bbox_center(*(bbox_t *)b);
 	int i;
-	double comparison = 0, polarity;
+	double comparison, polarity;
 
+	// TODO simplify the if statement, should be possible
 	for (i = 2; i >= 0; i--) {
 		comparison = v3d_get(&center_b, i) - v3d_get(&center_a, i);
 		polarity = v3d_get(&BBOX_SORT_POLARITY, i) > 0;
@@ -145,5 +147,5 @@ int bbox_compare(const void *a, const void *b) {
 void sort_bboxes_by_vector_polarity(list_t *boxes, v3d v) {
 	for (int i = 0; i < 3; i++)
 		v3d_set(&BBOX_SORT_POLARITY, i, (v3d_get(&v, i) > 0 ? 1 : -1));
-	qsort(boxes->items, boxes->size, sizeof(bbox_t *), bbox_compare);
+	qsort(boxes->items, boxes->size, sizeof(void *), bbox_compare);
 }
