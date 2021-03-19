@@ -14,7 +14,6 @@
 struct block_t {
 	int texture;
 	uint8_t expose_mask;
-	// bool expose_update;
 };
 typedef struct block_t block_t;
 

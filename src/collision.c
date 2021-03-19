@@ -125,17 +125,17 @@ v3d bbox_center(bbox_t box) {
 int bbox_compare(const void *a, const void *b) {
 	v3d center_a = bbox_center(*(bbox_t *)a), center_b = bbox_center(*(bbox_t *)b);
 	int i;
-	double comp, polarity;
+	double comparison = 0, polarity;
 
 	for (i = 2; i >= 0; i--) {
-		comp = v3d_get(&center_b, i) - v3d_get(&center_a, i);
+		comparison = v3d_get(&center_b, i) - v3d_get(&center_a, i);
 		polarity = v3d_get(&BBOX_SORT_POLARITY, i) > 0;
 
-		if (d_close(comp, 0))
+		if (d_close(comparison, 0))
 			continue;
-		else if (comp > 0)
+		else if (comparison > 0)
 			return polarity > 0 ? -1 : 1;
-		else if (comp < 0)
+		else if (comparison < 0)
 			return polarity > 0 ? 1 : -1;
 	}
 

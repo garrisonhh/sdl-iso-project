@@ -146,14 +146,16 @@ void render_world(world_t *world) {
 		shadow_loc.z++;
 		shadow_pos.z = shadow_loc.z;
 
-		shadow = (shadow_t *)malloc(sizeof(shadow));
-		shadow->loc = v3d_to_isometric(shadow_pos, true);
-		shadow->radius = (int)((entity->size.x * VOXEL_WIDTH) / 2);
+		if (shadow_loc.z >= 0 && shadow_loc.z < world->block_size) {
+			shadow = (shadow_t *)malloc(sizeof(shadow_t));
+			shadow->loc = v3d_to_isometric(shadow_pos, true);
+			shadow->radius = (int)((entity->size.x * VOXEL_WIDTH) / 2.0);
 
-		if (shadows[shadow_loc.z] == NULL)
-			shadows[shadow_loc.z] = list_create();
+			if (shadows[shadow_loc.z] == NULL)
+				shadows[shadow_loc.z] = list_create();
 
-		list_add(shadows[shadow_loc.z], shadow);
+			list_add(shadows[shadow_loc.z], shadow);
+		}
 	}
 
 	// render all
