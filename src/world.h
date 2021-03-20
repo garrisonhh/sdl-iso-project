@@ -25,11 +25,12 @@ typedef struct chunk_t chunk_t;
 
 struct world_t {
 	chunk_t **chunks;
+	list_t *entities;
+	struct entity_t *player;
+
 	unsigned int num_chunks, chunk_mask;
 	unsigned int size, size_power;
 	unsigned int block_size;
-	list_t *entities;
-	struct entity_t *player;
 };
 typedef struct world_t world_t;
 

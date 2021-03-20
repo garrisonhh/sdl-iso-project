@@ -32,15 +32,12 @@ chunk_t *chunk_create() {
 
 void chunk_destroy(chunk_t *chunk) {
 	for (int i = 0; i < CHUNK_SIZE; i++) {
-		if (chunk->blocks[i] != NULL) {
+		if (chunk->blocks[i] != NULL)
 			free(chunk->blocks[i]);
-			chunk->blocks[i] = NULL;
-		}
-		if (chunk->buckets[i] != NULL) {
-			free(chunk->buckets[i]);
-			chunk->buckets[i] = NULL;
-		}
+		if (chunk->buckets[i] != NULL)
+			list_destroy(chunk->buckets[i]);
 	}
+
 	free(chunk);
 }
 
@@ -185,12 +182,11 @@ world_t *world_create(uint16_t size_power) {
 }
 
 void world_destroy(world_t *world) {
-	for (int i = 0; i < world->size; i++) {
+	for (int i = 0; i < world->num_chunks; i++)
 		chunk_destroy(world->chunks[i]);
-		world->chunks[i] = NULL;
-	}
+	
+	list_deep_destroy(world->entities); // includes player
 
-	entity_destroy(world->player);
 	free(world->chunks);
 	free(world);
 }
