@@ -15,7 +15,6 @@ block_t *block_create(int texture) {
 
 	block->texture = texture;
 	block->expose_mask = 0x7;
-	// block->expose_update = true;
 
 	return block;
 }
