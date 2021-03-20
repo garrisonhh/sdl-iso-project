@@ -76,6 +76,13 @@ int main(int argc, char *argv[]) {
 							break;
 					}
 					break;
+				case SDL_KEYUP:
+					switch (e.key.keysym.sym) {
+						case SDLK_SPACE:
+							jump = false;
+							break;
+					}
+					break;
 				case SDL_MOUSEWHEEL:
 					if (e.wheel.y >= 0)
 						camera_set_scale(camera_scale + 1);
@@ -104,10 +111,8 @@ int main(int argc, char *argv[]) {
 		world->player->ray.dir.x = move.x;
 		world->player->ray.dir.y = move.y;
 
-		if (jump) {
+		if (jump && world->player->on_ground)
 			world->player->ray.dir.z += 9.0;
-			jump = false;
-		}
 
 		// tick
 		this_time = SDL_GetTicks();

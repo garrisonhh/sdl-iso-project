@@ -70,6 +70,7 @@ void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 
 	time = ms / 1000;
 	entity->ray.dir.z += GRAVITY * time;
+	entity->on_ground = false;
 
 	scaled_ray = entity->ray;
 	scaled_ray.dir = v3d_scale(scaled_ray.dir, time);
@@ -85,6 +86,9 @@ void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 			// kill inertia on collided axes
 			// TODO on_ground flag or similar for entities
 			v3d_set(&entity->ray.dir, axis, 0);
+
+			if (axis == 2)
+				entity->on_ground = true;
 		}
 	}
 
