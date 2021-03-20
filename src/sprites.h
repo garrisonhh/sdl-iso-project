@@ -13,7 +13,7 @@ typedef struct sprite_t sprite_t;
 
 extern sprite_t **sprites;
 
-void sprites_load(void);
+void sprites_load(json_object *);
 void sprites_destroy(void);
 void render_sprite(sprite_t *, v2i);
 

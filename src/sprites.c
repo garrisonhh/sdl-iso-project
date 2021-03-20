@@ -7,17 +7,18 @@
 #include "sprites.h"
 
 sprite_t **sprites = NULL;
-int num_sprites;
+size_t num_sprites;
 
-void sprites_load() {
+void sprites_load(json_object *file_obj) {
 	json_object *sprite_arr_obj;
-	sprite_arr_obj = json_object_object_get(json_object_from_file("assets/assets.json"), "sprites");
+	sprite_arr_obj = json_object_object_get(file_obj, "sprites");
 	num_sprites = json_object_array_length(sprite_arr_obj);
 	sprites = (sprite_t **)calloc(num_sprites, sizeof(sprite_t *));
 
-	for (int i = 0; i < num_sprites; i++) {
+	for (size_t i = 0; i < num_sprites; i++) {
 		json_object *current_png;
 		char path[50];
+
 		current_png = json_object_array_get_idx(sprite_arr_obj, i);
 		sprintf(path, "assets/%s.png", json_object_get_string(json_object_object_get(current_png, "name")));
 
@@ -30,11 +31,11 @@ void sprites_load() {
 }
 
 void sprites_destroy() {
-	for (int i = 0; i < num_sprites; i++) {
+	for (size_t i = 0; i < num_sprites; i++) {
 		SDL_DestroyTexture(sprites[i]->texture);
 		free(sprites[i]);
-		sprites[i] = NULL;
 	}
+
 	free(sprites);
 	sprites = NULL;
 }

@@ -2,6 +2,7 @@
 #define TEXTURES_H
 
 #include <SDL2/SDL.h>
+#include <json-c/json.h>
 #include <stdint.h>
 #include "vector.h"
 
@@ -28,7 +29,7 @@ typedef struct texture_t texture_t;
 extern texture_t **textures;
 
 void textures_init(void);
-void textures_load(void);
+void textures_load(json_object *);
 void textures_destroy(void);
 void render_tex_texture(SDL_Texture *, v2i);
 vox_tex *load_voxel_texture(char *);

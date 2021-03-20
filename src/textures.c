@@ -7,9 +7,8 @@
 #include "render.h"
 #include "textures.h"
 
-// TODO texture name hashing? then store hash instead of key for instant access
 texture_t **textures = NULL;
-int num_textures;
+size_t num_textures;
 
 v2i tex_tex_offset;
 SDL_Rect vox_tex_rects[3];
@@ -50,21 +49,24 @@ void textures_init() {
 	memcpy(vox_tex_rects, vox_tex_rects_tmp, sizeof vox_tex_rects_tmp);
 }
 
-void textures_load() {
+void textures_load(json_object *file_obj) {
 	json_object *tex_arr_obj;
-	tex_arr_obj = json_object_object_get(json_object_from_file("assets/assets.json"), "textures");
+	tex_arr_obj = json_object_object_get(file_obj, "textures");
 	num_textures = json_object_array_length(tex_arr_obj);
+
 	textures = (texture_t **)calloc(num_textures, sizeof(texture_t *));
 
-	for (int i = 0; i < num_textures; i++) {
+	for (size_t i = 0; i < num_textures; i++) {
 		json_object *current_png;
 		char path[50];
+
 		current_png = json_object_array_get_idx(tex_arr_obj, i);
 		sprintf(path, "assets/%s", json_object_get_string(json_object_object_get(current_png, "name")));
 
 		textures[i] = (texture_t *)malloc(sizeof(texture_t));
 		textures[i]->type = json_object_get_int(json_object_object_get(current_png, "type"));
 		textures[i]->transparent = json_object_get_boolean(json_object_object_get(current_png, "transparent"));
+
 		switch (textures[i]->type) {
 			case TEX_TEXTURE:;
 				char tex_path[54];
@@ -79,7 +81,7 @@ void textures_load() {
 }
 
 void textures_destroy() {
-	for (int i = 0; i < num_textures; i++) {
+	for (size_t i = 0; i < num_textures; i++) {
 		switch (textures[i]->type) {
 			case TEX_TEXTURE:
 				SDL_DestroyTexture(textures[i]->texture);
@@ -87,13 +89,13 @@ void textures_destroy() {
 			case TEX_VOXELTEXTURE:
 				SDL_DestroyTexture(textures[i]->voxel_texture->top);
 				SDL_DestroyTexture(textures[i]->voxel_texture->side);
-				textures[i]->voxel_texture->top = NULL;
-				textures[i]->voxel_texture->side = NULL;
+				free(textures[i]->voxel_texture);
 				break;
 		}
+
 		free(textures[i]);
-		textures[i] = NULL;
 	}
+
 	free(textures);
 	textures = NULL;
 }
@@ -111,6 +113,7 @@ void render_tex_texture(SDL_Texture *texture, v2i pos) {
 // loads [base_path]_top.png and [base_path]_side.png
 vox_tex* load_voxel_texture(char *base_path) {
 	char top_path[100], side_path[100];
+
 	strcpy(top_path, base_path);
 	strcpy(side_path, base_path);
 	strcat(top_path, "_top.png");

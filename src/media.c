@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <json-c/json.h>
 #include "render.h"
 #include "textures.h"
 #include "sprites.h"
@@ -11,9 +12,14 @@ void media_init() {
 		exit(1);
 	}
 
+	json_object *file_obj = json_object_from_file("assets/assets.json");
+	
 	textures_init();
-	textures_load();
-	sprites_load();
+	textures_load(file_obj);
+	sprites_load(file_obj);
+	
+	while (json_object_put(file_obj) != 1)
+		free(file_obj);
 }
 
 void media_quit() {
@@ -25,12 +31,14 @@ void media_quit() {
 SDL_Texture *load_sdl_texture(char *path) {
 	SDL_Texture *new_texture = NULL;
 	SDL_Surface *loaded_surface = IMG_Load(path);
+
 	if (loaded_surface == NULL) {
 		printf("unable to load image %s:\n%s\n", path, IMG_GetError());
 		exit(1);
 	}
 
 	new_texture = SDL_CreateTextureFromSurface(renderer, loaded_surface);
+	
 	if (new_texture == NULL) {
 		printf("unable to create texture from %s:\n%s\n", path, SDL_GetError());
 		exit(1);
