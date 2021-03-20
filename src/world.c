@@ -10,7 +10,7 @@
 #include "player.h"
 #include "textures.h"
 
-block_t *block_create(int texture) {
+block_t *block_create(size_t texture) {
 	block_t *block = (block_t *)malloc(sizeof(block_t));
 
 	block->texture = texture;
@@ -108,7 +108,7 @@ block_t *block_get(world_t *world, v3i loc) {
 	return world->chunks[chunk_index]->blocks[block_index];
 }
 
-void block_set(world_t *world, v3i loc, int texture) {
+void block_set(world_t *world, v3i loc, size_t texture) {
 	unsigned int chunk_index, block_index;
 	
 	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
@@ -199,6 +199,12 @@ void world_generate(world_t *world) {
 	v2i dims = {world->size >> 1, world->size >> 1};
 	v3i loc;
 
+	size_t dirt, grass, bush, tall_grass;
+	dirt = texture_index("dirt");
+	grass = texture_index("grass");
+	bush = texture_index("bush");
+	tall_grass = texture_index("tall_grass");
+
 	srand(time(0));
 	noise_init(dims);
 
@@ -209,19 +215,19 @@ void world_generate(world_t *world) {
 
 		for (z = 0; z < noise_val; z++) {
 			loc.z = z;
-			block_set(world, loc, 0); // dirt
+			block_set(world, loc, dirt);
 		}
 		
-		block_set(world, loc, 1); // grass
+		block_set(world, loc, grass);
 
 		loc.z += 1;
 		switch (rand() % 20) {
 			case 0:
-				block_set(world, loc, 2); // bush
+				block_set(world, loc, bush);
 				break;
 			case 1:
 			case 2:
-				block_set(world, loc, 3); // tall_grass
+				block_set(world, loc, tall_grass);
 				break;
 		}
 	}

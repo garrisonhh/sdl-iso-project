@@ -2,6 +2,7 @@
 #define SPRITES_H
 
 #include <SDL2/SDL.h>
+#include <json-c/json.h>
 #include "vector.h"
 
 struct sprite_t {
@@ -15,6 +16,7 @@ extern sprite_t **sprites;
 
 void sprites_load(json_object *);
 void sprites_destroy(void);
+size_t sprite_index(const char *);
 void render_sprite(sprite_t *, v2i);
 
 #endif

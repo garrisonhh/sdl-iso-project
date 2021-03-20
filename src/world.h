@@ -12,7 +12,7 @@
 
 // TODO typed blocks (some blocks need updates)
 struct block_t {
-	int texture;
+	size_t texture;
 	uint8_t expose_mask;
 };
 typedef struct block_t block_t;
