@@ -1,9 +1,22 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "entity.h"
 #include "vector.h"
 #include "collision.h"
 #include "world.h"
 #include "list.h"
+
+entity_t *entity_create(int sprite, v3d pos, v3d size) {
+	entity_t *entity = (entity_t *)malloc(sizeof(entity_t));
+
+	entity->sprite = sprite;
+	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
+	entity->size = size;
+	entity->center = v3d_scale(entity->size, 0.5);
+	entity->on_ground = false;
+
+	return entity;
+}
 
 void entity_destroy(entity_t *entity) {
 	free(entity);
