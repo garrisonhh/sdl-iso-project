@@ -48,6 +48,9 @@ int main(int argc, char *argv[]) {
 	world_generate(world);
 
 	unsigned int last_time = SDL_GetTicks(), this_time;
+	unsigned int target_framerate = 120, frame_start;
+	int frame_delay;
+	unsigned int target_frame_time = 1000 / target_framerate;
 
 	bool quit = false;
 	SDL_Event e;
@@ -61,7 +64,9 @@ int main(int argc, char *argv[]) {
 	bool jump = false;
 
 	while (!quit) {
-		while (SDL_PollEvent(&e) != 0) {
+		frame_start = SDL_GetTicks();
+
+		while (SDL_PollEvent(&e)) {
 			switch (e.type) {
 				case SDL_QUIT:
 					quit = true;
@@ -125,12 +130,12 @@ int main(int argc, char *argv[]) {
 		render_world(world);
 		SDL_RenderPresent(renderer);
 
-		// so my laptop doesn't explode
-		SDL_Delay(20);
+		// limit framerate to `target_framerate`
+		if ((frame_delay = frame_start + target_frame_time - SDL_GetTicks()) > 0)
+			SDL_Delay(frame_delay);
 	}
 
 	world_destroy(world);
-	world = NULL;
 	on_close();
 	
 	return 0;
