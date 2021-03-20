@@ -4,8 +4,8 @@
 #include "hash.h"
 #include "utils.h"
 
-unsigned int hash_key(hash_table *table, char *key, size_t len_key) {
-	unsigned int sum;
+hash_t hash_key(hash_table *table, char *key, size_t len_key) {
+	hash_t sum;
 	int max_index = MIN(3, len_key);
 
 	for (int i = 0; i < max_index; i++)
@@ -79,7 +79,7 @@ void hash_rehash(hash_table *table) {
 
 hash_bucket *hash_get_pair(hash_table *table, char *key) {
 	size_t len_key = strlen(key);
-	unsigned int hash = hash_key(table, key, len_key);
+	hash_t hash = hash_key(table, key, len_key);
 	hash_bucket *trav;
 
 	trav = table->buckets[hash];
@@ -108,10 +108,10 @@ void hash_remove(hash_table *table, char *key) {
 	}
 }
 
-unsigned int hash_set(hash_table *table, char *key, void *value) {
+hash_t hash_set(hash_table *table, char *key, void *value) {
 	hash_bucket *bucket;
+	hash_t hash;
 	size_t len_key;
-	unsigned int hash;
 
 	len_key = strlen(key);
 	hash = hash_key(table, key, len_key);

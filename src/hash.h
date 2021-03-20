@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+typedef size_t hash_t;
+
 typedef struct hash_bucket {
 	char *key;
 	size_t len_key;
@@ -20,7 +22,8 @@ void hash_table_destroy(hash_table *);
 void hash_table_deep_destroy(hash_table *);
 
 void *hash_get(hash_table *, char *);
-unsigned int hash_set(hash_table *, char *, void *);
+void *hash_get_by_hash(hash_table *, hash_t);
+hash_t hash_set(hash_table *, char *, void *);
 void hash_remove(hash_table *, char *);
 
 #endif
