@@ -219,9 +219,15 @@ void world_generate(world_t *world) {
 		
 		block_set(world, loc, 1); // grass
 
-		if (rand() % 20 == 0) {
-			loc.z++;
-			block_set(world, loc, 2); // bush
+		loc.z += 1;
+		switch (rand() % 20) {
+			case 0:
+				block_set(world, loc, 2); // bush
+				break;
+			case 1:
+			case 2:
+				block_set(world, loc, 3); // tall_grass
+				break;
 		}
 	}
 
