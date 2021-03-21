@@ -191,7 +191,6 @@ void world_destroy(world_t *world) {
 	free(world);
 }
 
-// TODO texture hashing
 void world_generate(world_t *world) {
 	unsigned int x, y, z;
 	int noise_val;

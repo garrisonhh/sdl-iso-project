@@ -54,10 +54,10 @@ int main(int argc, char *argv[]) {
 
 	bool quit = false;
 	SDL_Event e;
-	const Uint8 *kb_state = SDL_GetKeyboardState(NULL);
+	const uint8_t *kb_state = SDL_GetKeyboardState(NULL);
 
 	v3i move_inputs;
-	const int SPEED = 3; // TODO move this somewhere better (part of player entity?)
+	const int SPEED = 3; // TODO add this to player entity when implementing entity types
 	const v3d move_down = {SPEED, SPEED, 0};
 	const v3d move_right = {SPEED, -SPEED, 0};
 	v3d move;
@@ -139,4 +139,4 @@ int main(int argc, char *argv[]) {
 	on_close();
 	
 	return 0;
-}
+ }

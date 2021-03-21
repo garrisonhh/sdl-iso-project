@@ -113,23 +113,16 @@ void render_shadow(shadow_t shadow) {
 	}
 }
 
-void render_world(world_t *world) {
-	int x, y, z, i;
-	unsigned int chunk_index, block_index;
-	block_t *block;
-	list_t *bucket;
-	v2i screen_pos;
-	v3i block_loc;
-
+void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_size]) {
+	int z, i;
 	entity_t *entity;
-	list_t *shadows[world->block_size];
 	shadow_t *shadow;
 	v3d shadow_pos;
 	v3i shadow_loc;
 
-	// generate shadows and z sort
+	// generate *shadows and z sort
 	for (z = 0; z < world->block_size; z++)
-		shadows[z] = NULL;
+		(*shadows)[z] = NULL;
 
 	for (i = 0; i < world->entities->size; i++) {
 		entity = world->entities->items[i];
@@ -151,14 +144,25 @@ void render_world(world_t *world) {
 			shadow->loc = v3d_to_isometric(shadow_pos, true);
 			shadow->radius = (int)((entity->size.x * VOXEL_WIDTH) / 2.0);
 
-			if (shadows[shadow_loc.z] == NULL)
-				shadows[shadow_loc.z] = list_create();
+			if ((*shadows)[shadow_loc.z] == NULL)
+				(*shadows)[shadow_loc.z] = list_create();
 
-			list_add(shadows[shadow_loc.z], shadow);
+			list_add((*shadows)[shadow_loc.z], shadow);
 		}
 	}
+}
 
-	// render all
+void render_world(world_t *world) {
+	int x, y, z, i;
+	unsigned int chunk_index, block_index;
+	block_t *block;
+	list_t *bucket;
+	v2i screen_pos;
+	v3i block_loc;
+	list_t *shadows[world->block_size];
+	
+	render_generate_shadows(world, &shadows);
+
 	for (z = 0; z < world->block_size; z++) {
 		if (shadows[z] != NULL)
 			for (i = 0; i < shadows[z]->size; i++)
@@ -188,10 +192,7 @@ void render_world(world_t *world) {
 		}
 	}
 
-	// destroy shadows
-	for (z = 0; z < world->block_size; z++) {
-		if (shadows[z] != NULL) {
+	for (z = 0; z < world->block_size; z++)
+		if (shadows[z] != NULL)
 			list_deep_destroy(shadows[z]);
-		}
-	}
 }
