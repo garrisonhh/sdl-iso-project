@@ -56,7 +56,15 @@ v3i v3i_add(v3i a, v3i b) {
 	};
 }
 
-v3i v3i_scale(v3i v, int scalar) {
+v3i v3i_sub(v3i a, v3i b) {
+	return (v3i){
+		a.x - b.x,
+		a.y - b.y,
+		a.z - b.z
+	};
+}
+
+v3i v3i_scale(v3i v, double scalar) {
 	return (v3i){
 		v.x * scalar,
 		v.y * scalar,

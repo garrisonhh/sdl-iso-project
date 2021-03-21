@@ -31,7 +31,8 @@ v3i v3i_from_v3d(v3d);
 int v3i_get(v3i *, int);
 void v3i_set(v3i *, int, int);
 v3i v3i_add(v3i, v3i);
-v3i v3i_scale(v3i, int);
+v3i v3i_sub(v3i, v3i);
+v3i v3i_scale(v3i, double);
 int v3i_compare(v3i, v3i);
 
 v3d v3d_from_v3i(v3i);
