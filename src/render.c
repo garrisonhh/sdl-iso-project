@@ -19,10 +19,12 @@ const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 
 SDL_Renderer *renderer = NULL;
 
-v2i camera = {0, 0};
-int camera_scale;
-int render_dist = 32;
-v2i screen_center;
+camera_t camera = {
+	.pos = (v2i){0, 0},
+	.center_screen = (v2i){SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1},
+	.scale = 1,
+	.render_dist = 32
+};
 
 struct shadow_t {
 	v2i loc;
@@ -40,8 +42,6 @@ void render_init(SDL_Window *window) {
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
 	SDL_RenderSetIntegerScale(renderer, true);
-
-	camera_set_scale(2);
 }
 
 void render_destroy() {
@@ -61,7 +61,7 @@ v2i v3i_to_isometric(v3i v, bool at_camera) {
 	};
 
 	if (at_camera)
-		return v2i_add(iso, camera);
+		return v2i_add(iso, camera.pos);
 	return iso;
 }
 
@@ -72,18 +72,21 @@ v2i v3d_to_isometric(v3d v, bool at_camera) {
 	};
 
 	if (at_camera)
-		return v2i_add(iso, camera);
+		return v2i_add(iso, camera.pos);
 	return iso;
 }
 
 void camera_update(world_t *world) {
-	camera = v2i_sub(screen_center, v3d_to_isometric(world->player->ray.pos, false));
+	camera.pos = v2i_sub(camera.center_screen, v3d_to_isometric(world->player->ray.pos, false));
 }
 
-void camera_set_scale(int scale) {
-	camera_scale = scale;
-	screen_center = (v2i){(SCREEN_WIDTH / camera_scale) >> 1, (SCREEN_HEIGHT / camera_scale) >> 1};
-	SDL_RenderSetScale(renderer, camera_scale, camera_scale);
+void camera_change_scale(bool increase) {
+	camera.scale = MAX(camera.scale + (increase ? -1 : 1), 1);
+	camera.center_screen = (v2i){
+		(SCREEN_WIDTH / camera.scale) >> 1,
+		(SCREEN_HEIGHT / camera.scale) >> 1
+	};
+	SDL_RenderSetScale(renderer, camera.scale, camera.scale);
 }
 
 void render_entity(entity_t *entity) {
@@ -168,8 +171,8 @@ void render_world(world_t *world) {
 	player_loc = v3i_from_v3d(world->player->ray.pos);
 
 	for (i = 0; i < 3; i++) {
-		v3i_set(&min_block, i, MAX(0, v3i_get(&player_loc, i) - render_dist));
-		v3i_set(&max_block, i, MIN(world->block_size, v3i_get(&player_loc, i) + render_dist));
+		v3i_set(&min_block, i, MAX(0, v3i_get(&player_loc, i) - camera.render_dist));
+		v3i_set(&max_block, i, MIN(world->block_size, v3i_get(&player_loc, i) + camera.render_dist));
 	}
 
 	for (z = min_block.z; z < max_block.z; z++) {

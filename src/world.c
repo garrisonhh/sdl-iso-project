@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
-#include "utils.h"
+#include <math.h>
 #include "world.h"
 #include "entity.h"
 #include "noise.h"
 #include "list.h"
 #include "player.h"
 #include "textures.h"
+#include "utils.h"
 
 block_t *block_create(size_t texture) {
 	block_t *block = (block_t *)malloc(sizeof(block_t));
@@ -210,7 +211,7 @@ void world_generate(world_t *world) {
 	FOR_XY(x, y, world->block_size, world->block_size) {
 		loc = (v3i){x, y, 0};
 		noise_pos = (v2d){(double)x / 32.0, (double)y / 32.0};
-		noise_val = (int)(((1.0 + noise_at(noise_pos)) / 2) * (double)(MIN(world->block_size, 8)));
+		noise_val = (int)(pow((1.0 + noise_at(noise_pos)) / 2, 3.0) * (double)(MIN(world->block_size, 16)));
 
 		for (z = 0; z < noise_val; z++) {
 			loc.z = z;

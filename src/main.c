@@ -89,10 +89,7 @@ int main(int argc, char *argv[]) {
 					}
 					break;
 				case SDL_MOUSEWHEEL:
-					if (e.wheel.y >= 0)
-						camera_set_scale(camera_scale + 1);
-					else if (camera_scale > 1)
-						camera_set_scale(camera_scale - 1);
+					camera_change_scale(e.wheel.y < 0);
 					break;
 			}
 		}

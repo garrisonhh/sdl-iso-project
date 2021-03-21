@@ -26,6 +26,7 @@ void noise_init(v2i dims) {
 }
 
 // TODO rewrite this, it's not that complicated just unreadable shitty code
+// generates numbers between -1 and 1
 double noise_at(v2d point) {
 	v2d *mod_pt = (v2d *)malloc(sizeof(v2d));
 	mod_pt->x = fmod(point.x, 1);
