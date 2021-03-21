@@ -76,6 +76,15 @@ int v3i_compare(v3i a, v3i b) {
 	return ((((a.z - b.z) << 1) + (a.y - b.y)) << 1) + a.x - b.x;
 }
 
+v3i polarity_of_v3d(v3d v) {
+	v3i polarity;
+
+	for (int i = 0; i < 3; i++)
+		v3i_set(&polarity, i, (v3d_get(&v, i) >= 0 ? 1 : -1));
+
+	return polarity;
+}
+
 v3d v3d_from_v3i(v3i v) {
 	return (v3d){v.x, v.y, v.z};
 }
@@ -121,12 +130,6 @@ v3d v3d_scale(v3d v, double scalar) {
 	};
 }
 
-v3i v3d_polarity(v3d v) {
-	v3i polarity;
-
-	for (int i = 0; i < 3; i++)
-		v3i_set(&polarity, i, (v3d_get(&v, i) >= 0 ? 1 : -1));
-
-	return polarity;
+double v3d_magnitude(v3d v) {
+	return sqrt(v.x * v.y * v.z);
 }
-
