@@ -16,7 +16,7 @@ extern sprite_t **sprites;
 
 void sprites_load(json_object *);
 void sprites_destroy(void);
-size_t sprite_index(const char *);
+size_t sprite_index(char *);
 void render_sprite(sprite_t *, v2i);
 
 #endif

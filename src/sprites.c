@@ -38,7 +38,7 @@ void sprites_load(json_object *file_obj) {
 		
 		arr_index = (size_t *)malloc(sizeof(size_t));
 		*arr_index = i;
-		hash_set(sprite_table, name, arr_index);
+		hash_set(sprite_table, (char *)name, arr_index);
 	}
 }
 
@@ -54,7 +54,7 @@ void sprites_destroy() {
 	sprite_table = NULL;
 }
 
-size_t sprite_index(const char *key) {
+size_t sprite_index(char *key) {
 	void *value;
 
 	if ((value = hash_get(sprite_table, key)) != NULL)

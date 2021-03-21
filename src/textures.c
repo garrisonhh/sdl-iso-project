@@ -87,7 +87,7 @@ void textures_load(json_object *file_obj) {
 
 		arr_index = (size_t *)malloc(sizeof(size_t));
 		*arr_index = i;
-		hash_set(texture_table, name, arr_index);
+		hash_set(texture_table, (char *)name, arr_index);
 	}
 }
 
@@ -113,7 +113,7 @@ void textures_destroy() {
 	texture_table = NULL;
 }
 
-size_t texture_index(const char *key) {
+size_t texture_index(char *key) {
 	void *value;
 
 	if ((value = hash_get(texture_table, key)) != NULL)

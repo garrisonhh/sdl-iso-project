@@ -32,7 +32,7 @@ extern texture_t **textures;
 void textures_init(void);
 void textures_load(json_object *);
 void textures_destroy(void);
-size_t texture_index(const char *);
+size_t texture_index(char *);
 void render_tex_texture(SDL_Texture *, v2i);
 vox_tex *load_voxel_texture(char *);
 void render_voxel_texture(vox_tex *, v2i, uint8_t expose_mask);

@@ -4,7 +4,7 @@
 #include "hash.h"
 #include "utils.h"
 
-hash_t hash_key(hash_table *table, const char *key, size_t len_key) {
+hash_t hash_key(hash_table *table, char *key, size_t len_key) {
 	hash_t sum = 0;
 	int max_index = MIN(5, len_key);
 
@@ -28,31 +28,33 @@ hash_table *hash_table_create(size_t initial_size) {
 }
 
 void hash_bucket_destroy(hash_bucket *bucket) {
+	free(bucket->key);
+
 	if (bucket->overflow != NULL)
 		hash_bucket_destroy(bucket->overflow);
+
 	free(bucket);
 }
 
 void hash_bucket_deep_destroy(hash_bucket *bucket) {
 	if (bucket->value != NULL)
 		free(bucket->value);
+
 	hash_bucket_destroy(bucket);
 }
 
 void hash_table_destroy(hash_table *table) {
-	for (size_t i = 0; i < table->size; i++) {
+	for (size_t i = 0; i < table->size; i++)
 		if (table->buckets[i] != NULL)
 			hash_bucket_destroy(table->buckets[i]);
-	}
 
 	free(table);
 }
 
 void hash_table_deep_destroy(hash_table *table) {
-	for (size_t i = 0; i < table->size; i++) {
+	for (size_t i = 0; i < table->size; i++)
 		if (table->buckets[i] != NULL)
 			hash_bucket_deep_destroy(table->buckets[i]);
-	}
 
 	free(table);
 }
@@ -82,7 +84,7 @@ void hash_rehash(hash_table *table) {
 	}
 }
 
-hash_bucket *hash_get_pair(hash_table *table, const char *key) {
+hash_bucket *hash_get_pair(hash_table *table, char *key) {
 	size_t len_key = strlen(key);
 	hash_t hash = hash_key(table, key, len_key);
 	hash_bucket *trav;
@@ -95,23 +97,25 @@ hash_bucket *hash_get_pair(hash_table *table, const char *key) {
 	return trav;
 }
 
-void *hash_get(hash_table *table, const char *key) {
+void *hash_get(hash_table *table, char *key) {
 	hash_bucket *bucket;
 
 	return (bucket = hash_get_pair(table, key)) != NULL ? bucket->value : NULL;
 }
 
-void hash_remove(hash_table *table, const char *key) {
-	unsigned int hash = hash_key(table, key, strlen(key));
+void hash_remove(hash_table *table, char *key) {
+	unsigned int hash;
+	hash_bucket *trav;
 
-	if (table->buckets[hash] != NULL) {
-		hash_bucket_destroy(table->buckets[hash]);
-		table->buckets[hash] = NULL;
-	}
+	hash = hash_key(table, key, strlen(key));
+	trav = table->buckets[hash];
+
+	while (trav != NULL && strcmp(key, trav->key))
+		trav = trav->overflow;
 }
 
 // if unused bucket pointers are not NULL, this will segfault
-hash_t hash_set(hash_table *table, const char *key, void *value) {
+hash_t hash_set(hash_table *table, char *key, void *value) {
 	hash_bucket *bucket, *trav;
 	hash_t hash;
 	size_t len_key;
@@ -128,10 +132,12 @@ hash_t hash_set(hash_table *table, const char *key, void *value) {
 	} else { // no matching bucket, create new bucket
 		bucket = (hash_bucket *)malloc(sizeof(hash_bucket));
 
-		bucket->key = key;
+		bucket->key = (char *)malloc(sizeof(char) * (len_key + 1));
 		bucket->len_key = len_key;
 		bucket->value = value;
 		bucket->overflow = NULL;
+
+		strcpy(bucket->key, key);
 		
 		if (table->buckets[hash] == NULL)
 			table->buckets[hash] = bucket;
