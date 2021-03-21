@@ -120,3 +120,13 @@ v3d v3d_scale(v3d v, double scalar) {
 		v.z * scalar
 	};
 }
+
+v3i v3d_polarity(v3d v) {
+	v3i polarity;
+
+	for (int i = 0; i < 3; i++)
+		v3i_set(&polarity, i, (v3d_get(&v, i) >= 0 ? 1 : -1));
+
+	return polarity;
+}
+

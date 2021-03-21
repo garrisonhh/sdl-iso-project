@@ -4,7 +4,6 @@
 #include "list.h"
 #include "collision.h"
 #include "vector.h"
-#include "world.h"
 #include "utils.h"
 
 const v3d BLOCK_SIZE = {1.0, 1.0, 1.0};
@@ -127,7 +126,6 @@ int bbox_compare(const void *a, const void *b) {
 }
 
 void sort_bboxes_by_vector_polarity(list_t *boxes, v3d v) {
-	for (int i = 0; i < 3; i++)
-		v3i_set(&BBOX_SORT_POLARITY, i, (v3d_get(&v, i) >= 0 ? 1 : -1));
+	BBOX_SORT_POLARITY = v3d_polarity(v);
 	qsort(boxes->items, boxes->size, sizeof(void *), bbox_compare);
 }

@@ -41,5 +41,6 @@ void v3d_set(v3d *, int, double);
 v3d v3d_add(v3d, v3d);
 v3d v3d_sub(v3d, v3d);
 v3d v3d_scale(v3d, double);
+v3i v3d_polarity(v3d);
 
 #endif
