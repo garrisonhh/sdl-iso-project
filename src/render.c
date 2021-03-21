@@ -21,6 +21,7 @@ SDL_Renderer *renderer = NULL;
 
 v2i camera = {0, 0};
 int camera_scale;
+int render_dist = 32;
 v2i screen_center;
 
 struct shadow_t {
@@ -158,35 +159,45 @@ void render_world(world_t *world) {
 	block_t *block;
 	list_t *bucket;
 	v2i screen_pos;
-	v3i block_loc;
+	v3i block_loc, player_loc;
+	v3i min_block, max_block;
 	list_t *shadows[world->block_size];
 	
 	render_generate_shadows(world, &shadows);
+	
+	player_loc = v3i_from_v3d(world->player->ray.pos);
 
-	for (z = 0; z < world->block_size; z++) {
+	for (i = 0; i < 3; i++) {
+		v3i_set(&min_block, i, MAX(0, v3i_get(&player_loc, i) - render_dist));
+		v3i_set(&max_block, i, MIN(world->block_size, v3i_get(&player_loc, i) + render_dist));
+	}
+
+	for (z = min_block.z; z < max_block.z; z++) {
 		if (shadows[z] != NULL)
 			for (i = 0; i < shadows[z]->size; i++)
 				render_shadow(*(shadow_t *)shadows[z]->items[i]);
 
-		FOR_XY (x, y, world->block_size, world->block_size) {
-			block_loc = (v3i){x, y, z};
-			chunk_block_indices(world, block_loc, &chunk_index, &block_index);
+		for (y = min_block.y; y < max_block.y; y++) {
+			for (x = min_block.x; x < max_block.x; x++) {
+				block_loc = (v3i){x, y, z};
+				chunk_block_indices(world, block_loc, &chunk_index, &block_index);
 
-			if ((bucket = world->chunks[chunk_index]->buckets[block_index]) != NULL)
-				for (i = 0; i < bucket->size; i++)
-					render_entity(bucket->items[i]);
-			
-			if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL && block->expose_mask) {
-				screen_pos = v3i_to_isometric(block_loc, true);
+				if ((bucket = world->chunks[chunk_index]->buckets[block_index]) != NULL)
+					for (i = 0; i < bucket->size; i++)
+						render_entity(bucket->items[i]);
+				
+				if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL && block->expose_mask) {
+					screen_pos = v3i_to_isometric(block_loc, true);
 
-				switch (textures[block->texture]->type) {
-					case TEX_TEXTURE:
-						render_tex_texture(textures[block->texture]->texture, screen_pos);
-						break;
-					case TEX_VOXELTEXTURE:
-						render_voxel_texture(textures[block->texture]->voxel_texture,
-											 screen_pos, block->expose_mask);
-						break;
+					switch (textures[block->texture]->type) {
+						case TEX_TEXTURE:
+							render_tex_texture(textures[block->texture]->texture, screen_pos);
+							break;
+						case TEX_VOXELTEXTURE:
+							render_voxel_texture(textures[block->texture]->voxel_texture,
+												 screen_pos, block->expose_mask);
+							break;
+					}
 				}
 			}
 		}
