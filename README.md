@@ -1,10 +1,12 @@
 ## TODOs
 1) camera stuff
 	- x proper scaling
-	- occlusion
+	- x occlusion
 	- x world render at once
 		- x exposure over chunk borders
 		- x shadow fix
+	- rotation (by 90 degrees)
+	- find solution to objects in front of/above player blocking camera
 2) smart entities
 	- a\*
 	- explore ai stuff
