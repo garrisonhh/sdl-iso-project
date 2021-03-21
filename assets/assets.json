@@ -1,6 +1,11 @@
 {
 	"textures": [
 		{
+			"name": "void",
+			"type": 1,
+			"transparent": false
+		},
+		{
 			"name": "dirt",
 			"type": 1,
 			"transparent": false

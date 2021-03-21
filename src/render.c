@@ -21,8 +21,8 @@ SDL_Renderer *renderer = NULL;
 
 camera_t camera = {
 	.pos = (v2i){0, 0},
-	.center_screen = (v2i){SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1},
-	.scale = 1,
+	.center_screen = (v2i){0, 0}, // set on init
+	.scale = 2,
 	.render_dist = 32
 };
 
@@ -42,6 +42,8 @@ void render_init(SDL_Window *window) {
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
 	SDL_RenderSetIntegerScale(renderer, true);
+
+	camera_set_scale(camera.scale);
 }
 
 void render_destroy() {
@@ -60,9 +62,7 @@ v2i v3i_to_isometric(v3i v, bool at_camera) {
 		(((v.x + v.y) * VOXEL_WIDTH) >> 2) - (v.z * VOXEL_Z_HEIGHT)
 	};
 
-	if (at_camera)
-		return v2i_add(iso, camera.pos);
-	return iso;
+	return at_camera ? v2i_add(iso, camera.pos) : iso;
 }
 
 v2i v3d_to_isometric(v3d v, bool at_camera) {
@@ -71,22 +71,25 @@ v2i v3d_to_isometric(v3d v, bool at_camera) {
 		(((v.x + v.y) * VOXEL_WIDTH) / 4) - (v.z * VOXEL_Z_HEIGHT)
 	};
 
-	if (at_camera)
-		return v2i_add(iso, camera.pos);
-	return iso;
+	return at_camera ? v2i_add(iso, camera.pos) : iso;
 }
 
 void camera_update(world_t *world) {
 	camera.pos = v2i_sub(camera.center_screen, v3d_to_isometric(world->player->ray.pos, false));
 }
 
-void camera_change_scale(bool increase) {
-	camera.scale = MAX(camera.scale + (increase ? -1 : 1), 1);
+void camera_set_scale(int scale) {
+	camera.scale = MAX(scale, 1);
 	camera.center_screen = (v2i){
 		(SCREEN_WIDTH / camera.scale) >> 1,
 		(SCREEN_HEIGHT / camera.scale) >> 1
 	};
 	SDL_RenderSetScale(renderer, camera.scale, camera.scale);
+}
+
+// used for controlling with mouse wheel
+void camera_change_scale(bool increase) {
+	camera_set_scale(camera.scale + (increase ? -1 : 1));
 }
 
 void render_entity(entity_t *entity) {
@@ -159,6 +162,7 @@ void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_siz
 void render_world(world_t *world) {
 	int x, y, z, i;
 	unsigned int chunk_index, block_index;
+	uint8_t void_mask;
 	block_t *block;
 	list_t *bucket;
 	v2i screen_pos;
@@ -189,16 +193,29 @@ void render_world(world_t *world) {
 					for (i = 0; i < bucket->size; i++)
 						render_entity(bucket->items[i]);
 				
-				if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL && block->expose_mask) {
-					screen_pos = v3i_to_isometric(block_loc, true);
-
+				if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL) {
 					switch (textures[block->texture]->type) {
 						case TEX_TEXTURE:
-							render_tex_texture(textures[block->texture]->texture, screen_pos);
+							if (block->expose_mask) {
+								screen_pos = v3i_to_isometric(block_loc, true);
+								render_tex_texture(textures[block->texture]->texture, screen_pos);
+							}
+
 							break;
 						case TEX_VOXELTEXTURE:
-							render_voxel_texture(textures[block->texture]->voxel_texture,
-												 screen_pos, block->expose_mask);
+							void_mask = 0x0;
+
+							for (i = 0; i < 3; i++) {
+								void_mask <<= 1;
+								void_mask |= v3i_get(&block_loc, i) == v3i_get(&max_block, i) - 1 ? 0x1 : 0x0;
+							}
+
+							if (block->expose_mask || void_mask) {
+								screen_pos = v3i_to_isometric(block_loc, true);
+								render_voxel_texture(textures[block->texture]->voxel_texture,
+													 screen_pos, block->expose_mask, void_mask);
+							}
+
 							break;
 					}
 				}

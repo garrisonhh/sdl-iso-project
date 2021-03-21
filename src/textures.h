@@ -35,7 +35,7 @@ void textures_destroy(void);
 size_t texture_index(char *);
 void render_tex_texture(SDL_Texture *, v2i);
 vox_tex *load_voxel_texture(char *);
-void render_voxel_texture(vox_tex *, v2i, uint8_t expose_mask);
+void render_voxel_texture(vox_tex *, v2i, uint8_t, uint8_t);
 
 #endif
 

@@ -12,6 +12,8 @@ texture_t **textures = NULL;
 size_t num_textures;
 hash_table *texture_table;
 
+vox_tex *VOID_VOXEL_TEXTURE;
+
 v2i tex_tex_offset;
 SDL_Rect vox_tex_rects[3];
 Uint8 vox_tex_shades[] = { // flat shading values (out of 255) for each side t-l-r
@@ -89,6 +91,8 @@ void textures_load(json_object *file_obj) {
 		*arr_index = i;
 		hash_set(texture_table, (char *)name, arr_index);
 	}
+
+	VOID_VOXEL_TEXTURE = textures[texture_index("void")]->voxel_texture;
 }
 
 void textures_destroy() {
@@ -107,6 +111,8 @@ void textures_destroy() {
 		free(textures[i]);
 	}
 
+	VOID_VOXEL_TEXTURE = NULL;
+
 	free(textures);
 	textures = NULL;
 	hash_table_deep_destroy(texture_table);
@@ -114,10 +120,10 @@ void textures_destroy() {
 }
 
 size_t texture_index(char *key) {
-	void *value;
+	size_t *value;
 
-	if ((value = hash_get(texture_table, key)) != NULL)
-		return *(size_t *)value;
+	if ((value = (size_t *)hash_get(texture_table, key)) != NULL)
+		return *value;
 
 	printf("key not found in texture_table: %s\n", key);
 	exit(1);
@@ -149,32 +155,41 @@ vox_tex* load_voxel_texture(char *base_path) {
 	return new_vox_tex;
 }
 
-// expose_mask uses only the last 3 bits; right-left-top order (corresponding to XYZ)
-void render_voxel_texture(vox_tex *voxel_texture, v2i pos, uint8_t expose_mask) {
-	SDL_Rect draw_rect;
+// masks use only the last 3 bits; right-left-top order (corresponding to XYZ)
+// void_mask determines sides which will be displayed as void (fully black)
+void render_voxel_texture(vox_tex *voxel_texture, v2i pos, uint8_t expose_mask, uint8_t void_mask) {
 	uint8_t shade;
+	bool exposed, voided;
+	SDL_Rect draw_rect;
+	vox_tex *cur_texture;
 
 	for (int i = 2; i >= 0; i--) {
-		if ((expose_mask >> i) & 1) {
+		if ((exposed = (expose_mask >> i) & 0x1)
+		 || (voided = (void_mask >> i) & 0x1)) {
 			draw_rect = vox_tex_rects[i];
 			draw_rect.x += pos.x;
 			draw_rect.y += pos.y;
-			shade = vox_tex_shades[i];
 
-			if (i == 0)
-				SDL_SetTextureColorMod(voxel_texture->top, shade, shade, shade);
-			else
-				SDL_SetTextureColorMod(voxel_texture->side, shade, shade, shade);
+			cur_texture = (void_mask >> i) & 1 ? VOID_VOXEL_TEXTURE : voxel_texture;
+
+			if (exposed) {
+				shade = vox_tex_shades[i];
+
+				if (i == 0)
+					SDL_SetTextureColorMod(cur_texture->top, shade, shade, shade);
+				else
+					SDL_SetTextureColorMod(cur_texture->side, shade, shade, shade);
+			}
 
 			switch (i) {
 				case 0:
-					SDL_RenderCopy(renderer, voxel_texture->top, NULL, &draw_rect);
+					SDL_RenderCopy(renderer, cur_texture->top, NULL, &draw_rect);
 					break;
 				case 1:
-					SDL_RenderCopy(renderer, voxel_texture->side, NULL, &draw_rect);
+					SDL_RenderCopy(renderer, cur_texture->side, NULL, &draw_rect);
 					break;
 				case 2:
-					SDL_RenderCopyEx(renderer, voxel_texture->side, NULL, &draw_rect, 0, NULL, SDL_FLIP_HORIZONTAL);
+					SDL_RenderCopyEx(renderer, cur_texture->side, NULL, &draw_rect, 0, NULL, SDL_FLIP_HORIZONTAL);
 					break;
 			}
 		}

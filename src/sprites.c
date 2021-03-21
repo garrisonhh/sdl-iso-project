@@ -55,10 +55,10 @@ void sprites_destroy() {
 }
 
 size_t sprite_index(char *key) {
-	void *value;
+	size_t *value;
 
-	if ((value = hash_get(sprite_table, key)) != NULL)
-		return *(size_t *)value;
+	if ((value = (size_t *)hash_get(sprite_table, key)) != NULL)
+		return *value;
 
 	printf("key not found in sprite_table: %s\n", key);
 	exit(1);
