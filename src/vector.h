@@ -43,5 +43,6 @@ v3d v3d_add(v3d, v3d);
 v3d v3d_sub(v3d, v3d);
 v3d v3d_scale(v3d, double);
 double v3d_magnitude(v3d);
+double v3d_dot(v3d, v3d);
 
 #endif

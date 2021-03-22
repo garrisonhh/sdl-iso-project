@@ -25,18 +25,21 @@ void raycast_ray_data(ray_t ray, v3i *loc, v3i *step, v3d *t_max, v3d *t_delta) 
 	}
 }
 
-// finds location of first block hit
+// finds location of first block hit and axis hit
+// if the ray starts inside of a block, axis will be -1
 // implements the algorithm described in doi=10.1.1.42.3443
-bool raycast_to_block(world_t *world, ray_t ray, v3i *block_hit) {
+bool raycast_to_block(world_t *world, ray_t ray, v3i *block_hit, int *axis_hit) {
 	int i, axis, axis_next_val;
 	v3i loc, step;
 	v3d t_max, t_delta;
 
 	raycast_ray_data(ray, &loc, &step, &t_max, &t_delta);
+	axis = -1;
 
 	while (true) {
 		if (block_get(world, loc) != NULL) {
 			*block_hit = loc;
+			*axis_hit = axis;
 			return true;
 		}
 
@@ -59,4 +62,4 @@ bool raycast_to_block(world_t *world, ray_t ray, v3i *block_hit) {
 	}
 }
 
-
+// TODO line of sight between two v3ds for pathfinding

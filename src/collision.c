@@ -29,6 +29,22 @@ bool bbox_bbox_collide(bbox_t a, bbox_t b) {
 	return true;
 }
 
+bool inside_bbox(bbox_t box, v3d point) {
+	double dim_start, dim_end, dim_point;
+
+	for (int i = 0; i < 3; i++) {
+		dim_start = v3d_get(&box.pos, i);
+		dim_end = dim_start + v3d_get(&box.size, i);
+		dim_point = v3d_get(&point, i);
+
+		if (!(collides(dim_start, dim_end, dim_point)
+		   || d_close(dim_start, dim_point) || d_close(dim_end, dim_point)))
+			return false;
+	}
+
+	return true;
+}
+
 bbox_t ray_to_bbox(ray_t ray) {
 	bbox_t box;
 	box.pos = ray.pos;
@@ -36,8 +52,12 @@ bbox_t ray_to_bbox(ray_t ray) {
 	return box;
 }
 
-// returns axis of intersection (-1 for no intersection)
-// outputs values into intersection and resolved_dir
+/*
+returns axis of intersection (-1 for no intersection)
+intersection point into intersection
+for collision resolution purposes, determines best modification of ray and outputs
+into resolved_dir
+*/
 int ray_bbox_intersection(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_dir) {
 	double plane, plane_vel;
 	double dim_start, dim_len;
@@ -97,6 +117,55 @@ int ray_bbox_intersection(ray_t ray, bbox_t box, v3d *intersection, v3d *resolve
 
 	// no collision on any of the box faces
 	return -1;
+}
+
+// TODO check if collision point in range of ray
+bool line_sphere_intersection(ray_t ray, sphere_t sphere, v3d *intersection) {
+	/*
+	if (d_close(v3d_magnitude(ray.dir), 0.0)) {
+		printf("attempted ray sphere intersection with ray of 0 magnitude.\n");
+		exit(1);
+	}
+	*/
+
+	double a, b, c;
+	double b4ac_term, sqrt_term, b2a_term;
+	double t1, t2;
+
+	a = v3d_dot(ray.dir, ray.dir);
+	b = 2.0 * v3d_dot(ray.dir, v3d_sub(ray.pos, sphere.pos));
+	c = v3d_dot(sphere.pos, sphere.pos) + v3d_dot(ray.pos, ray.pos)
+		- (2.0 * v3d_dot(sphere.pos, ray.pos)) - (sphere.radius * sphere.radius);
+
+	// now solve quadratic equation
+	b4ac_term = b * b - (4.0 * a * c);
+
+	if (b4ac_term < 0.0) {
+		return false;
+	} else if (intersection != NULL) {
+		sqrt_term = sqrt(b4ac_term) / (2.0 * a);
+		b2a_term = -b / (2.0 * a);
+
+		t1 = b2a_term + sqrt_term;
+		t2 = b2a_term - sqrt_term;
+		
+		*intersection = v3d_add(ray.pos, v3d_scale(ray.dir, MIN(t1, t2)));
+	}
+
+	return true;
+}
+
+bool ray_sphere_intersection(ray_t ray, sphere_t sphere, v3d *intersection) {
+	v3d line_intersect;
+
+	if (line_sphere_intersection(ray, sphere, &line_intersect)
+	 && inside_bbox(ray_to_bbox(ray), line_intersect)) {
+		if (intersection != NULL)
+			*intersection = line_intersect;
+		return true;
+	}
+
+	return false;
 }
 
 v3d bbox_center(bbox_t box) {
