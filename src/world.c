@@ -211,7 +211,7 @@ void world_generate(world_t *world) {
 	FOR_XY(x, y, world->block_size, world->block_size) {
 		loc = (v3i){x, y, 0};
 		noise_pos = (v2d){(double)x / 32.0, (double)y / 32.0};
-		noise_val = (int)(pow((1.0 + noise_at(noise_pos)) / 2, 3.0) * (double)(MIN(world->block_size, 32)));
+		noise_val = (int)(pow((1.0 + noise_at(noise_pos)) / 2, 3.0) * (double)(MIN(world->block_size, 64)));
 
 		for (z = 0; z < noise_val; z++) {
 			loc.z = z;

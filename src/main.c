@@ -7,6 +7,7 @@
 #include "media.h"
 #include "render.h"
 #include "world.h"
+#include "player.h"
 #include "utils.h"
 
 SDL_Window *window = NULL;
@@ -41,8 +42,6 @@ void on_close() {
 	SDL_Quit();
 }
 
-#include "collision.h"
-
 int main(int argc, char *argv[]) {
 	init();
 
@@ -50,19 +49,20 @@ int main(int argc, char *argv[]) {
 	world_t *world = world_create(3);
 	world_generate(world);
 
-	// framerate
+	// framerate capping
 	unsigned int last_time = SDL_GetTicks(), this_time;
+	/*
 	unsigned int target_framerate = 120, frame_start;
 	int frame_delay;
 	unsigned int target_frame_time = 1000 / target_framerate;
+	*/
 
 	// controls
 	SDL_Event e;
 	const uint8_t *kb_state = SDL_GetKeyboardState(NULL);
 	v3i move_inputs;
-	const int SPEED = 3; // TODO add this to player entity when implementing entity types
-	const v3d move_down = {SPEED, SPEED, 0};
-	const v3d move_right = {SPEED, -SPEED, 0};
+	const v3d move_down = {PLAYER_SPEED, PLAYER_SPEED, 0};
+	const v3d move_right = {PLAYER_SPEED, -PLAYER_SPEED, 0};
 	v3d move;
 	bool jump = false;
 
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 	bool quit = false;
 
 	while (!quit) {
-		frame_start = SDL_GetTicks();
+		//frame_start = SDL_GetTicks();
 
 		while (SDL_PollEvent(&e)) {
 			switch (e.type) {
@@ -134,8 +134,10 @@ int main(int argc, char *argv[]) {
 		SDL_RenderPresent(renderer);
 
 		// limit framerate to `target_framerate`
+		/*
 		if ((frame_delay = frame_start + target_frame_time - SDL_GetTicks()) > 0)
 			SDL_Delay(frame_delay);
+		*/
 	}
 
 	world_destroy(world);
