@@ -126,6 +126,6 @@ int bbox_compare(const void *a, const void *b) {
 }
 
 void sort_bboxes_by_vector_polarity(list_t *boxes, v3d v) {
-	BBOX_SORT_POLARITY = v3d_polarity(v);
+	BBOX_SORT_POLARITY = polarity_of_v3d(v);
 	qsort(boxes->items, boxes->size, sizeof(void *), bbox_compare);
 }

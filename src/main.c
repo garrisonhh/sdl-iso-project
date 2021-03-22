@@ -44,24 +44,28 @@ void on_close() {
 int main(int argc, char *argv[]) {
 	init();
 
+	// world
 	world_t *world = world_create(3);
 	world_generate(world);
 
+	// framerate
 	unsigned int last_time = SDL_GetTicks(), this_time;
 	unsigned int target_framerate = 120, frame_start;
 	int frame_delay;
 	unsigned int target_frame_time = 1000 / target_framerate;
 
-	bool quit = false;
+	// controls
 	SDL_Event e;
 	const uint8_t *kb_state = SDL_GetKeyboardState(NULL);
-
 	v3i move_inputs;
 	const int SPEED = 3; // TODO add this to player entity when implementing entity types
 	const v3d move_down = {SPEED, SPEED, 0};
 	const v3d move_right = {SPEED, -SPEED, 0};
 	v3d move;
 	bool jump = false;
+
+	// loop
+	bool quit = false;
 
 	while (!quit) {
 		frame_start = SDL_GetTicks();
