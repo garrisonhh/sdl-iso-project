@@ -6,7 +6,7 @@
 		- x exposure over chunk borders
 		- x shadow fix
 	- rotation (by 90 degrees)
-	- find solution to objects in front of/above player blocking camera
+	- x find solution to objects in front of/above player blocking camera
 2) smart entities
 	- a\*
 	- explore ai stuff
