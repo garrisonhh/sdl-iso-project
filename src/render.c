@@ -138,17 +138,14 @@ void render_iso_circle(circle_t shadow) {
 	int i, rx = r, ry = r >> 1, ix = r;
 	float y = 0.0, y_step = 1 / (float)ry;
 
-	SDL_RenderDrawLine(renderer, center.x + r, center.y,
-								 center.x - r, center.y);
+	SDL_RenderDrawLine(renderer, center.x + r, center.y, center.x - r, center.y);
 
 	for (i = 1; i <= ry; i++) {
 		ix = (int)(sqrt(1 - (y * y)) * rx);
 		y += y_step;
 
-		SDL_RenderDrawLine(renderer, center.x + ix, center.y + i,
-									 center.x - ix, center.y + i);
-		SDL_RenderDrawLine(renderer, center.x + ix, center.y - i,
-									 center.x - ix, center.y - i);
+		SDL_RenderDrawLine(renderer, center.x + ix, center.y + i, center.x - ix, center.y + i);
+		SDL_RenderDrawLine(renderer, center.x + ix, center.y - i, center.x - ix, center.y - i);
 	}
 }
 
@@ -199,7 +196,6 @@ void render_world(world_t *world) {
 	ray_t cam_ray;
 	block_t *block;
 	list_t *bucket;
-	v2i screen_pos;
 	v3i block_loc, player_loc;
 	v3i min_block, max_block;
 	list_t *shadows[world->block_size];
@@ -249,12 +245,12 @@ void render_world(world_t *world) {
 					switch (textures[block->texture]->type) {
 						case TEX_TEXTURE:
 							if (block->expose_mask) {
-								screen_pos = v3i_to_isometric(block_loc, true);
-								render_tex_texture(textures[block->texture]->texture, screen_pos);
+								render_sdl_texture(textures[block->texture]->texture,
+												   v3i_to_isometric(block_loc, true));
 							}
 
 							break;
-						case TEX_VOXELTEXTURE:
+						case TEX_VOXEL:
 							void_mask = 0x0;
 
 							for (i = 0; i < 3; i++) {
@@ -265,9 +261,17 @@ void render_world(world_t *world) {
 							void_mask |= (block_loc.z == player_loc.z && !(block->expose_mask & 0x1) ? 0x1 : 0x0);
 
 							if (block->expose_mask || void_mask) {
-								screen_pos = v3i_to_isometric(block_loc, true);
-								render_voxel_texture(textures[block->texture]->voxel_texture,
-													 screen_pos, block->expose_mask, void_mask);
+								render_voxel_texture(textures[block->texture]->voxel_tex,
+													 v3i_to_isometric(block_loc, true),
+													 block->expose_mask, void_mask);
+							}
+
+							break;
+						case TEX_CONNECTED:
+							if (block->expose_mask) {
+								render_connected_texture(textures[block->texture]->connected_tex,
+														 v3i_to_isometric(block_loc, true),
+														 block->connect_mask);
 							}
 
 							break;

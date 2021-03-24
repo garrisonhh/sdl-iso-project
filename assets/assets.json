@@ -18,8 +18,15 @@
 			"transparent": true
 		},
 		{
-			"name": "tall_grass",
+			"name": "tall grass",
+			"path": "tall_grass",
 			"type": "texture",
+			"transparent": true
+		},
+		{
+			"name": "pipe",
+			"path": "pipe/pipe",
+			"type": "connected",
 			"transparent": true
 		}
 	],

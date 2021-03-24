@@ -16,6 +16,7 @@ block_t *block_create(size_t texture) {
 
 	block->texture = texture;
 	block->expose_mask = 0x7;
+	block->connect_mask = 0x0;
 
 	return block;
 }
@@ -72,14 +73,15 @@ bool block_transparent(block_t *block) {
 	return textures[block->texture]->transparent;
 }
 
-void block_update_exposure(world_t *world, v3i loc) {
+void block_update_masks(world_t *world, v3i loc) {
 	unsigned int chunk_index, block_index;
 	block_t *block, *other_block;
 	v3i other_loc;
-	bool exposed;
+	bool exposed, connected;
 
 	block = block_get(world, loc);
 	exposed = block == NULL || block_transparent(block);
+	connected = block != NULL && textures[block->texture]->type == TEX_CONNECTED;
 
 	for (int i = 0; i < 3; i++) {
 		other_loc = loc;
@@ -89,13 +91,24 @@ void block_update_exposure(world_t *world, v3i loc) {
 			other_block = world->chunks[chunk_index]->blocks[block_index];
 
 			if (other_block != NULL) {
-				if (block_transparent(other_block))
-					continue;
+				if (!block_transparent(other_block)) {
+					if (exposed)
+						other_block->expose_mask |= 0x04 >> i; // 0b00100
+					else
+						other_block->expose_mask &= 0x1b >> i; // 0b11011
+				}
 
-				if (exposed)
-					other_block->expose_mask |= 0x04 >> i; // 0b00100
-				else
-					other_block->expose_mask &= 0x1b >> i; // 0b11011
+				if (connected) {
+					// 0x20 == 0b00100000
+					// 0x10 == 0b00010000
+					// 0xEF == !0x10
+					if (other_block->texture == block->texture) {
+						other_block->connect_mask |= 0x20 >> (i << 1);
+						block->connect_mask |= 0x10 >> (i << 1);
+					} else {
+						block->connect_mask &= 0xFEF >> (i << 1);
+					}
+				}
 			}
 		}
 	}
@@ -122,7 +135,7 @@ void block_set(world_t *world, v3i loc, size_t texture) {
 
 	chunk->blocks[block_index] = block_create(texture);
 
-	block_update_exposure(world, loc);
+	block_update_masks(world, loc);
 }
 
 void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
@@ -193,6 +206,26 @@ void world_destroy(world_t *world) {
 }
 
 void world_generate(world_t *world) {
+	if (0) { // debug world
+		int x, y, z;
+		// size_t dirt = texture_index("dirt");
+		size_t pipe = texture_index("pipe");
+		v3i loc = {0, 0, 0};
+
+		srand(time(0));
+
+		FOR_XYZ(x, y, z, world->block_size, world->block_size, 5) {
+			loc.x = x;
+			loc.y = y;
+			loc.z = z;
+
+			if (rand() % 5 < (5 - z))
+				block_set(world, loc, pipe);
+		}
+
+		return;
+	}
+
 	unsigned int x, y, z;
 	int noise_val;
 	v2d noise_pos;
@@ -203,7 +236,7 @@ void world_generate(world_t *world) {
 	dirt = texture_index("dirt");
 	grass = texture_index("grass");
 	bush = texture_index("bush");
-	tall_grass = texture_index("tall_grass");
+	tall_grass = texture_index("tall grass");
 
 	srand(time(0));
 	noise_init(dims);

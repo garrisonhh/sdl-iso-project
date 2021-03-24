@@ -9,20 +9,26 @@
 
 enum texture_type {
 	TEX_TEXTURE = 0,
-	TEX_VOXELTEXTURE = 1
+	TEX_VOXEL = 1,
+	TEX_CONNECTED = 2,
 };
 typedef enum texture_type texture_type;   
 
-struct vox_tex {
-	SDL_Texture* top;
-	SDL_Texture* side; // use SDL_RenderCopyEx to render flipped
+struct voxel_tex_t {
+	SDL_Texture *top, *side;
 };
-typedef struct vox_tex vox_tex;
+typedef struct voxel_tex_t voxel_tex_t;
+
+struct connected_tex_t {
+	SDL_Texture *base, *top, *bottom, *front, *back;
+};
+typedef struct connected_tex_t connected_tex_t;
 
 struct texture_t {
 	texture_type type;
 	SDL_Texture *texture;
-	vox_tex *voxel_texture;
+	voxel_tex_t *voxel_tex;
+	connected_tex_t *connected_tex;
 	bool transparent;
 };
 typedef struct texture_t texture_t;
@@ -33,9 +39,11 @@ void textures_init(void);
 void textures_load(json_object *);
 void textures_destroy(void);
 size_t texture_index(char *);
-void render_tex_texture(SDL_Texture *, v2i);
-vox_tex *load_voxel_texture(char *);
-void render_voxel_texture(vox_tex *, v2i, uint8_t, uint8_t);
+void render_sdl_texture(SDL_Texture *, v2i);
+voxel_tex_t *load_voxel_texture(char *);
+void render_voxel_texture(voxel_tex_t *, v2i, uint8_t, uint8_t);
+connected_tex_t *load_connected_texture(char *);
+void render_connected_texture(connected_tex_t *, v2i, uint8_t);
 
 #endif
 
