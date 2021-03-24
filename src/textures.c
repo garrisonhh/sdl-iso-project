@@ -22,6 +22,8 @@ Uint8 vox_tex_shades[] = { // flat shading values (out of 255) for each side t-l
 	191
 };
 
+// corresponds to texture_type enum values; used for json parsing
+
 // workaround for C's weird global constant rules
 void textures_init() {
 	tex_tex_offset = (v2i){
@@ -54,43 +56,81 @@ void textures_init() {
 }
 
 void textures_load(json_object *file_obj) {
-	json_object *tex_arr_obj;
-	tex_arr_obj = json_object_object_get(file_obj, "textures");
-	num_textures = json_object_array_length(tex_arr_obj);
-
-	json_object *current_png;
+	size_t i;
 	const char *name;
 	size_t *arr_index;
+	json_object *tex_arr_obj;
+	json_object *current_tex;
+	hash_table *tex_type_table;
+	size_t num_tex_types = 2;
+	texture_type *tex_type_ptr;
 
+	char *tex_type_strings[] = {
+		"texture",
+		"voxel"
+	};
+
+	tex_type_table = hash_table_create(num_tex_types * 1.3 + 1);
+
+	for (i = 0; i < num_tex_types; i++) {
+		tex_type_ptr = (texture_type *)malloc(sizeof(texture_type *));
+		*tex_type_ptr = (texture_type)i;
+		hash_set(tex_type_table, tex_type_strings[i], tex_type_ptr);
+	}
+	
+	tex_arr_obj = json_object_object_get(file_obj, "textures");
+	num_textures = json_object_array_length(tex_arr_obj);
 	textures = (texture_t **)calloc(num_textures, sizeof(texture_t *));
 	texture_table = hash_table_create(num_textures * 1.3 + 1);
 
-	for (size_t i = 0; i < num_textures; i++) {
+	for (i = 0; i < num_textures; i++) {
 		char path[50];
+		textures[i] = (texture_t *)malloc(sizeof(texture_t));
 
-		current_png = json_object_array_get_idx(tex_arr_obj, i);
-		name = json_object_get_string(json_object_object_get(current_png, "name"));
+		current_tex = json_object_array_get_idx(tex_arr_obj, i);
+		name = json_object_get_string(json_object_object_get(current_tex, "name"));
 		sprintf(path, "assets/%s", name);
 
-		textures[i] = (texture_t *)malloc(sizeof(texture_t));
-		textures[i]->type = json_object_get_int(json_object_object_get(current_png, "type"));
-		textures[i]->transparent = json_object_get_boolean(json_object_object_get(current_png, "transparent"));
+		// type
+		tex_type_ptr = hash_get(tex_type_table,
+				                (char *)json_object_get_string(json_object_object_get(current_tex, "type")));
 
+		if (tex_type_ptr == NULL) {
+			printf("unknown texture type for texture \"%s\".\n", name);
+			exit(1);
+		}
+
+		textures[i]->type = *tex_type_ptr;
+
+		// transparency
+		if (textures[i]->type == TEX_VOXELTEXTURE)
+			textures[i]->transparent = false;
+		else
+			textures[i]->transparent = json_object_get_boolean(json_object_object_get(current_tex,
+																					  "transparent"));
+
+		// image
 		switch (textures[i]->type) {
 			case TEX_TEXTURE:;
 				char tex_path[54];
+
 				sprintf(tex_path, "%s.png", path);
 				textures[i]->texture = load_sdl_texture(tex_path);
+
 				break;	
 			case TEX_VOXELTEXTURE:
 				textures[i]->voxel_texture = load_voxel_texture(path);
+
 				break;
 		}
 
+		// add to indexing hash table
 		arr_index = (size_t *)malloc(sizeof(size_t));
 		*arr_index = i;
 		hash_set(texture_table, (char *)name, arr_index);
 	}
+
+	hash_table_deep_destroy(tex_type_table);
 
 	VOID_VOXEL_TEXTURE = textures[texture_index("void")]->voxel_texture;
 }

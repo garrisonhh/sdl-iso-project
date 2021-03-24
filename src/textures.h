@@ -7,11 +7,11 @@
 #include "vector.h"
 #include "hash.h"
 
-enum block_tex_type {
+enum texture_type {
 	TEX_TEXTURE = 0,
 	TEX_VOXELTEXTURE = 1
 };
-typedef enum block_tex_type block_tex_type;   
+typedef enum texture_type texture_type;   
 
 struct vox_tex {
 	SDL_Texture* top;
@@ -20,7 +20,7 @@ struct vox_tex {
 typedef struct vox_tex vox_tex;
 
 struct texture_t {
-	block_tex_type type;
+	texture_type type;
 	SDL_Texture *texture;
 	vox_tex *voxel_texture;
 	bool transparent;

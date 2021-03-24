@@ -2,27 +2,24 @@
 	"textures": [
 		{
 			"name": "void",
-			"type": 1,
-			"transparent": false
+			"type": "voxel"
 		},
 		{
 			"name": "dirt",
-			"type": 1,
-			"transparent": false
+			"type": "voxel"
 		},
 		{
 			"name": "grass",
-			"type": 1,
-			"transparent": false
+			"type": "voxel"
 		},
 		{
 			"name": "bush",
-			"type": 0,
+			"type": "texture",
 			"transparent": true
 		},
 		{
 			"name": "tall_grass",
-			"type": 0,
+			"type": "texture",
 			"transparent": true
 		}
 	],
