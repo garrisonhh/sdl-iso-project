@@ -19,7 +19,7 @@
 
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 const int FG_RADIUS = VOXEL_WIDTH * 5;
-const v3d PLAYER_VIEW_DIR = {VOXEL_WIDTH, VOXEL_WIDTH, VOXEL_HEIGHT};
+const v3d PLAYER_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
 
 SDL_Renderer *renderer = NULL;
 SDL_Texture *fg_world = NULL;
@@ -38,6 +38,7 @@ circle_t view_circle = {
 camera_t camera = {
 	.pos = (v2i){0, 0},
 	.center_screen = (v2i){0, 0}, // set on init
+	.rotation = (v3i){1, 1, 1}, // TODO
 	.scale = 1,
 	.render_dist = 32,
 };
@@ -69,6 +70,8 @@ void render_init(SDL_Window *window) {
 void render_destroy() {
 	SDL_DestroyRenderer(renderer);
 	renderer = NULL;
+	SDL_DestroyTexture(fg_world);
+	fg_world = NULL;
 }
 
 void render_clear_screen() {
@@ -121,6 +124,22 @@ void camera_set_scale(int scale) {
 // used for controlling with mouse wheel
 void camera_change_scale(bool increase) {
 	camera_set_scale(camera.scale + (increase ? -1 : 1));
+}
+
+void camera_rotate(bool clockwise) {
+	if (clockwise) {
+		camera.rotation = (v3i){
+			-camera.rotation.y,
+			camera.rotation.x,
+			camera.rotation.z
+		};
+	} else {
+		camera.rotation = (v3i){
+			camera.rotation.y,
+			-camera.rotation.x,
+			camera.rotation.z
+		};
+	}
 }
 
 void render_entity(entity_t *entity) {
@@ -215,7 +234,7 @@ void render_world(world_t *world) {
 		world->player->ray.pos,
 		PLAYER_VIEW_DIR
 	};
-	cam_ray.pos.z += 1.0;
+	cam_ray.pos.z += world->player->size.z / 2;
 	player_blocked = raycast_to_block(world, cam_ray, NULL, NULL);
 
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
@@ -257,10 +276,10 @@ void render_world(world_t *world) {
 
 							for (i = 0; i < 3; i++) {
 								void_mask <<= 1;
-								void_mask |= v3i_get(&block_loc, i) == v3i_get(&max_block, i) - 1 ? 0x1 : 0x0;
+								void_mask |= (v3i_get(&block_loc, i) == v3i_get(&max_block, i) - 1 ? 0x1 : 0x0);
 							}
 
-							void_mask |= (block_loc.z == player_loc.z && !(block->expose_mask & 0x1)) ? 0x1 : 0x0;
+							void_mask |= (block_loc.z == player_loc.z && !(block->expose_mask & 0x1) ? 0x1 : 0x0);
 
 							if (block->expose_mask || void_mask) {
 								screen_pos = v3i_to_isometric(block_loc, true);

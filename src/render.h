@@ -11,8 +11,9 @@
 #define VOXEL_HEIGHT 34
 
 struct camera_t {
-	v2i pos, center_screen;
 	int scale, render_dist;
+	v2i pos, center_screen;
+	v3i rotation;
 };
 typedef struct camera_t camera_t;
 
@@ -26,6 +27,7 @@ void render_clear_screen(void);
 void camera_update(world_t *);
 void camera_set_scale(int);
 void camera_change_scale(bool);
+void camera_rotate(bool);
 void render_world(world_t *);
 
 #endif

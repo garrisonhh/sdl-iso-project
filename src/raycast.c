@@ -5,9 +5,10 @@
 #include "collision.h"
 #include "utils.h"
 
+// TODO probably remove this, I thought I would need it for something else but I don't think so
 void raycast_ray_data(ray_t ray, v3i *loc, v3i *step, v3d *t_max, v3d *t_delta) {
 	double t_max_target, dim_pos, dim_abs_dir;
-	int i;
+	int i, polarity;
 
 	*loc = v3i_from_v3d(ray.pos);
 	*step = polarity_of_v3d(ray.dir);
@@ -15,10 +16,15 @@ void raycast_ray_data(ray_t ray, v3i *loc, v3i *step, v3d *t_max, v3d *t_delta) 
 	for (i = 0; i < 3; i++) {
 		dim_pos = v3d_get(&ray.pos, i);
 		dim_abs_dir = fabs(v3d_get(&ray.dir, i));
+		polarity = v3i_get(step, i);
 
 		// t_max: scalar t where ray crosses boundary from initial position on each axis
-		t_max_target = (v3i_get(step, i) > 0 ? ceil(dim_pos) : floor(dim_pos));
-		v3d_set(t_max, i, (fabs(t_max_target - dim_pos) / dim_abs_dir));
+		t_max_target = (polarity > 0 ? ceil(dim_pos) : floor(dim_pos));
+
+		if (d_close(dim_pos, t_max_target))
+			t_max_target += polarity;
+
+		v3d_set(t_max, i, fabs(t_max_target - dim_pos) / dim_abs_dir);
 
 		// t_delta: scalar t where ray changes by 1 on each axis
 		v3d_set(t_delta, i, 1.0 / dim_abs_dir);
@@ -26,8 +32,8 @@ void raycast_ray_data(ray_t ray, v3i *loc, v3i *step, v3d *t_max, v3d *t_delta) 
 }
 
 // finds location of first block hit and axis hit
+// TODO function pointer for testing instead of hard coded block_get() to generalize use further?
 // if the ray starts inside of a block, axis will be -1
-// implements the algorithm described in doi=10.1.1.42.3443
 // **this does NOT limit itself to the scope of the ray**
 bool raycast_to_block(world_t *world, ray_t ray, v3i *block_hit, int *axis_hit) {
 	int i, axis, axis_next_val;
