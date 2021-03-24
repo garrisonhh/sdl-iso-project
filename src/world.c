@@ -205,11 +205,46 @@ void world_destroy(world_t *world) {
 	free(world);
 }
 
+void generate_tree(world_t *world, v3i loc) {
+	size_t log, leaves;
+	int max_v, x, y, i, radius;
+	v3i leaf_loc;
+
+	log = texture_index("log");
+	leaves = texture_index("leaves");
+
+	max_v = 3 + rand() % 2;
+
+	for (i = 0; i < max_v + 5; i++) {
+		if (i < max_v) {
+			block_set(world, loc, log);
+		}
+
+		radius = 2;
+		radius = i > max_v ? MIN((5 + max_v) - i, radius) : radius;
+
+		if (i > 3) {
+			for (y = loc.y - radius; y <= loc.y + radius; y++) {
+				for (x = loc.x - radius; x <= loc.x + radius; x++) {
+					if (i < max_v && x == loc.x && y == loc.y)
+						continue;
+					
+					if (sqrt(pow((double)(x - loc.x), 2.0) + pow((double)(y - loc.y), 2.0)) <= radius) {
+						leaf_loc = (v3i){x, y, loc.z};
+						block_set(world, leaf_loc, leaves);
+					}
+				}
+			}
+		}
+
+		loc.z++;
+	}
+}
+
 void world_generate(world_t *world) {
 	if (0) { // debug world
 		int x, y, z;
-		// size_t dirt = texture_index("dirt");
-		size_t pipe = texture_index("pipe");
+		size_t dirt = texture_index("dirt");
 		v3i loc = {0, 0, 0};
 
 		srand(time(0));
@@ -219,8 +254,10 @@ void world_generate(world_t *world) {
 			loc.y = y;
 			loc.z = z;
 
-			if (rand() % 5 < (5 - z))
-				block_set(world, loc, pipe);
+			block_set(world, loc, dirt);
+
+			if ((rand() % 500) == 0)
+				generate_tree(world, loc);
 		}
 
 		return;
@@ -263,6 +300,9 @@ void world_generate(world_t *world) {
 				block_set(world, loc, tall_grass);
 				break;
 		}
+
+		if (rand() % 500 == 0)
+			generate_tree(world, loc);
 	}
 
 	noise_quit();

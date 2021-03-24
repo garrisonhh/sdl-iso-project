@@ -13,6 +13,16 @@
 			"type": "voxel"
 		},
 		{
+			"name": "leaves",
+			"type": "texture",
+			"transparent": true
+		},
+		{
+			"name": "log",
+			"type": "texture",
+			"transparent": true
+		},
+		{
 			"name": "bush",
 			"type": "texture",
 			"transparent": true
