@@ -38,7 +38,6 @@ circle_t view_circle = {
 camera_t camera = {
 	.pos = (v2i){0, 0},
 	.center_screen = (v2i){0, 0}, // set on init
-	.rotation = (v3i){1, 1, 1}, // TODO
 	.scale = 1,
 	.render_dist = 32,
 };
@@ -124,22 +123,6 @@ void camera_set_scale(int scale) {
 // used for controlling with mouse wheel
 void camera_change_scale(bool increase) {
 	camera_set_scale(camera.scale + (increase ? -1 : 1));
-}
-
-void camera_rotate(bool clockwise) {
-	if (clockwise) {
-		camera.rotation = (v3i){
-			-camera.rotation.y,
-			camera.rotation.x,
-			camera.rotation.z
-		};
-	} else {
-		camera.rotation = (v3i){
-			camera.rotation.y,
-			-camera.rotation.x,
-			camera.rotation.z
-		};
-	}
 }
 
 void render_entity(entity_t *entity) {

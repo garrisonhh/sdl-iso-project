@@ -85,12 +85,6 @@ int main(int argc, char *argv[]) {
 						case SDLK_SPACE:
 							jump = true;
 							break;
-						case SDLK_q:
-							camera_rotate(false);
-							break;
-						case SDLK_e:
-							camera_rotate(true);
-							break;
 					}
 					break;
 				case SDL_KEYUP:

@@ -27,7 +27,6 @@ void render_clear_screen(void);
 void camera_update(world_t *);
 void camera_set_scale(int);
 void camera_change_scale(bool);
-void camera_rotate(bool);
 void render_world(world_t *);
 
 #endif
