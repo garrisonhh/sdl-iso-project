@@ -1,5 +1,6 @@
 ## TODOs
-1) smart entities
+1) fluids (water and steam are going to be big huge important game mechanics)
+2) smart entities
 	- a\*
 	- explore ai stuff
 

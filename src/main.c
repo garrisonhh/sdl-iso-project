@@ -124,7 +124,6 @@ int main(int argc, char *argv[]) {
 		last_time = this_time;
 
 		// gfx
-		render_clear_screen();
 		render_world(world);
 		SDL_RenderPresent(renderer);
 	}

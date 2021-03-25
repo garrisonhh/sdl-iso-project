@@ -21,7 +21,6 @@ extern SDL_Renderer *renderer;
 
 void render_init(SDL_Window *);
 void render_destroy(void);
-void render_clear_screen(void);
 void render_world(world_t *);
 
 #endif

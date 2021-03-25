@@ -63,43 +63,21 @@ void render_destroy() {
 	background = NULL;
 }
 
-void render_clear_screen() {
-	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
-	SDL_RenderClear(renderer);
-}
+void render_iso_circle(circle_t circle) {
+	int i, ix;
+	float y = 0.0, y_step = 2 / (float)circle.radius;
 
-void render_sprite(sprite_t *sprite, v2i pos) {
-	SDL_Rect draw_rect = {
-		pos.x + sprite->pos.x,
-		pos.y + sprite->pos.y,
-		sprite->size.x,
-		sprite->size.y
-	};
-	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
-}
+	SDL_RenderDrawLine(renderer, circle.loc.x + circle.radius, circle.loc.y,
+								 circle.loc.x - circle.radius, circle.loc.y);
 
-void render_entity(entity_t *entity) {
-	v3d draw_pos = entity->ray.pos;
-	draw_pos.z -= entity->size.z / 2;
-
-	render_sprite(sprites[entity->sprite], project_v3d(draw_pos, true));
-}
-
-// renders 2-1 ellipse at center
-void render_iso_circle(circle_t shadow) {
-	v2i center = shadow.loc;
-	int r = shadow.radius;
-	int i, rx = r, ry = r >> 1, ix = r;
-	float y = 0.0, y_step = 1 / (float)ry;
-
-	SDL_RenderDrawLine(renderer, center.x + r, center.y, center.x - r, center.y);
-
-	for (i = 1; i <= ry; i++) {
-		ix = (int)(sqrt(1 - (y * y)) * rx);
+	for (i = 1; i <= circle.radius >> 1; i++) {
+		ix = (int)(sqrt(1 - (y * y)) * circle.radius);
 		y += y_step;
 
-		SDL_RenderDrawLine(renderer, center.x + ix, center.y + i, center.x - ix, center.y + i);
-		SDL_RenderDrawLine(renderer, center.x + ix, center.y - i, center.x - ix, center.y - i);
+		SDL_RenderDrawLine(renderer, circle.loc.x + ix, circle.loc.y + i,
+									 circle.loc.x - ix, circle.loc.y + i);
+		SDL_RenderDrawLine(renderer, circle.loc.x + ix, circle.loc.y - i,
+									 circle.loc.x - ix, circle.loc.y - i);
 	}
 }
 
@@ -142,10 +120,55 @@ void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_siz
 	}
 }
 
+void render_sprite(sprite_t *sprite, v2i pos) {
+	SDL_Rect draw_rect = {
+		pos.x + sprite->pos.x,
+		pos.y + sprite->pos.y,
+		sprite->size.x,
+		sprite->size.y
+	};
+	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
+}
+
+void render_entity(entity_t *entity) {
+	v3d draw_pos = entity->ray.pos;
+	draw_pos.z -= entity->size.z / 2;
+
+	render_sprite(sprites[entity->sprite], project_v3d(draw_pos, true));
+}
+
+void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
+	texture_type tex_type = textures[block->texture]->type;
+
+	if (tex_type == TEX_VOXEL) {
+		if (block->expose_mask || void_mask) {
+			render_voxel_texture(textures[block->texture]->voxel_tex,
+								 project_v3i(loc, true),
+								 block->expose_mask, void_mask);
+		}
+	} else if (block->expose_mask) {
+		switch (tex_type) {
+			case TEX_TEXTURE:
+				render_sdl_texture(textures[block->texture]->texture,
+								   project_v3i(loc, true));
+
+				break;
+			case TEX_CONNECTED:
+				render_connected_texture(textures[block->texture]->connected_tex,
+										 project_v3i(loc, true),
+										 block->connect_mask);
+
+				break;
+			default:
+				break;
+		}
+	}
+}
+
 void render_world(world_t *world) {
 	int x, y, z, i;
-	unsigned int chunk_index, block_index;
 	uint8_t void_mask;
+	unsigned int chunk_index, block_index;
 	bool in_foreground, player_blocked;
 	ray_t cam_ray;
 	block_t *block;
@@ -212,40 +235,18 @@ void render_world(world_t *world) {
 				
 				// blocks
 				if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL) {
-					switch (textures[block->texture]->type) {
-						case TEX_TEXTURE:
-							if (block->expose_mask) {
-								render_sdl_texture(textures[block->texture]->texture,
-												   project_v3i(block_loc, true));
-							}
+					if (textures[block->texture]->type == TEX_VOXEL) {
+						void_mask = 0x0;
 
-							break;
-						case TEX_VOXEL:
-							void_mask = 0x0;
+						for (i = 0; i < 3; i++) {
+							void_mask <<= 1;
+							void_mask |= (v3i_get(&block_loc, i) == v3i_get(&max_block, i) - 1 ? 0x1 : 0x0);
+						}
 
-							for (i = 0; i < 3; i++) {
-								void_mask <<= 1;
-								void_mask |= (v3i_get(&block_loc, i) == v3i_get(&max_block, i) - 1 ? 0x1 : 0x0);
-							}
-
-							void_mask |= (block_loc.z == player_loc.z && !(block->expose_mask & 0x1) ? 0x1 : 0x0);
-
-							if (block->expose_mask || void_mask) {
-								render_voxel_texture(textures[block->texture]->voxel_tex,
-													 project_v3i(block_loc, true),
-													 block->expose_mask, void_mask);
-							}
-
-							break;
-						case TEX_CONNECTED:
-							if (block->expose_mask) {
-								render_connected_texture(textures[block->texture]->connected_tex,
-														 project_v3i(block_loc, true),
-														 block->connect_mask);
-							}
-
-							break;
+						void_mask |= (block_loc.z == player_loc.z && !(block->expose_mask & 0x1) ? 0x1 : 0x0);
 					}
+
+					render_block(world, block, block_loc, void_mask);
 				}
 			}
 		}
