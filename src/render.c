@@ -101,34 +101,27 @@ void camera_update(world_t *world) {
 }
 
 void camera_set_scale(int scale) {
-	// TODO FIX FG SCALING AND REMOVE
+	camera.scale = CLAMP(scale, 1, 16);
+	camera.viewport.w = (SCREEN_WIDTH / camera.scale);
+	camera.viewport.h = (SCREEN_HEIGHT / camera.scale);
 	camera.center_screen = (v2i){
-		(SCREEN_WIDTH / camera.scale) >> 1,
-		(SCREEN_HEIGHT / camera.scale) >> 1
+		camera.viewport.w >> 1,
+		camera.viewport.h >> 1,
 	};
 
 	view_circle.loc = camera.center_screen;
-
-	return;
-
-	camera.scale = MAX(scale, 1);
-	camera.center_screen = (v2i){
-		(SCREEN_WIDTH / camera.scale) >> 1,
-		(SCREEN_HEIGHT / camera.scale) >> 1
-	};
-
-	SDL_RenderSetScale(renderer, camera.scale, camera.scale);
 }
 
 // used for controlling with mouse wheel
 void camera_change_scale(bool increase) {
-	camera_set_scale(camera.scale + (increase ? -1 : 1));
+	camera_set_scale((increase ? camera.scale << 1 : camera.scale >> 1));
 }
 
 void render_entity(entity_t *entity) {
-	v2i screen_pos = v3d_to_isometric(v3d_add(entity->ray.pos, v3d_scale(entity->size, -.5)), true);
-	sprite_t *sprite = sprites[entity->sprite];
-	render_sprite(sprite, screen_pos);
+	v3d draw_pos = entity->ray.pos;
+	draw_pos.z -= entity->size.z / 2;
+
+	render_sprite(sprites[entity->sprite], v3d_to_isometric(draw_pos, true));
 }
 
 // renders 2-1 ellipse at center

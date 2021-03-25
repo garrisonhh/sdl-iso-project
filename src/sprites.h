@@ -7,7 +7,6 @@
 
 struct sprite_t {
 	SDL_Texture *texture;
-	// x, y are relative to entity_t position
 	v2i pos, size;
 };
 typedef struct sprite_t sprite_t;
