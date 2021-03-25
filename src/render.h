@@ -13,7 +13,7 @@
 struct camera_t {
 	int scale, render_dist;
 	v2i pos, center_screen;
-	v3i rotation;
+	SDL_Rect viewport;
 };
 typedef struct camera_t camera_t;
 

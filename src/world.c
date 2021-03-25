@@ -205,9 +205,11 @@ void world_destroy(world_t *world) {
 	free(world);
 }
 
+// TODO this is bad code and doesn't produce very interesting results
 void generate_tree(world_t *world, v3i loc) {
 	size_t log, leaves;
-	int max_v, x, y, i, radius;
+	int max_v, x, y, i;
+	double radius;
 	v3i leaf_loc;
 
 	log = texture_index("log");
@@ -220,7 +222,7 @@ void generate_tree(world_t *world, v3i loc) {
 			block_set(world, loc, log);
 		}
 
-		radius = 2;
+		radius = 2.5;
 		radius = i > max_v ? MIN((5 + max_v) - i, radius) : radius;
 
 		if (i > 3) {

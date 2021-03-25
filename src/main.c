@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 					}
 					break;
 				case SDL_MOUSEWHEEL:
-					camera_change_scale(e.wheel.y < 0);
+					camera_change_scale(e.wheel.y > 0);
 					break;
 			}
 		}

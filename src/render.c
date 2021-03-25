@@ -22,7 +22,7 @@ const int FG_RADIUS = VOXEL_WIDTH * 5;
 const v3d PLAYER_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
 
 SDL_Renderer *renderer = NULL;
-SDL_Texture *fg_world = NULL;
+SDL_Texture *foreground = NULL, *background = NULL;
 
 struct circle_t {
 	v2i loc;
@@ -37,9 +37,10 @@ circle_t view_circle = {
 
 camera_t camera = {
 	.pos = (v2i){0, 0},
-	.center_screen = (v2i){0, 0}, // set on init
 	.scale = 1,
 	.render_dist = 32,
+	.viewport = (SDL_Rect){0, 0, 0, 0}
+	// .center_screen and .viewport modified on init
 };
 
 void render_init(SDL_Window *window) {
@@ -56,12 +57,18 @@ void render_init(SDL_Window *window) {
 	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
 	SDL_RenderSetIntegerScale(renderer, true);
 
-	fg_world = SDL_CreateTexture(renderer,
-								 SDL_PIXELFORMAT_RGBA8888,
-								 SDL_TEXTUREACCESS_TARGET,
-								 SCREEN_WIDTH,
-								 SCREEN_HEIGHT);
-	SDL_SetTextureBlendMode(fg_world, SDL_BLENDMODE_BLEND);
+	foreground = SDL_CreateTexture(renderer,
+								   SDL_PIXELFORMAT_RGBA8888,
+								   SDL_TEXTUREACCESS_TARGET,
+								   SCREEN_WIDTH,
+								   SCREEN_HEIGHT);
+	background = SDL_CreateTexture(renderer,
+								   SDL_PIXELFORMAT_RGBA8888,
+								   SDL_TEXTUREACCESS_TARGET,
+								   SCREEN_WIDTH,
+								   SCREEN_HEIGHT);
+	SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
 
 	camera_set_scale(camera.scale);
 }
@@ -69,8 +76,10 @@ void render_init(SDL_Window *window) {
 void render_destroy() {
 	SDL_DestroyRenderer(renderer);
 	renderer = NULL;
-	SDL_DestroyTexture(fg_world);
-	fg_world = NULL;
+	SDL_DestroyTexture(foreground);
+	SDL_DestroyTexture(background);
+	foreground = NULL;
+	background = NULL;
 }
 
 void render_clear_screen() {
@@ -192,48 +201,64 @@ void render_world(world_t *world) {
 	v3i block_loc, player_loc;
 	v3i min_block, max_block;
 	list_t *shadows[world->block_size];
-	
+
+	// player_loc + raycasting for foregrounding vars
 	in_foreground = false;
-	render_generate_shadows(world, &shadows);
 	player_loc = v3i_from_v3d(world->player->ray.pos);
 
-	for (i = 0; i < 3; i++) {
-		v3i_set(&min_block, i, MAX(0, v3i_get(&player_loc, i) - camera.render_dist));
-		v3i_set(&max_block, i, MIN(world->block_size, v3i_get(&player_loc, i) + camera.render_dist));
-	}
-	
 	cam_ray = (ray_t){
 		world->player->ray.pos,
 		PLAYER_VIEW_DIR
 	};
 	cam_ray.pos.z += world->player->size.z / 2;
 	player_blocked = raycast_to_block(world, cam_ray, NULL, NULL);
+	
+	// block range
+	for (i = 0; i < 3; i++) {
+		v3i_set(&min_block, i, MAX(0, v3i_get(&player_loc, i) - camera.render_dist));
+		v3i_set(&max_block, i, MIN(world->block_size, v3i_get(&player_loc, i) + camera.render_dist));
+	}
 
+	// render targets
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
+	SDL_SetRenderTarget(renderer, foreground);
+	SDL_RenderClear(renderer);
+
+	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
+	SDL_SetRenderTarget(renderer, background);
+	SDL_RenderClear(renderer);
+
+	// gen shadows
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
+	render_generate_shadows(world, &shadows);
 
 	for (z = min_block.z; z < max_block.z; z++) {
+		// render shadows
 		if (shadows[z] != NULL)
 			for (i = 0; i < shadows[z]->size; i++)
 				render_iso_circle(*(circle_t *)shadows[z]->items[i]);
 
-		if (!in_foreground && z > player_loc.z && player_blocked) {
-			SDL_SetRenderTarget(renderer, fg_world);
+		// change to foreground when ready
+		if (player_blocked && !in_foreground && z > player_loc.z) {
+			SDL_SetRenderTarget(renderer, foreground);
 			SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
 			SDL_RenderClear(renderer);
 
 			in_foreground = true;
 		}
 
+		// render blocks and buckets
 		for (y = min_block.y; y < max_block.y; y++) {
 			for (x = min_block.x; x < max_block.x; x++) {
 				block_loc = (v3i){x, y, z};
-
 				chunk_block_indices(world, block_loc, &chunk_index, &block_index);
 
+				// entities
 				if ((bucket = world->chunks[chunk_index]->buckets[block_index]) != NULL)
 					for (i = 0; i < bucket->size; i++)
 						render_entity(bucket->items[i]);
 				
+				// blocks
 				if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL) {
 					switch (textures[block->texture]->type) {
 						case TEX_TEXTURE:
@@ -274,16 +299,19 @@ void render_world(world_t *world) {
 		}
 	}	
 
-	if (in_foreground) {
+	// render target surfaces to window
+	if (in_foreground) { // target will be foreground if true
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
 		render_iso_circle(view_circle);
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-
-		SDL_SetRenderTarget(renderer, NULL);
-		SDL_RenderCopy(renderer, fg_world, NULL, NULL);
 	}
 
+	SDL_SetRenderTarget(renderer, NULL);
+	SDL_RenderCopy(renderer, background, &camera.viewport, NULL);
+	SDL_RenderCopy(renderer, foreground, &camera.viewport, NULL);
+
+	// destroy shadows
 	for (z = 0; z < world->block_size; z++)
 		if (shadows[z] != NULL)
 			list_deep_destroy(shadows[z]);

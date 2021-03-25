@@ -15,6 +15,7 @@
 
 #define MAX(a, b) (a > b ? a : b)
 #define MIN(a, b) (a < b ? a : b)
+#define CLAMP(x, a, b) (MAX(MIN(x, b), a))
 
 // most useful god damn macro on the planet holy guacamole
 #define FOR_XY(x, y, mx, my) for (y = 0; y < my; y++) for (x = 0; x < mx; x++)
