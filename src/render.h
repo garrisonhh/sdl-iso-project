@@ -10,23 +10,18 @@
 #define VOXEL_WIDTH 32
 #define VOXEL_HEIGHT 34
 
-struct camera_t {
-	int scale, render_dist;
-	v2i pos, center_screen;
-	SDL_Rect viewport;
+struct circle_t {
+	v2i loc;
+	int radius;
 };
-typedef struct camera_t camera_t;
+typedef struct circle_t circle_t;
 
 extern const int VOXEL_Z_HEIGHT;
 extern SDL_Renderer *renderer;
-extern camera_t camera;
 
 void render_init(SDL_Window *);
 void render_destroy(void);
 void render_clear_screen(void);
-void camera_update(world_t *);
-void camera_set_scale(int);
-void camera_change_scale(bool);
 void render_world(world_t *);
 
 #endif

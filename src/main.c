@@ -6,6 +6,7 @@
 #include <string.h>
 #include "media.h"
 #include "render.h"
+#include "camera.h"
 #include "world.h"
 #include "player.h"
 #include "utils.h"
@@ -19,7 +20,8 @@ void init() {
 	}
 
 	window = SDL_CreateWindow("sdl-iso-project",
-							  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT,
+							  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+							  SCREEN_WIDTH, SCREEN_HEIGHT,
 							  SDL_WINDOW_SHOWN);
 
 	if (window == NULL) {
@@ -49,13 +51,8 @@ int main(int argc, char *argv[]) {
 	world_t *world = world_create(3);
 	world_generate(world);
 
-	// framerate capping
+	// time
 	unsigned int last_time = SDL_GetTicks(), this_time;
-	/*
-	unsigned int target_framerate = 120, frame_start;
-	int frame_delay;
-	unsigned int target_frame_time = 1000 / target_framerate;
-	*/
 
 	// controls
 	SDL_Event e;
@@ -70,8 +67,6 @@ int main(int argc, char *argv[]) {
 	bool quit = false;
 
 	while (!quit) {
-		//frame_start = SDL_GetTicks();
-
 		while (SDL_PollEvent(&e)) {
 			switch (e.type) {
 				case SDL_QUIT:
@@ -132,12 +127,6 @@ int main(int argc, char *argv[]) {
 		render_clear_screen();
 		render_world(world);
 		SDL_RenderPresent(renderer);
-
-		// limit framerate to `target_framerate`
-		/*
-		if ((frame_delay = frame_start + target_frame_time - SDL_GetTicks()) > 0)
-			SDL_Delay(frame_delay);
-		*/
 	}
 
 	world_destroy(world);

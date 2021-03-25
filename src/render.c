@@ -11,6 +11,7 @@
 #include "collision.h"
 #include "raycast.h"
 #include "list.h"
+#include "camera.h"
 #include "utils.h"
 #include "world.h"
 
@@ -18,30 +19,10 @@
 #define SHADOW_ALPHA 63
 
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
-const int FG_RADIUS = VOXEL_WIDTH * 5;
 const v3d PLAYER_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
 
 SDL_Renderer *renderer = NULL;
 SDL_Texture *foreground = NULL, *background = NULL;
-
-struct circle_t {
-	v2i loc;
-	int radius;
-};
-typedef struct circle_t circle_t;
-
-circle_t view_circle = {
-	.loc = (v2i){0, 0}, // updated alongside camera
-	.radius = SCREEN_WIDTH >> 3
-};
-
-camera_t camera = {
-	.pos = (v2i){0, 0},
-	.scale = 1,
-	.render_dist = 32,
-	.viewport = (SDL_Rect){0, 0, 0, 0}
-	// .center_screen and .viewport modified on init
-};
 
 void render_init(SDL_Window *window) {
 	renderer = SDL_CreateRenderer(window, -1,
@@ -70,7 +51,7 @@ void render_init(SDL_Window *window) {
 	SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
 	SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
 
-	camera_set_scale(camera.scale);
+	camera_init();
 }
 
 void render_destroy() {
@@ -87,50 +68,21 @@ void render_clear_screen() {
 	SDL_RenderClear(renderer);
 }
 
-v2i v3i_to_isometric(v3i v, bool at_camera) {
-	v2i iso = {
-		((v.x - v.y) * VOXEL_WIDTH) >> 1,
-		(((v.x + v.y) * VOXEL_WIDTH) >> 2) - (v.z * VOXEL_Z_HEIGHT)
+void render_sprite(sprite_t *sprite, v2i pos) {
+	SDL_Rect draw_rect = {
+		pos.x + sprite->pos.x,
+		pos.y + sprite->pos.y,
+		sprite->size.x,
+		sprite->size.y
 	};
-
-	return at_camera ? v2i_add(iso, camera.pos) : iso;
-}
-
-v2i v3d_to_isometric(v3d v, bool at_camera) {
-	v2i iso = {
-		((v.x - v.y) * VOXEL_WIDTH) / 2,
-		(((v.x + v.y) * VOXEL_WIDTH) / 4) - (v.z * VOXEL_Z_HEIGHT)
-	};
-
-	return at_camera ? v2i_add(iso, camera.pos) : iso;
-}
-
-void camera_update(world_t *world) {
-	camera.pos = v2i_sub(camera.center_screen, v3d_to_isometric(world->player->ray.pos, false));
-}
-
-void camera_set_scale(int scale) {
-	camera.scale = CLAMP(scale, 1, 16);
-	camera.viewport.w = (SCREEN_WIDTH / camera.scale);
-	camera.viewport.h = (SCREEN_HEIGHT / camera.scale);
-	camera.center_screen = (v2i){
-		camera.viewport.w >> 1,
-		camera.viewport.h >> 1,
-	};
-
-	view_circle.loc = camera.center_screen;
-}
-
-// used for controlling with mouse wheel
-void camera_change_scale(bool increase) {
-	camera_set_scale((increase ? camera.scale << 1 : camera.scale >> 1));
+	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
 }
 
 void render_entity(entity_t *entity) {
 	v3d draw_pos = entity->ray.pos;
 	draw_pos.z -= entity->size.z / 2;
 
-	render_sprite(sprites[entity->sprite], v3d_to_isometric(draw_pos, true));
+	render_sprite(sprites[entity->sprite], project_v3d(draw_pos, true));
 }
 
 // renders 2-1 ellipse at center
@@ -179,7 +131,7 @@ void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_siz
 
 		if (shadow_loc.z >= 0 && shadow_loc.z < world->block_size) {
 			shadow = (circle_t *)malloc(sizeof(circle_t));
-			shadow->loc = v3d_to_isometric(shadow_pos, true);
+			shadow->loc = project_v3d(shadow_pos, true);
 			shadow->radius = (int)((entity->size.x * VOXEL_WIDTH) / 2.0);
 
 			if ((*shadows)[shadow_loc.z] == NULL)
@@ -264,7 +216,7 @@ void render_world(world_t *world) {
 						case TEX_TEXTURE:
 							if (block->expose_mask) {
 								render_sdl_texture(textures[block->texture]->texture,
-												   v3i_to_isometric(block_loc, true));
+												   project_v3i(block_loc, true));
 							}
 
 							break;
@@ -280,7 +232,7 @@ void render_world(world_t *world) {
 
 							if (block->expose_mask || void_mask) {
 								render_voxel_texture(textures[block->texture]->voxel_tex,
-													 v3i_to_isometric(block_loc, true),
+													 project_v3i(block_loc, true),
 													 block->expose_mask, void_mask);
 							}
 
@@ -288,7 +240,7 @@ void render_world(world_t *world) {
 						case TEX_CONNECTED:
 							if (block->expose_mask) {
 								render_connected_texture(textures[block->texture]->connected_tex,
-														 v3i_to_isometric(block_loc, true),
+														 project_v3i(block_loc, true),
 														 block->connect_mask);
 							}
 
@@ -303,7 +255,7 @@ void render_world(world_t *world) {
 	if (in_foreground) { // target will be foreground if true
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-		render_iso_circle(view_circle);
+		render_iso_circle(camera.view_circle);
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	}
 

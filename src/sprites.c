@@ -63,13 +63,3 @@ size_t sprite_index(char *key) {
 	printf("key not found in sprite_table: %s\n", key);
 	exit(1);
 }
-
-void render_sprite(sprite_t *sprite, v2i pos) {
-	SDL_Rect draw_rect = {
-		pos.x + sprite->pos.x,
-		pos.y + sprite->pos.y,
-		sprite->size.x,
-		sprite->size.y
-	};
-	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
-}
