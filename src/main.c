@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "media.h"
+#include "content.h"
 #include "render.h"
 #include "camera.h"
 #include "world.h"

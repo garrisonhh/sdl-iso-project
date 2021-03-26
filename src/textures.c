@@ -3,7 +3,7 @@
 #include <json-c/json.h>
 #include <stdlib.h>
 #include "vector.h"
-#include "media.h"
+#include "content.h"
 #include "render.h"
 #include "textures.h"
 #include "hash.h"
@@ -21,8 +21,6 @@ Uint8 voxel_tex_shades[] = { // flat shading values (out of 255) for each side t
 	223,
 	191
 };
-
-// corresponds to texture_type enum values; used for json parsing
 
 // workaround for C's weird global constant rules
 void textures_init() {
@@ -65,7 +63,7 @@ void textures_load(json_object *file_obj) {
 	size_t *arr_index;
 	json_object *tex_arr_obj, *current_tex, *obj;
 	hash_table *tex_type_table;
-	size_t num_tex_types = 3;
+	size_t num_tex_types = 4;
 	texture_type *tex_type_ptr;
 
 	tex_type_table = hash_table_create(num_tex_types * 1.3 + 1);
@@ -77,6 +75,7 @@ void textures_load(json_object *file_obj) {
 	// type hash table
 	char *tex_type_strings[] = {
 		"texture",
+		"sprite",
 		"voxel",
 		"connected"
 	};
@@ -129,15 +128,19 @@ void textures_load(json_object *file_obj) {
 
 		// load image
 		switch (textures[i]->type) {
-			case TEX_TEXTURE:;
+			case TEX_TEXTURE:
 				strcat(path, ".png");
-				textures[i]->texture = load_sdl_texture(path);
+				textures[i]->tex.texture = load_sdl_texture(path);
 				break;	
+			case TEX_SPRITE:
+				strcat(path, ".png");
+				textures[i]->tex.sprite = load_sprite(path);
+				break;
 			case TEX_VOXEL:
-				textures[i]->voxel_tex = load_voxel_texture(path);
+				textures[i]->tex.voxel = load_voxel_texture(path);
 				break;
 			case TEX_CONNECTED:
-				textures[i]->connected_tex = load_connected_texture(path);
+				textures[i]->tex.connected = load_connected_texture(path);
 				break;
 		}
 
@@ -149,27 +152,30 @@ void textures_load(json_object *file_obj) {
 
 	hash_table_deep_destroy(tex_type_table);
 
-	VOID_VOXEL_TEXTURE = textures[texture_index("void")]->voxel_tex;
+	VOID_VOXEL_TEXTURE = textures[texture_index("void")]->tex.voxel;
 }
 
 void textures_destroy() {
 	for (size_t i = 0; i < num_textures; i++) {
 		switch (textures[i]->type) {
 			case TEX_TEXTURE:
-				SDL_DestroyTexture(textures[i]->texture);
+				SDL_DestroyTexture(textures[i]->tex.texture);
+				break;
+			case TEX_SPRITE:
+				SDL_DestroyTexture(textures[i]->tex.sprite->texture);
 				break;
 			case TEX_VOXEL:
-				SDL_DestroyTexture(textures[i]->voxel_tex->top);
-				SDL_DestroyTexture(textures[i]->voxel_tex->side);
-				free(textures[i]->voxel_tex);
+				SDL_DestroyTexture(textures[i]->tex.voxel->top);
+				SDL_DestroyTexture(textures[i]->tex.voxel->side);
+				free(textures[i]->tex.voxel);
 				break;
 			case TEX_CONNECTED:
-				SDL_DestroyTexture(textures[i]->connected_tex->base);
-				SDL_DestroyTexture(textures[i]->connected_tex->top);
-				SDL_DestroyTexture(textures[i]->connected_tex->bottom);
-				SDL_DestroyTexture(textures[i]->connected_tex->front);
-				SDL_DestroyTexture(textures[i]->connected_tex->back);
-				free(textures[i]->connected_tex);
+				SDL_DestroyTexture(textures[i]->tex.connected->base);
+				SDL_DestroyTexture(textures[i]->tex.connected->top);
+				SDL_DestroyTexture(textures[i]->tex.connected->bottom);
+				SDL_DestroyTexture(textures[i]->tex.connected->front);
+				SDL_DestroyTexture(textures[i]->tex.connected->back);
+				free(textures[i]->tex.connected);
 				break;
 		}
 
@@ -220,6 +226,26 @@ void render_sdl_texture(SDL_Texture *texture, v2i pos) {
 	draw_rect.y += pos.y;
 
 	SDL_RenderCopy(renderer, texture, NULL, &draw_rect);
+}
+
+sprite_t *load_sprite(char *path) {
+	sprite_t *sprite = (sprite_t *)malloc(sizeof(sprite_t));
+
+	sprite->texture = load_sdl_texture(path);
+	SDL_QueryTexture(sprite->texture, NULL, NULL, &sprite->size.x, &sprite->size.y);
+	sprite->pos = (v2i){-(sprite->size.x >> 1), -sprite->size.y};
+
+	return sprite;
+}
+
+void render_sprite(sprite_t *sprite, v2i pos) {
+	pos = v2i_add(pos, sprite->pos);
+	SDL_Rect draw_rect = {
+		pos.x, pos.y,
+		sprite->size.x, sprite->size.y
+	};
+
+	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
 }
 
 // loads [path]_top.png and [path]_side.png

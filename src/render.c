@@ -6,7 +6,6 @@
 #include <math.h>
 #include "render.h"
 #include "textures.h"
-#include "sprites.h"
 #include "vector.h"
 #include "collision.h"
 #include "raycast.h"
@@ -123,23 +122,12 @@ void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_siz
 void render_entity(entity_t *entity) {
 	v3d entity_pos;
 	v2i screen_pos;
-	sprite_t *sprite;
-	SDL_Rect draw_rect;
 
 	entity_pos = entity->ray.pos;
 	entity_pos.z -= entity->size.z / 2;
 	screen_pos = project_v3d(entity_pos, true);
 
-	sprite = sprites[entity->sprite];
-
-	draw_rect = (SDL_Rect){
-		screen_pos.x + sprite->pos.x,
-		screen_pos.y + sprite->pos.y,
-		sprite->size.x,
-		sprite->size.y
-	};
-
-	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
+	render_sprite(textures[entity->sprite]->tex.sprite, screen_pos);
 }
 
 void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
@@ -147,19 +135,19 @@ void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
 
 	if (tex_type == TEX_VOXEL) {
 		if (block->expose_mask || void_mask) {
-			render_voxel_texture(textures[block->texture]->voxel_tex,
+			render_voxel_texture(textures[block->texture]->tex.voxel,
 								 project_v3i(loc, true),
 								 block->expose_mask, void_mask);
 		}
 	} else if (block->expose_mask) {
 		switch (tex_type) {
 			case TEX_TEXTURE:
-				render_sdl_texture(textures[block->texture]->texture,
+				render_sdl_texture(textures[block->texture]->tex.texture,
 								   project_v3i(loc, true));
 
 				break;
 			case TEX_CONNECTED:
-				render_connected_texture(textures[block->texture]->connected_tex,
+				render_connected_texture(textures[block->texture]->tex.connected,
 										 project_v3i(loc, true),
 										 block->connect_mask);
 

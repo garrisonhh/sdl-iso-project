@@ -134,7 +134,7 @@ void block_set(world_t *world, v3i loc, size_t texture) {
 		chunk->num_blocks--;
 	}
 
-	chunk->blocks[block_index] = block_create(texture);
+	chunk->blocks[block_index] = block_create(texture, BLOCK_COLL_NONE, NULL, NULL); // TODO
 
 	block_update_masks(world, loc);
 }

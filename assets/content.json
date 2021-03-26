@@ -1,6 +1,11 @@
 {
 	"textures": [
 		{
+			"name": "banana man",
+			"path": "banana_man",
+			"type": "sprite"
+		},
+		{
 			"name": "void",
 			"type": "voxel"
 		},
@@ -38,11 +43,6 @@
 			"path": "pipe/pipe",
 			"type": "connected",
 			"transparent": true
-		}
-	],
-	"sprites" : [
-		{
-			"name": "banana_man"
 		}
 	]
 }

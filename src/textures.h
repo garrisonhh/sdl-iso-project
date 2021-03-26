@@ -7,12 +7,21 @@
 #include "vector.h"
 #include "hash.h"
 
+// numbers are used for json loading, if you change them make sure to
+// check the textures_load function
 enum texture_type {
 	TEX_TEXTURE = 0,
-	TEX_VOXEL = 1,
-	TEX_CONNECTED = 2,
+	TEX_SPRITE = 1,
+	TEX_VOXEL = 2,
+	TEX_CONNECTED = 3,
 };
 typedef enum texture_type texture_type;   
+
+struct sprite_t {
+	SDL_Texture *texture;
+	v2i pos, size;
+};
+typedef struct sprite_t sprite_t;
 
 struct voxel_tex_t {
 	SDL_Texture *top, *side;
@@ -26,9 +35,12 @@ typedef struct connected_tex_t connected_tex_t;
 
 struct texture_t {
 	texture_type type;
-	SDL_Texture *texture;
-	voxel_tex_t *voxel_tex;
-	connected_tex_t *connected_tex;
+	union texture_pointers {
+		SDL_Texture *texture;
+		sprite_t *sprite;
+		voxel_tex_t *voxel;
+		connected_tex_t *connected;
+	} tex;
 	bool transparent;
 };
 typedef struct texture_t texture_t;
@@ -39,10 +51,15 @@ void textures_init(void);
 void textures_load(json_object *);
 void textures_destroy(void);
 size_t texture_index(char *);
-void render_sdl_texture(SDL_Texture *, v2i);
+
+SDL_Texture *load_sdl_texture(char *path);
+sprite_t *load_sprite(char *);
 voxel_tex_t *load_voxel_texture(char *);
-void render_voxel_texture(voxel_tex_t *, v2i, uint8_t, uint8_t);
 connected_tex_t *load_connected_texture(char *);
+
+void render_sdl_texture(SDL_Texture *, v2i);
+void render_sprite(sprite_t *sprite, v2i pos);
+void render_voxel_texture(voxel_tex_t *, v2i, uint8_t, uint8_t);
 void render_connected_texture(connected_tex_t *, v2i, uint8_t);
 
 #endif
