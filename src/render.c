@@ -120,21 +120,26 @@ void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_siz
 	}
 }
 
-void render_sprite(sprite_t *sprite, v2i pos) {
-	SDL_Rect draw_rect = {
-		pos.x + sprite->pos.x,
-		pos.y + sprite->pos.y,
+void render_entity(entity_t *entity) {
+	v3d entity_pos;
+	v2i screen_pos;
+	sprite_t *sprite;
+	SDL_Rect draw_rect;
+
+	entity_pos = entity->ray.pos;
+	entity_pos.z -= entity->size.z / 2;
+	screen_pos = project_v3d(entity_pos, true);
+
+	sprite = sprites[entity->sprite];
+
+	draw_rect = (SDL_Rect){
+		screen_pos.x + sprite->pos.x,
+		screen_pos.y + sprite->pos.y,
 		sprite->size.x,
 		sprite->size.y
 	};
+
 	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
-}
-
-void render_entity(entity_t *entity) {
-	v3d draw_pos = entity->ray.pos;
-	draw_pos.z -= entity->size.z / 2;
-
-	render_sprite(sprites[entity->sprite], project_v3d(draw_pos, true));
 }
 
 void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
@@ -216,9 +221,6 @@ void render_world(world_t *world) {
 		// change to foreground when ready
 		if (player_blocked && !in_foreground && z > player_loc.z) {
 			SDL_SetRenderTarget(renderer, foreground);
-			SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
-			SDL_RenderClear(renderer);
-
 			in_foreground = true;
 		}
 
