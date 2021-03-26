@@ -44,6 +44,8 @@ void on_close() {
 	SDL_Quit();
 }
 
+#include "collision.h"
+
 int main(int argc, char *argv[]) {
 	init();
 

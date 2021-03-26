@@ -220,7 +220,7 @@ void render_world(world_t *world) {
 
 		// change to foreground when ready
 		if (player_blocked && !in_foreground && z > player_loc.z) {
-			// render transparent textures on z layer above foreground to foreground
+			// render transparent textures on z layer above foreground to background
 			for (y = min_block.y; y < max_block.y; y++) {
 				for (x = min_block.x; x < max_block.x; x++) {
 					block_loc = (v3i){x, y, z};

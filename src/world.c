@@ -4,22 +4,13 @@
 #include <time.h>
 #include <math.h>
 #include "world.h"
+#include "block.h"
 #include "entity.h"
 #include "noise.h"
 #include "list.h"
 #include "player.h"
 #include "textures.h"
 #include "utils.h"
-
-block_t *block_create(size_t texture) {
-	block_t *block = (block_t *)malloc(sizeof(block_t));
-
-	block->texture = texture;
-	block->expose_mask = 0x7;
-	block->connect_mask = 0x0;
-
-	return block;
-}
 
 chunk_t *chunk_create() {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
@@ -38,7 +29,7 @@ chunk_t *chunk_create() {
 void chunk_destroy(chunk_t *chunk) {
 	for (int i = 0; i < CHUNK_SIZE; i++) {
 		if (chunk->blocks[i] != NULL)
-			free(chunk->blocks[i]);
+			block_destroy(chunk->blocks[i]);
 		if (chunk->buckets[i] != NULL)
 			list_destroy(chunk->buckets[i]);
 	}
@@ -125,6 +116,8 @@ block_t *block_get(world_t *world, v3i loc) {
 	return world->chunks[chunk_index]->blocks[block_index];
 }
 
+
+// TODO update
 void block_set(world_t *world, v3i loc, size_t texture) {
 	unsigned int chunk_index, block_index;
 	
