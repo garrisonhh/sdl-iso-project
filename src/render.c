@@ -220,6 +220,19 @@ void render_world(world_t *world) {
 
 		// change to foreground when ready
 		if (player_blocked && !in_foreground && z > player_loc.z) {
+			// render transparent textures on z layer above foreground to foreground
+			for (y = min_block.y; y < max_block.y; y++) {
+				for (x = min_block.x; x < max_block.x; x++) {
+					block_loc = (v3i){x, y, z};
+					chunk_block_indices(world, block_loc, &chunk_index, &block_index);
+
+					if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL
+					  && textures[block->texture]->transparent) {
+						render_block(world, block, block_loc, void_mask);
+					}
+				}
+			}
+
 			SDL_SetRenderTarget(renderer, foreground);
 			in_foreground = true;
 		}

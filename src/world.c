@@ -29,6 +29,9 @@ chunk_t *chunk_create() {
 		chunk->buckets[i] = NULL;
 	}
 
+	chunk->num_blocks = 0;
+	chunk->num_entities = 0;
+
 	return chunk;
 }
 
@@ -130,8 +133,13 @@ void block_set(world_t *world, v3i loc, size_t texture) {
 
 	chunk_t *chunk = world->chunks[chunk_index];
 
-	if (chunk->blocks[block_index] != NULL)
+	if (chunk == NULL)
+		world->chunks[chunk_index] = chunk_create();
+
+	if (chunk->blocks[block_index] != NULL) {
 		free(chunk->blocks[block_index]);
+		chunk->num_blocks--;
+	}
 
 	chunk->blocks[block_index] = block_create(texture);
 
@@ -147,6 +155,9 @@ void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	}
 
 	chunk_t *chunk = world->chunks[chunk_index];
+
+	if (chunk == NULL)
+		world->chunks[chunk_index] = chunk_create();
 
 	if (chunk->buckets[block_index] == NULL)
 		chunk->buckets[block_index] = list_create();

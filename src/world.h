@@ -23,6 +23,7 @@ typedef struct block_t block_t;
 struct chunk_t {
 	block_t *blocks[CHUNK_SIZE];
 	list_t *buckets[CHUNK_SIZE];
+	size_t num_blocks, num_entities; // TODO remove null chunks?
 };
 typedef struct chunk_t chunk_t;
 
