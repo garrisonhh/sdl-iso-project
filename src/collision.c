@@ -45,6 +45,37 @@ bool inside_bbox(bbox_t box, v3d point) {
 	return true;
 }
 
+v3d bbox_center(bbox_t box) {
+	return v3d_add(box.pos, v3d_scale(box.size, .5));
+}
+
+int bbox_compare(const void *a, const void *b) {
+	v3d center_a = bbox_center(**(bbox_t **)a);
+	v3d center_b = bbox_center(**(bbox_t **)b);
+	int i;
+	double comparison, polarity;
+
+	// TODO simplify the if statement, should be possible
+	for (i = 2; i >= 0; i--) {
+		comparison = v3d_get(&center_b, i) - v3d_get(&center_a, i);
+		polarity = v3i_get(&BBOX_SORT_POLARITY, i) > 0;
+
+		if (d_close(comparison, 0))
+			continue;
+		else if (comparison > 0)
+			return polarity > 0 ? -1 : 1;
+		else if (comparison < 0)
+			return polarity > 0 ? 1 : -1;
+	}
+
+	return 1;
+}
+
+void sort_bboxes_by_vector_polarity(list_t *boxes, v3d v) {
+	BBOX_SORT_POLARITY = polarity_of_v3d(v);
+	qsort(boxes->items, boxes->size, sizeof(void *), bbox_compare);
+}
+
 bbox_t ray_to_bbox(ray_t ray) {
 	bbox_t box;
 	box.pos = ray.pos;
@@ -121,12 +152,10 @@ int ray_bbox_intersection(ray_t ray, bbox_t box, v3d *intersection, v3d *resolve
 
 // TODO check if collision point in range of ray
 bool line_sphere_intersection(ray_t ray, sphere_t sphere, v3d *intersection) {
-	/*
 	if (d_close(v3d_magnitude(ray.dir), 0.0)) {
 		printf("attempted ray sphere intersection with ray of 0 magnitude.\n");
 		exit(1);
 	}
-	*/
 
 	double a, b, c;
 	double b4ac_term, sqrt_term, b2a_term;
@@ -168,33 +197,58 @@ bool ray_sphere_intersection(ray_t ray, sphere_t sphere, v3d *intersection) {
 	return false;
 }
 
-v3d bbox_center(bbox_t box) {
-	return v3d_add(box.pos, v3d_scale(box.size, .5));
-}
+bool ray_plane_intersection(ray_t ray, ray_t plane, v3d *intersection, v3d *resolved_dir) {
+	double zx, sin_zx, cos_zx;
+	double zpy, sin_zpy, cos_zpy;
+	double zp;
+	ray_t rotated;
 
-int bbox_compare(const void *a, const void *b) {
-	v3d center_a = bbox_center(**(bbox_t **)a);
-	v3d center_b = bbox_center(**(bbox_t **)b);
-	int i;
-	double comparison, polarity;
+	// angle from z to x
+	zx = atan2(plane.dir.x, plane.dir.z);
+	sin_zx = sin(zx);
+	cos_zx = cos(zx);
 
-	// TODO simplify the if statement, should be possible
-	for (i = 2; i >= 0; i--) {
-		comparison = v3d_get(&center_b, i) - v3d_get(&center_a, i);
-		polarity = v3i_get(&BBOX_SORT_POLARITY, i) > 0;
+	// angle from z prime to y
+	zpy = atan2(plane.dir.y, plane.dir.z * cos_zx + plane.dir.x * sin_zx);
+	sin_zpy = sin(zpy);
+	cos_zpy = cos(zpy);
 
-		if (d_close(comparison, 0))
-			continue;
-		else if (comparison > 0)
-			return polarity > 0 ? -1 : 1;
-		else if (comparison < 0)
-			return polarity > 0 ? 1 : -1;
+	// find rotated ray
+	ray.pos = v3d_sub(ray.pos, plane.pos);
+
+	rotated.pos.x = ray.pos.x * cos_zx - ray.pos.z * sin_zx;
+	zp = ray.pos.z * cos_zx + ray.pos.x * sin_zx;
+	rotated.pos.y = ray.pos.y * cos_zpy - zp * sin_zpy;
+	rotated.pos.z = zp * cos_zpy + ray.pos.y * sin_zpy;
+
+	rotated.dir.x = ray.dir.x * cos_zx - ray.dir.z * sin_zx;
+	zp = ray.dir.z * cos_zx + ray.dir.x * sin_zx;
+	rotated.dir.y = ray.dir.y * cos_zpy - zp * sin_zpy;
+	rotated.dir.z = zp * cos_zpy + ray.dir.y * sin_zpy;
+
+	printf("rotated pos: %.4f %.4f %.4f\n", rotated.pos.x, rotated.pos.y, rotated.pos.z);
+	printf("rotated dir: %.4f %.4f %.4f\n", rotated.dir.x, rotated.dir.y, rotated.dir.z);
+
+	// check for collision (whether rotated ray points into negative z)
+	if (rotated.pos.z + rotated.dir.z >= 0) {
+		return false;
+	} else {
+		double t_intersect = -rotated.pos.z / rotated.dir.z;
+
+		printf("t_intersect: %.4f\n", t_intersect);
+
+		if (t_intersect > 1) // collision outside of ray bounds
+			return false;
+
+		// find and put values in pointers if requested
+		if (intersection != NULL)
+			*intersection = v3d_add(ray.pos, v3d_scale(ray.dir, t_intersect));
+		if (resolved_dir != NULL) {
+			double t_resolve = -(rotated.pos.z + rotated.dir.z) / v3d_magnitude(plane.dir);
+			*resolved_dir = v3d_add(ray.dir, v3d_scale(plane.dir, t_resolve));
+		}
+
+		return true;
 	}
-
-	return 1;
 }
 
-void sort_bboxes_by_vector_polarity(list_t *boxes, v3d v) {
-	BBOX_SORT_POLARITY = polarity_of_v3d(v);
-	qsort(boxes->items, boxes->size, sizeof(void *), bbox_compare);
-}

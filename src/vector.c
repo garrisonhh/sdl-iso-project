@@ -131,7 +131,7 @@ v3d v3d_scale(v3d v, double scalar) {
 }
 
 double v3d_magnitude(v3d v) {
-	return sqrt(v.x * v.y * v.z);
+	return sqrt(v3d_dot(v, v));
 }
 
 double v3d_dot(v3d a, v3d b) {
