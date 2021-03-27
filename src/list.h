@@ -14,5 +14,6 @@ void list_destroy(list_t *);
 void list_deep_destroy(list_t *);
 void list_add(list_t *, void *);
 void list_remove(list_t *, void *);
+void list_qsort(list_t *, int (*)(const void *, const void *));
 
 #endif

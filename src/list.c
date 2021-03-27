@@ -28,7 +28,7 @@ void list_add(list_t *list, void *item) {
 
 	if (list->size == list->max_size) {
 		list->max_size <<= 1;
-		list->items = (void **)realloc(list->items, sizeof(void *) * list->max_size);
+		list->items = realloc(list->items, sizeof(void *) * list->max_size);
 	}
 }
 
@@ -50,3 +50,6 @@ void list_remove(list_t *list, void *item) {
 	}
 }
 
+void list_qsort(list_t *list, int (*compare)(const void *, const void *)) {
+	qsort(list->items, list->size, sizeof(void *), compare);
+}
