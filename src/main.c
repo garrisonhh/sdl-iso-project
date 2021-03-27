@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -29,22 +30,26 @@ void init() {
 		exit(1);
 	}
 	
+	int img_flags = IMG_INIT_PNG;
+	if (!(IMG_Init(img_flags) & img_flags)) {
+		printf("SDL_image could not initialize:\n%s\n", IMG_GetError());
+		exit(1);
+	}
+	
 	render_init(window);	
-	media_init();
+	content_init();
 }
 
-// naming this "close" results in seg fault lmao. func name conflict in sdl somewhere?
-void on_close() {
-	media_quit();
+void quit_all() {
+	content_quit();
 	render_destroy();
 
 	SDL_DestroyWindow(window);
 	window = NULL;
 
+	IMG_Quit();
 	SDL_Quit();
 }
-
-#include "collision.h"
 
 int main(int argc, char *argv[]) {
 	init();
@@ -131,7 +136,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	world_destroy(world);
-	on_close();
+	quit_all();
 	
 	return 0;
  }

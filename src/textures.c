@@ -56,23 +56,16 @@ void textures_init() {
 }
 
 void textures_load(json_object *file_obj) {
-	size_t i;
 	const char *name;
 	char path[100];
 	char *rel_path;
 	size_t *arr_index;
+	size_t i, num_tex_types;
 	json_object *tex_arr_obj, *current_tex, *obj;
+
 	hash_table *tex_type_table;
-	size_t num_tex_types = 4;
 	texture_type *tex_type_ptr;
-
-	tex_type_table = hash_table_create(num_tex_types * 1.3 + 1);
-	tex_arr_obj = json_object_object_get(file_obj, "textures");
-	num_textures = json_object_array_length(tex_arr_obj);
-	textures = (texture_t **)calloc(num_textures, sizeof(texture_t *));
-	texture_table = hash_table_create(num_textures * 1.3 + 1);
-
-	// type hash table
+	num_tex_types = 4;
 	char *tex_type_strings[] = {
 		"texture",
 		"sprite",
@@ -80,8 +73,14 @@ void textures_load(json_object *file_obj) {
 		"connected"
 	};
 
+	tex_type_table = hash_table_create(num_tex_types * 1.3 + 1);
+	tex_arr_obj = json_object_object_get(file_obj, "textures");
+	num_textures = json_object_array_length(tex_arr_obj);
+	textures = (texture_t **)calloc(num_textures, sizeof(texture_t *));
+	texture_table = hash_table_create(num_textures * 1.3 + 1);
+
 	for (i = 0; i < num_tex_types; i++) {
-		tex_type_ptr = (texture_type *)malloc(sizeof(texture_type *));
+		tex_type_ptr = (texture_type *)malloc(sizeof(texture_type));
 		*tex_type_ptr = (texture_type)i;
 		hash_set(tex_type_table, tex_type_strings[i], tex_type_ptr);
 	}
@@ -193,11 +192,12 @@ void textures_destroy() {
 size_t texture_index(char *key) {
 	size_t *value;
 
-	if ((value = (size_t *)hash_get(texture_table, key)) != NULL)
-		return *value;
-
-	printf("key not found in texture_table: %s\n", key);
-	exit(1);
+	if ((value = (size_t *)hash_get(texture_table, key)) == NULL) {
+		printf("key not found in texture_table: %s\n", key);
+		exit(1);
+	}
+	
+	return *value;
 }
 
 SDL_Texture *load_sdl_texture(char *path) {

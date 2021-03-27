@@ -4,6 +4,7 @@
 #include "vector.h"
 #include "collision.h"
 #include "world.h"
+#include "block.h"
 #include "list.h"
 
 entity_t *entity_create(size_t sprite, v3d pos, v3d size) {
@@ -32,6 +33,7 @@ void entity_destroy(entity_t *entity) {
 list_t *entity_surrounding_bboxes(entity_t *entity, world_t *world) {
 	list_t *boxes;
 	v3i entity_loc, current_block;
+	block_t *block;
 	bbox_t *block_box;
 	int x, y, z;
 	unsigned int chunk_index, block_index;
@@ -45,14 +47,39 @@ list_t *entity_surrounding_bboxes(entity_t *entity, world_t *world) {
 				current_block = (v3i){x, y, z};
 				current_block = v3i_add(entity_loc, current_block);
 
-				if (!chunk_block_indices(world, current_block, &chunk_index, &block_index)
-				 || world->chunks[chunk_index]->blocks[block_index] != NULL) {
+				if (!chunk_block_indices(world, current_block, &chunk_index, &block_index)) {
 					block_box = (bbox_t *)malloc(sizeof(bbox_t));
 
 					block_box->pos = v3d_sub(v3d_from_v3i(current_block), entity->center);
-	 				block_box->size = v3d_add(BLOCK_SIZE, entity->size);
+					block_box->size = v3d_add(BLOCK_SIZE, entity->size);
 
 					list_add(boxes, block_box);
+				} else if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL) {
+					switch (block->coll_type) {
+						case BLOCK_COLL_NONE:
+							break;
+						case BLOCK_COLL_CUSTOM_BOX:
+							block_box = (bbox_t *)malloc(sizeof(bbox_t));
+
+							*block_box = *block->bbox;
+
+							block_box->pos = v3d_add(block_box->pos, v3d_sub(v3d_from_v3i(current_block), entity->center));
+							block_box->size = v3d_add(block_box->size, entity->size);
+
+							list_add(boxes, block_box);
+							break;
+						case BLOCK_COLL_CHOPPED_BOX:
+							// TODO
+							break;
+						default:
+							block_box = (bbox_t *)malloc(sizeof(bbox_t));
+
+							block_box->pos = v3d_sub(v3d_from_v3i(current_block), entity->center);
+							block_box->size = v3d_add(BLOCK_SIZE, entity->size);
+
+							list_add(boxes, block_box);
+							break;
+					}
 				}
 			}
 		}

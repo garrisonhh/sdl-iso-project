@@ -83,6 +83,7 @@ void render_iso_circle(circle_t circle) {
 void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_size]) {
 	int z, i;
 	entity_t *entity;
+	block_t *block;
 	circle_t *shadow;
 	v3d shadow_pos;
 	v3i shadow_loc;
@@ -98,8 +99,10 @@ void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_siz
 		shadow_loc = v3i_from_v3d(shadow_pos);
 
 		while (shadow_loc.z >= 0) {
-			if (block_get(world, shadow_loc) != NULL)
+			if ((block = block_get(world, shadow_loc)) != NULL
+			 && !textures[block->texture]->transparent) {
 				break;
+			}
 			shadow_loc.z--;
 		}
 

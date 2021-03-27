@@ -5,6 +5,7 @@
 #include <math.h>
 #include "world.h"
 #include "block.h"
+#include "block_gen.h"
 #include "entity.h"
 #include "noise.h"
 #include "list.h"
@@ -118,7 +119,7 @@ block_t *block_get(world_t *world, v3i loc) {
 
 
 // TODO update
-void block_set(world_t *world, v3i loc, size_t texture) {
+void block_set(world_t *world, v3i loc, size_t block_id) {
 	unsigned int chunk_index, block_index;
 	
 	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
@@ -134,7 +135,7 @@ void block_set(world_t *world, v3i loc, size_t texture) {
 		chunk->num_blocks--;
 	}
 
-	chunk->blocks[block_index] = block_create(texture, BLOCK_COLL_NONE, NULL, NULL); // TODO
+	chunk->blocks[block_index] = block_create(block_id);
 
 	block_update_masks(world, loc);
 }
@@ -216,8 +217,8 @@ void generate_tree(world_t *world, v3i loc) {
 	double radius;
 	v3i leaf_loc;
 
-	log = texture_index("log");
-	leaves = texture_index("leaves");
+	log = block_gen_get_id("log");
+	leaves = block_gen_get_id("leaves");
 
 	max_v = 3 + rand() % 2;
 
@@ -250,7 +251,7 @@ void generate_tree(world_t *world, v3i loc) {
 void world_generate(world_t *world) {
 	if (0) { // debug world
 		int x, y, z;
-		size_t dirt = texture_index("dirt");
+		size_t dirt = block_gen_get_id("dirt");
 		v3i loc = {0, 0, 0};
 
 		srand(time(0));
@@ -276,10 +277,10 @@ void world_generate(world_t *world) {
 	v3i loc;
 
 	size_t dirt, grass, bush, tall_grass;
-	dirt = texture_index("dirt");
-	grass = texture_index("grass");
-	bush = texture_index("bush");
-	tall_grass = texture_index("tall grass");
+	dirt = block_gen_get_id("dirt");
+	grass = block_gen_get_id("grass");
+	bush = block_gen_get_id("bush");
+	tall_grass = block_gen_get_id("tall grass");
 
 	srand(time(0));
 	noise_init(dims);

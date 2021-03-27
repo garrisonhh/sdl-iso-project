@@ -44,5 +44,28 @@
 			"type": "connected",
 			"transparent": true
 		}
+	],
+	"blocks": [
+		{
+			"name": "dirt"
+		},
+		{
+			"name": "grass"
+		},
+		{
+			"name": "bush",
+			"collision": "custom",
+			"bbox": [0.2, 0.2, 0.2, 0.6, 0.6, 0.6]
+		},
+		{
+			"name": "tall grass",
+			"collision": "none"
+		},
+		{
+			"name": "log"
+		},
+		{
+			"name": "leaves"
+		}
 	]
 }

@@ -3,7 +3,7 @@
 
 #include <SDL2/SDL.h>
 
-void media_init(void);
-void media_quit(void);
+void content_init(void);
+void content_quit(void);
 
 #endif
