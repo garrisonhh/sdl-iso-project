@@ -12,6 +12,7 @@ struct entity_t {
 	size_t sprite;
 	ray_t ray;
 	v3d size, center;
+
 	bool on_ground;
 };
 typedef struct entity_t entity_t;

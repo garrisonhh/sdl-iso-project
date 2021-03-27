@@ -126,14 +126,13 @@ void block_gen_load(json_object *file_obj) {
 				}
 
 				block_coll_data[i]->plane = plane;
+			case BLOCK_COLL_DEFAULT_BOX:;
+				block_coll_data[i]->bbox = &BLOCK_DEFAULT_BOX;
 
 				break;
 			default:
 				break;
 		}
-
-		if (block_coll_data[i]->coll_type != BLOCK_COLL_NONE)
-			block_coll_data[i]->bbox = &BLOCK_DEFAULT_BOX;
 
 		blocks[i]->coll_data = block_coll_data[i];
 		

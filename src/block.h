@@ -29,7 +29,6 @@ struct block_collidable_t {
 };
 typedef struct block_collidable_t block_collidable_t;
 
-// TODO get rid of .texture and .coll_data since I'm storing id?
 struct block_t {
 	size_t id;
 
