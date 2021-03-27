@@ -4,12 +4,16 @@
 #include "block_gen.h"
 #include "vector.h"
 #include "collision.h"
+#include "list.h"
+
+v3i COLL_SORT_POLARITY = {1, 1, 1};
 
 block_t *block_create(size_t block_id) {
 	block_t *block, *model;
 
 	block = (block_t *)malloc(sizeof(block_t));
-	model = block_gen_get(block_id);
+	block->id = block_id;
+	model = block_gen_get(block->id);
 
 	// texture
 	block->texture = model->texture;
@@ -17,29 +21,37 @@ block_t *block_create(size_t block_id) {
 	block->connect_mask = 0x0;
 
 	// collision
-	block->coll_type = model->coll_type;
-
-	if (model->bbox != NULL) {
-		block->bbox = (bbox_t *)malloc(sizeof(bbox_t));
-		*block->bbox = *model->bbox;
-	} else {
-		block->bbox = NULL;
-	}
-
-	if (model->plane != NULL) {
-		block->plane = (ray_t *)malloc(sizeof(ray_t));
-		*block->plane = *model->plane;
-	} else {
-		block->plane = NULL;
-	}
+	block->coll_data = model->coll_data;
 
 	return block;
 }
 
 void block_destroy(block_t *block) {
-	if (block->bbox != NULL)
-		free(block->bbox);
-	if (block->plane != NULL)
-		free(block->plane);
 	free(block);
 }
+
+int block_coll_compare(const void *a, const void *b) {
+	v3i *this, *other;
+	int i, diff;
+
+	this = &((block_collidable_t *)a)->loc;
+	other = &((block_collidable_t *)b)->loc;
+
+	for (i = 0; i < 3; i++) {
+		diff = v3i_get(other, i) - v3i_get(this, i);
+		
+		if (v3i_get(&COLL_SORT_POLARITY, i) < 0)
+			diff = -diff;
+
+		if (diff != 0)
+			return diff;
+	}
+
+	return 1;
+}
+
+void block_coll_list_sort(list_t *list, v3d entity_dir) {
+	COLL_SORT_POLARITY = polarity_of_v3d(entity_dir);
+	list_qsort(list, block_coll_compare);
+}
+

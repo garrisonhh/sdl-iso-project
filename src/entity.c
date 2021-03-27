@@ -30,70 +30,51 @@ void entity_destroy(entity_t *entity) {
  * that with the shape of the scaled_ray, and then checking any blocks which might collide with
  * that box.
  */
-list_t *entity_surrounding_bboxes(entity_t *entity, world_t *world) {
-	list_t *boxes;
-	v3i entity_loc, current_block;
+list_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
+	list_t *block_colls;
+	v3i entity_loc, current_loc;
 	block_t *block;
-	bbox_t *block_box;
+	block_collidable_t *block_coll;
 	int x, y, z;
 	unsigned int chunk_index, block_index;
 
-	boxes = list_create();
+	block_colls = list_create();
 	entity_loc = v3i_from_v3d(entity->ray.pos);
+
+	size_t test = 0;
 	
 	for (z = -1; z <= 1; z++) {
 		for (y = -1; y <= 1; y++) {
 			for (x = -1; x <= 1; x++) {
-				current_block = (v3i){x, y, z};
-				current_block = v3i_add(entity_loc, current_block);
+				current_loc = (v3i){x, y, z};
+				current_loc = v3i_add(entity_loc, current_loc);
 
-				if (!chunk_block_indices(world, current_block, &chunk_index, &block_index)) {
-					block_box = (bbox_t *)malloc(sizeof(bbox_t));
+				if (chunk_block_indices(world, current_loc, &chunk_index, &block_index)
+				 && (block = world->chunks[chunk_index]->blocks[block_index]) != NULL
+				 && block->coll_data->coll_type != BLOCK_COLL_NONE) {
+					block_coll = (block_collidable_t *)malloc(sizeof(block_collidable_t));
 
-					block_box->pos = v3d_sub(v3d_from_v3i(current_block), entity->center);
-					block_box->size = v3d_add(BLOCK_SIZE, entity->size);
+					block_coll->loc = current_loc;
+					block_coll->coll_data = block->coll_data;
 
-					list_add(boxes, block_box);
-				} else if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL) {
-					switch (block->coll_type) {
-						case BLOCK_COLL_NONE:
-							break;
-						case BLOCK_COLL_CUSTOM_BOX:
-							block_box = (bbox_t *)malloc(sizeof(bbox_t));
-
-							*block_box = *block->bbox;
-
-							block_box->pos = v3d_add(block_box->pos, v3d_sub(v3d_from_v3i(current_block), entity->center));
-							block_box->size = v3d_add(block_box->size, entity->size);
-
-							list_add(boxes, block_box);
-							break;
-						case BLOCK_COLL_CHOPPED_BOX:
-							// TODO
-							break;
-						default:
-							block_box = (bbox_t *)malloc(sizeof(bbox_t));
-
-							block_box->pos = v3d_sub(v3d_from_v3i(current_block), entity->center);
-							block_box->size = v3d_add(BLOCK_SIZE, entity->size);
-
-							list_add(boxes, block_box);
-							break;
-					}
+					list_add(block_colls, block_coll);
+					test++;
 				}
 			}
 		}
 	}
 
-	return boxes;
+	return block_colls;
 }
 
 void entity_tick(entity_t *entity, struct world_t *world, double ms) {
-	list_t *boxes;
-	ray_t scaled_ray;
-	v3d resolved_dir;
 	double time;
 	int axis;
+	v3d resolved_dir;
+	ray_t scaled_ray;
+	bbox_t block_bbox;
+	block_collidable_t *block_coll;
+	list_t *block_colls;
 
 	time = ms / 1000;
 	entity->ray.dir.z += GRAVITY * time;
@@ -102,16 +83,20 @@ void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 	scaled_ray = entity->ray;
 	scaled_ray.dir = v3d_scale(scaled_ray.dir, time);
 
-	// collision resolution
-	boxes = entity_surrounding_bboxes(entity, world);
-	sort_bboxes_by_vector_polarity(boxes, scaled_ray.dir);
+	block_colls = entity_surrounding_block_colls(entity, world);
+	block_coll_list_sort(block_colls, scaled_ray.dir);
 
-	for (size_t i = 0; i < boxes->size; i++) {
-		if ((axis = ray_bbox_intersection(scaled_ray, *(bbox_t *)boxes->items[i], NULL, &resolved_dir)) >= 0) {
+	for (size_t i = 0; i < block_colls->size; i++) {
+		block_coll = (block_collidable_t *)block_colls->items[i];
+		block_bbox = *block_coll->coll_data->bbox;
+
+		block_bbox.pos = v3d_add(block_bbox.pos, v3d_from_v3i(block_coll->loc));
+		block_bbox.pos = v3d_sub(block_bbox.pos, entity->center);
+		block_bbox.size = v3d_add(block_bbox.size, entity->size);
+
+		if ((axis = ray_bbox_intersection(scaled_ray, block_bbox, NULL, &resolved_dir)) >= 0) {
 			scaled_ray.dir = resolved_dir;
 
-			// kill inertia on collided axes
-			// TODO on_ground flag or similar for entities
 			v3d_set(&entity->ray.dir, axis, 0);
 
 			if (axis == 2)
@@ -119,7 +104,7 @@ void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 		}
 	}
 
-	list_deep_destroy(boxes);
-
 	entity->ray.pos = v3d_add(entity->ray.pos, scaled_ray.dir);
+
+	list_deep_destroy(block_colls);
 }

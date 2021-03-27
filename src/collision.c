@@ -6,9 +6,6 @@
 #include "vector.h"
 #include "utils.h"
 
-const v3d BLOCK_SIZE = {1.0, 1.0, 1.0};
-v3i BBOX_SORT_POLARITY = {1, 1, 1};
-
 bool collides(double a, double b, double x) {
 	return (a < x) && (x < b);
 }
@@ -45,37 +42,6 @@ bool inside_bbox(bbox_t box, v3d point) {
 	return true;
 }
 
-v3d bbox_center(bbox_t box) {
-	return v3d_add(box.pos, v3d_scale(box.size, .5));
-}
-
-int bbox_compare(const void *a, const void *b) {
-	v3d center_a = bbox_center(**(bbox_t **)a);
-	v3d center_b = bbox_center(**(bbox_t **)b);
-	int i;
-	double comparison, polarity;
-
-	// TODO simplify the if statement, should be possible
-	for (i = 2; i >= 0; i--) {
-		comparison = v3d_get(&center_b, i) - v3d_get(&center_a, i);
-		polarity = v3i_get(&BBOX_SORT_POLARITY, i) > 0;
-
-		if (d_close(comparison, 0))
-			continue;
-		else if (comparison > 0)
-			return polarity > 0 ? -1 : 1;
-		else if (comparison < 0)
-			return polarity > 0 ? 1 : -1;
-	}
-
-	return 1;
-}
-
-void sort_bboxes_by_vector_polarity(list_t *boxes, v3d v) {
-	BBOX_SORT_POLARITY = polarity_of_v3d(v);
-	qsort(boxes->items, boxes->size, sizeof(void *), bbox_compare);
-}
-
 bbox_t ray_to_bbox(ray_t ray) {
 	bbox_t box;
 	box.pos = ray.pos;
@@ -84,11 +50,11 @@ bbox_t ray_to_bbox(ray_t ray) {
 }
 
 /*
-returns axis of intersection (-1 for no intersection)
-intersection point into intersection
-for collision resolution purposes, determines best modification of ray and outputs
-into resolved_dir
-*/
+ * returns axis of intersection (-1 for no intersection)
+ * intersection point into intersection
+ * for collision resolution purposes, determines best modification of ray and outputs
+ * into resolved_dir
+ */
 int ray_bbox_intersection(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_dir) {
 	double plane, plane_vel;
 	double dim_start, dim_len;
@@ -150,7 +116,6 @@ int ray_bbox_intersection(ray_t ray, bbox_t box, v3d *intersection, v3d *resolve
 	return -1;
 }
 
-// TODO check if collision point in range of ray
 bool line_sphere_intersection(ray_t ray, sphere_t sphere, v3d *intersection) {
 	if (d_close(v3d_magnitude(ray.dir), 0.0)) {
 		printf("attempted ray sphere intersection with ray of 0 magnitude.\n");

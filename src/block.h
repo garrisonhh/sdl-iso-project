@@ -14,20 +14,35 @@ enum block_coll_type {
 };
 typedef enum block_coll_type block_coll_type;
 
-struct block_t {
-	// texture
-	size_t texture;
-	uint8_t expose_mask; // last 3 bits are X Y Z
-	uint8_t connect_mask; // last 6 bits are +X -X +Y -Y +Z -Z
-
-	// collision; values are relative to box pos
+// used to store collision data for when it's needed
+struct block_coll_data_t {
 	block_coll_type coll_type;
 	bbox_t *bbox;
 	ray_t *plane;
+};
+typedef struct block_coll_data_t block_coll_data_t;
+
+// used to package collision data for sorting, etc
+struct block_collidable_t {
+	v3i loc;
+	block_coll_data_t *coll_data;
+};
+typedef struct block_collidable_t block_collidable_t;
+
+// TODO get rid of .texture and .coll_data since I'm storing id?
+struct block_t {
+	size_t id;
+
+	size_t texture; // TODO make it a pointer instead?
+	uint8_t expose_mask; // last 3 bits are X Y Z
+	uint8_t connect_mask; // last 6 bits are +X -X +Y -Y +Z -Z
+	
+	block_coll_data_t *coll_data;
 };
 typedef struct block_t block_t;
 
 block_t *block_create(size_t);
 void block_destroy(block_t *);
+void block_coll_list_sort(list_t *, v3d);
 
 #endif

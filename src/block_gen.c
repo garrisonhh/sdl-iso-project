@@ -11,8 +11,14 @@
  */
 
 block_t **blocks = NULL;
+block_coll_data_t **block_coll_data;
 size_t num_blocks;
 hash_table *block_table;
+
+bbox_t BLOCK_DEFAULT_BOX = {
+	(v3d){0, 0, 0},
+	(v3d){1, 1, 1}
+};
 
 void block_gen_load(json_object *file_obj) {
 	size_t i, num_coll_types;
@@ -38,6 +44,7 @@ void block_gen_load(json_object *file_obj) {
 	block_arr_obj = json_object_object_get(file_obj, "blocks");
 	num_blocks = json_object_array_length(block_arr_obj);
 	blocks = (block_t **)calloc(num_blocks, sizeof(block_t *));
+	block_coll_data = (block_coll_data_t **)calloc(num_blocks, sizeof(block_coll_data_t *));
 	block_table = hash_table_create(num_blocks * 1.3 + 1);
 
 	for (i = 0; i < num_coll_types; i++) {
@@ -48,6 +55,7 @@ void block_gen_load(json_object *file_obj) {
 
 	for (i = 0; i < num_blocks; i++) {
 		blocks[i] = (block_t *)malloc(sizeof(block_t));
+		block_coll_data[i] = (block_coll_data_t *)malloc(sizeof(block_coll_data_t));
 	
 		current_block = json_object_array_get_idx(block_arr_obj, i);
 
@@ -73,15 +81,15 @@ void block_gen_load(json_object *file_obj) {
 				exit(1);
 			}
 
-			blocks[i]->coll_type = *coll_type_ptr;
+			block_coll_data[i]->coll_type = *coll_type_ptr;
 		} else {
-			blocks[i]->coll_type = BLOCK_COLL_DEFAULT_BOX;
+			block_coll_data[i]->coll_type = BLOCK_COLL_DEFAULT_BOX;
 		}
 
-		blocks[i]->bbox = NULL;
-		blocks[i]->plane = NULL;
+		block_coll_data[i]->bbox = NULL;
+		block_coll_data[i]->plane = NULL;
 
-		switch (blocks[i]->coll_type) {
+		switch (block_coll_data[i]->coll_type) {
 			case BLOCK_COLL_CUSTOM_BOX:;
 				bbox = (bbox_t *)malloc(sizeof(bbox_t));
 
@@ -98,23 +106,36 @@ void block_gen_load(json_object *file_obj) {
 					v3d_set(&bbox->size, j, json_object_get_double(json_object_array_get_idx(obj, j + 3)));
 				}
 
-				blocks[i]->bbox = bbox;
+				block_coll_data[i]->bbox = bbox;
 
 				break;
 			case BLOCK_COLL_CHOPPED_BOX:;
 				plane = (ray_t *)malloc(sizeof(ray_t));
 
 				if ((obj = json_object_object_get(current_block, "plane")) == NULL) {
-					printf("no ray provided for custom box \"%s\".\n", name);
+					printf("no plane provided for chopped box \"%s\".\n", name);
+					exit(1);
+				} else if (json_object_array_length(obj) != 6) {
+					printf("plane provided for chopped box of \"%s\" does not contain 6 values.\n", name);
 					exit(1);
 				}
 
-				// TODO
+				for (j = 0; j < 3; j++) {
+					v3d_set(&plane->pos, j, json_object_get_double(json_object_array_get_idx(obj, j)));
+					v3d_set(&plane->dir, j, json_object_get_double(json_object_array_get_idx(obj, j + 3)));
+				}
+
+				block_coll_data[i]->plane = plane;
 
 				break;
 			default:
 				break;
 		}
+
+		if (block_coll_data[i]->coll_type != BLOCK_COLL_NONE)
+			block_coll_data[i]->bbox = &BLOCK_DEFAULT_BOX;
+
+		blocks[i]->coll_data = block_coll_data[i];
 		
 		// add to indexing hash table
 		arr_index = (size_t *)malloc(sizeof(size_t));
@@ -127,7 +148,7 @@ void block_gen_load(json_object *file_obj) {
 
 void block_gen_destroy() {
 	for (size_t i = 0; i < num_blocks; i++)
-		free(blocks[i]);
+		block_destroy(blocks[i]);
 
 	free(blocks);
 	blocks = NULL;

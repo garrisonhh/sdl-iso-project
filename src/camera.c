@@ -32,7 +32,7 @@ v2i project_v3d(v3d v, bool at_camera) {
 
 void camera_init() {
 	camera.view_circle.radius = SCREEN_HEIGHT >> 2;
-	camera_set_scale(1);
+	camera_set_scale(2);
 }
 
 void camera_update(world_t *world) {
