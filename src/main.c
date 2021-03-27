@@ -65,8 +65,8 @@ int main(int argc, char *argv[]) {
 	SDL_Event e;
 	const uint8_t *kb_state = SDL_GetKeyboardState(NULL);
 	v3i move_inputs;
-	const v3d move_down = {PLAYER_SPEED, PLAYER_SPEED, 0};
-	const v3d move_right = {PLAYER_SPEED, -PLAYER_SPEED, 0};
+	const v3d move_down = {1, 1, 0};
+	const v3d move_right = {1, -1, 0};
 	v3d move;
 	bool jump = false;
 
@@ -117,6 +117,9 @@ int main(int argc, char *argv[]) {
 			v3d_scale(move_right, move_inputs.x),
 			v3d_scale(move_down, move_inputs.y)
 		);
+
+		if (move_inputs.x || move_inputs.y)
+			move = v3d_scale(move, PLAYER_SPEED / fabs(v3d_magnitude(move)));
 
 		world->player->ray.dir.x = move.x;
 		world->player->ray.dir.y = move.y;

@@ -3,7 +3,7 @@
 
 #include "entity.h"
 
-#define PLAYER_SPEED 3
+#define PLAYER_SPEED 6
 
 entity_t *player_create(void);
 
