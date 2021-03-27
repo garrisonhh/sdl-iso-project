@@ -39,6 +39,11 @@
 			"transparent": true
 		},
 		{
+			"name": "ramp",
+			"type": "texture",
+			"transparent": true
+		},
+		{
 			"name": "pipe",
 			"path": "pipe/pipe",
 			"type": "connected",
@@ -66,6 +71,11 @@
 		},
 		{
 			"name": "leaves"
+		},
+		{
+			"name": "ramp",
+			"collision": "chopped",
+			"plane": [0.5, 0.5, 0.5, 0, 1, 1]
 		}
 	]
 }
