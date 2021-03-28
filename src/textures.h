@@ -45,12 +45,10 @@ struct texture_t {
 };
 typedef struct texture_t texture_t;
 
-extern texture_t **textures;
-
 void textures_init(void);
 void textures_load(json_object *);
 void textures_destroy(void);
-size_t texture_index(char *);
+texture_t *texture_ptr_from_key(char *);
 
 SDL_Texture *load_sdl_texture(char *path);
 sprite_t *load_sprite(char *);

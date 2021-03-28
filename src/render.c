@@ -100,7 +100,7 @@ void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_siz
 
 		while (shadow_loc.z >= 0) {
 			if ((block = block_get(world, shadow_loc)) != NULL
-			 && !textures[block->texture]->transparent) {
+			 && !block->texture->transparent) {
 				break;
 			}
 			shadow_loc.z--;
@@ -130,27 +130,27 @@ void render_entity(entity_t *entity) {
 	entity_pos.z -= entity->size.z / 2;
 	screen_pos = project_v3d(entity_pos, true);
 
-	render_sprite(textures[entity->sprite]->tex.sprite, screen_pos);
+	render_sprite(entity->sprite->tex.sprite, screen_pos);
 }
 
 void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
-	texture_type tex_type = textures[block->texture]->type;
+	texture_type tex_type = block->texture->type;
 
 	if (tex_type == TEX_VOXEL) {
 		if (block->expose_mask || void_mask) {
-			render_voxel_texture(textures[block->texture]->tex.voxel,
+			render_voxel_texture(block->texture->tex.voxel,
 								 project_v3i(loc, true),
 								 block->expose_mask, void_mask);
 		}
 	} else if (block->expose_mask) {
+		// the amount of times I had to type "tex" or "texture" here is hilarious lol
 		switch (tex_type) {
 			case TEX_TEXTURE:
-				render_sdl_texture(textures[block->texture]->tex.texture,
-								   project_v3i(loc, true));
+				render_sdl_texture(block->texture->tex.texture, project_v3i(loc, true));
 
 				break;
 			case TEX_CONNECTED:
-				render_connected_texture(textures[block->texture]->tex.connected,
+				render_connected_texture(block->texture->tex.connected,
 										 project_v3i(loc, true),
 										 block->connect_mask);
 
@@ -218,7 +218,7 @@ void render_world(world_t *world) {
 					chunk_block_indices(world, block_loc, &chunk_index, &block_index);
 
 					if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL
-					  && textures[block->texture]->transparent) {
+					  && block->texture->transparent) {
 						render_block(world, block, block_loc, void_mask);
 					}
 				}
@@ -236,7 +236,7 @@ void render_world(world_t *world) {
 				
 				// blocks
 				if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL) {
-					if (textures[block->texture]->type == TEX_VOXEL) {
+					if (block->texture->type == TEX_VOXEL) {
 						void_mask = 0x0;
 
 						for (i = 0; i < 3; i++) {

@@ -70,7 +70,7 @@ void block_gen_load(json_object *file_obj) {
 		else
 			texture = name;
 
-		blocks[i]->texture = texture_index((char *)texture);
+		blocks[i]->texture = texture_ptr_from_key((char *)texture);
 
 		// coll type
 		if ((obj = json_object_object_get(current_block, "collision")) != NULL) {

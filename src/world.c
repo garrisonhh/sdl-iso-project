@@ -65,7 +65,7 @@ bool chunk_block_indices(world_t *world, v3i loc, unsigned int *chunk_result, un
 }
 
 bool block_transparent(block_t *block) {
-	return textures[block->texture]->transparent;
+	return block->texture->transparent;
 }
 
 void block_update_masks(world_t *world, v3i loc) {
@@ -76,7 +76,7 @@ void block_update_masks(world_t *world, v3i loc) {
 
 	block = block_get(world, loc);
 	exposed = block == NULL || block_transparent(block);
-	connected = block != NULL && textures[block->texture]->type == TEX_CONNECTED;
+	connected = block != NULL && block->texture->type == TEX_CONNECTED;
 
 	for (int i = 0; i < 3; i++) {
 		other_loc = loc;

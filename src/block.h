@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "vector.h"
 #include "collision.h"
+#include "textures.h"
 
 enum block_coll_type {
 	BLOCK_COLL_NONE,		// block does not collide
@@ -32,7 +33,7 @@ typedef struct block_collidable_t block_collidable_t;
 struct block_t {
 	size_t id;
 
-	size_t texture; // TODO make it a pointer instead?
+	texture_t *texture;
 	uint8_t expose_mask; // last 3 bits are X Y Z
 	uint8_t connect_mask; // last 6 bits are +X -X +Y -Y +Z -Z
 	

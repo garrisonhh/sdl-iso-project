@@ -8,7 +8,7 @@
 #include "block_gen.h"
 #include "list.h"
 
-entity_t *entity_create(size_t sprite, v3d pos, v3d size) {
+entity_t *entity_create(texture_t *sprite, v3d pos, v3d size) {
 	entity_t *entity = (entity_t *)malloc(sizeof(entity_t));
 
 	entity->sprite = sprite;

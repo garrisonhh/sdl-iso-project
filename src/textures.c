@@ -151,7 +151,7 @@ void textures_load(json_object *file_obj) {
 
 	hash_table_deep_destroy(tex_type_table);
 
-	VOID_VOXEL_TEXTURE = textures[texture_index("void")]->tex.voxel;
+	VOID_VOXEL_TEXTURE = texture_ptr_from_key("void")->tex.voxel;
 }
 
 void textures_destroy() {
@@ -189,7 +189,7 @@ void textures_destroy() {
 	texture_table = NULL;
 }
 
-size_t texture_index(char *key) {
+texture_t *texture_ptr_from_key(char *key) {
 	size_t *value;
 
 	if ((value = (size_t *)hash_get(texture_table, key)) == NULL) {
@@ -197,7 +197,7 @@ size_t texture_index(char *key) {
 		exit(1);
 	}
 	
-	return *value;
+	return textures[*value];
 }
 
 SDL_Texture *load_sdl_texture(char *path) {
