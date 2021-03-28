@@ -13,7 +13,7 @@ enum texture_type {
 	TEX_TEXTURE = 0,
 	TEX_SPRITE = 1,
 	TEX_VOXEL = 2,
-	TEX_CONNECTED = 3,
+	TEX_CONNECTED = 3, // TODO connected tags (blocks connect to blocks with the right tag)
 };
 typedef enum texture_type texture_type;   
 

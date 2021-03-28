@@ -253,18 +253,6 @@ void render_world(world_t *world) {
 	SDL_RenderCopy(renderer, background, &camera.viewport, NULL);
 	SDL_RenderCopy(renderer, foreground, &camera.viewport, NULL);
 
-	// DEBUG
-	/*
-	v2i poly[] = {
-		(v2i){150, 0},
-		(v2i){200, 150},
-		(v2i){50, 200},
-		(v2i){0, 50}
-	};
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0xFF, 0xFF);
-	render_filled_poly(poly, 4);
-	*/
-
 	// destroy shadows
 	for (z = 0; z < world->block_size; z++)
 		if (shadows[z] != NULL)

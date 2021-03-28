@@ -14,7 +14,7 @@ void bresenham_down_right(v2i delta, v2i *points) {
 	double delta_err = fabs((double)delta.y / (double)delta.x);
 	double error = 0.0;
 
-	for (int i = 0; i < delta.x; i++) {
+	for (int i = 0; i <= delta.x; i++) {
 		points[i] = pos;
 		pos.x++;
 
@@ -49,7 +49,7 @@ void bresenham(v2i a, v2i b, v2i **points, size_t *num_points) {
 	if (flipd)
 		delta = (v2i){delta.y, delta.x};
 
-	*num_points = delta.x;
+	*num_points = delta.x + 1;
 	*points = (v2i *)calloc(*num_points, sizeof(v2i));
 
 	bresenham_down_right(delta, *points);
@@ -89,49 +89,51 @@ void render_iso_circle(circle_t circle) {
 // only works for convex polygons
 // TODO debug
 void render_filled_poly(v2i *points, size_t num_points) {
-	int min_y, max_y, delta_y;
-	int *x_pos, x1, x2;
-	size_t i, j;
+	if (num_points < 3) {
+		printf("attempted to render polygon with too few points.\n");
+		exit(1);
+	}
+
+	int min_y, max_y, range_y;
+	size_t i, j, py, px;
 	v2i *line;
 	size_t line_size;
 
-	for (i = 0; i < num_points; i++) {
+	min_y = max_y = points[0].y;
+
+	for (i = 1; i < num_points; i++) {
 		if (points[i].y > max_y)
 			max_y = points[i].y;
 		if (points[i].y < min_y)
 			min_y = points[i].y;
 	}
 
-	delta_y = max_y - min_y + 1;
-	list_t *lines[delta_y];
+	range_y = max_y - min_y + 1;
+	int raster[range_y][2];
 
-	for (i = 0; i < delta_y; i++)
-		lines[i] = list_create();
+	for (i = 0; i < range_y; i++) {
+		raster[i][0] = -1;
+		raster[i][1] = -1;
+	}
 
 	for (i = 0; i < num_points; i++) {
 		bresenham(points[i], points[(i + 1) % num_points], &line, &line_size);
 
 		for (j = 0; j < line_size; j++) {
-			x_pos = (int *)malloc(sizeof(int));
-			*x_pos = line[j].x;
-			list_add(lines[line[j].y - min_y], x_pos);
+			px = line[j].x;
+			py = line[j].y;
+			if (raster[py][0] < 0 || px < raster[py][0])
+				raster[py][0] = px;
+			if (raster[py][1] < 0 || px > raster[py][1])
+				raster[py][1] = px;
 		}
 
 		free(line);
 	}
 
-	for (i = 0; i < delta_y; i++) {
-		if (lines[i]->size == 1) {
-			SDL_RenderDrawPoint(renderer, *(int *)lines[i]->items[0], min_y + i);
-		} else if (lines[i]->size == 2) {
-			x1 = *(int *)lines[i]->items[0];
-			x2 = *(int *)lines[i]->items[1];
-			SDL_RenderDrawLine(renderer, x1, min_y + i, x2, min_y + i);
-		}
-	}
-
-	for (i = 0; i < delta_y; i++)
-		list_deep_destroy(lines[i]);
+	for (i = 0; i < range_y; i++)
+		if (raster[i][0] != -1)
+			SDL_RenderDrawLine(renderer, raster[i][0], min_y + i, raster[i][1], min_y + i);
 }
 
 void render_filled_box(box_t box) {
