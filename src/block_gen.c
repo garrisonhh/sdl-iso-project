@@ -19,7 +19,7 @@ bbox_t BLOCK_DEFAULT_BOX = {
 	(v3d){0, 0, 0},
 	(v3d){1, 1, 1}
 };
-block_coll_data_t VOID_COLL_DATA;
+block_coll_data_t WALL_COLL_DATA;
 
 void block_gen_load(json_object *file_obj) {
 	size_t i, num_coll_types;
@@ -147,7 +147,7 @@ void block_gen_load(json_object *file_obj) {
 
 	hash_table_deep_destroy(coll_type_table);
 
-	VOID_COLL_DATA = (block_coll_data_t){
+	WALL_COLL_DATA = (block_coll_data_t){
 		.coll_type = BLOCK_COLL_DEFAULT_BOX,
 		.bbox = &BLOCK_DEFAULT_BOX,
 		.plane = NULL

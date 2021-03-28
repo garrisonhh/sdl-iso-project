@@ -5,7 +5,7 @@ list_t *list_create() {
 	list_t *list = (list_t *)malloc(sizeof(list_t));
 	
 	list->size = 0;
-	list->max_size = 2;
+	list->max_size = 4;
 	list->items = (void **)malloc(sizeof(void *) * list->max_size);
 
 	return list;

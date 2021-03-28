@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include "block.h"
 
-extern block_coll_data_t VOID_COLL_DATA;
+extern block_coll_data_t WALL_COLL_DATA;
 
 void block_gen_load(json_object *);
 void block_gen_destroy(void);

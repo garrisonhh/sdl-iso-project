@@ -11,6 +11,7 @@
 #include "raycast.h"
 #include "list.h"
 #include "camera.h"
+#include "render_primitives.h"
 #include "utils.h"
 #include "world.h"
 
@@ -60,24 +61,6 @@ void render_destroy() {
 	SDL_DestroyTexture(background);
 	foreground = NULL;
 	background = NULL;
-}
-
-void render_iso_circle(circle_t circle) {
-	int i, ix;
-	float y = 0.0, y_step = 2 / (float)circle.radius;
-
-	SDL_RenderDrawLine(renderer, circle.loc.x + circle.radius, circle.loc.y,
-								 circle.loc.x - circle.radius, circle.loc.y);
-
-	for (i = 1; i <= circle.radius >> 1; i++) {
-		ix = (int)(sqrt(1 - (y * y)) * circle.radius);
-		y += y_step;
-
-		SDL_RenderDrawLine(renderer, circle.loc.x + ix, circle.loc.y + i,
-									 circle.loc.x - ix, circle.loc.y + i);
-		SDL_RenderDrawLine(renderer, circle.loc.x + ix, circle.loc.y - i,
-									 circle.loc.x - ix, circle.loc.y - i);
-	}
 }
 
 void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_size]) {
@@ -269,6 +252,18 @@ void render_world(world_t *world) {
 	SDL_SetRenderTarget(renderer, NULL);
 	SDL_RenderCopy(renderer, background, &camera.viewport, NULL);
 	SDL_RenderCopy(renderer, foreground, &camera.viewport, NULL);
+
+	// DEBUG
+	/*
+	v2i poly[] = {
+		(v2i){150, 0},
+		(v2i){200, 150},
+		(v2i){50, 200},
+		(v2i){0, 50}
+	};
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0xFF, 0xFF);
+	render_filled_poly(poly, 4);
+	*/
 
 	// destroy shadows
 	for (z = 0; z < world->block_size; z++)

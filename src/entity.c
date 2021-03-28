@@ -62,7 +62,7 @@ list_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 					block_coll = (block_collidable_t *)malloc(sizeof(block_collidable_t));
 
 					block_coll->loc = current_loc;
-					block_coll->coll_data = &VOID_COLL_DATA;
+					block_coll->coll_data = &WALL_COLL_DATA;
 
 					list_add(block_colls, block_coll);
 				}
