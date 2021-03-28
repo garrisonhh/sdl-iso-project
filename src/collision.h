@@ -5,8 +5,6 @@
 #include "vector.h"
 #include "list.h"
 
-// extern const v3d BLOCK_SIZE;
-
 struct bbox_t {
 	v3d pos;
 	v3d size;
@@ -25,10 +23,10 @@ struct sphere_t {
 };
 typedef struct sphere_t sphere_t;
 
-// void sort_bboxes_by_vector_polarity(list_t *, v3d);
-int ray_bbox_intersection(ray_t, bbox_t, v3d *, v3d *);
-bool line_sphere_intersection(ray_t, sphere_t, v3d *);
-bool ray_sphere_intersection(ray_t, sphere_t, v3d *);
-bool ray_plane_intersection(ray_t, ray_t, v3d *, v3d *);
+bool inside_bbox(bbox_t, v3d);
+int ray_intersects_bbox(ray_t, bbox_t, v3d *, v3d *);
+// bool line_intersects_sphere(ray_t, sphere_t, v3d *);
+// bool ray_intersects_sphere(ray_t, sphere_t, v3d *);
+bool ray_intersects_plane(ray_t, ray_t, v3d *, v3d *, bool *);
 
 #endif

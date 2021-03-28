@@ -118,7 +118,6 @@ block_t *block_get(world_t *world, v3i loc) {
 }
 
 
-// TODO update
 void block_set(world_t *world, v3i loc, size_t block_id) {
 	unsigned int chunk_index, block_index;
 	
@@ -249,23 +248,25 @@ void generate_tree(world_t *world, v3i loc) {
 }
 
 void world_generate(world_t *world) {
-	if (0) { // debug world
-		int x, y, z;
+	if (1) { // debug world
 		size_t dirt = block_gen_get_id("dirt");
-		v3i loc = {0, 0, 0};
+		size_t grass = block_gen_get_id("grass");
+		v3i loc;
 
-		srand(time(0));
-
-		FOR_XYZ(x, y, z, world->block_size, world->block_size, 5) {
-			loc.x = x;
-			loc.y = y;
-			loc.z = z;
-
+		FOR_XYZ(loc.x, loc.y, loc.z, world->block_size, world->block_size, 1) {
 			block_set(world, loc, dirt);
-
-			if ((rand() % 500) == 0)
-				generate_tree(world, loc);
 		}
+
+		loc = (v3i){3, 3, 1};
+		for (; loc.z <= 3; loc.z++) {
+			loc.y--;
+			for (loc.x = 3; loc.x < 6; loc.x++) {
+				block_set(world, loc, block_gen_get_id("ramp"));
+			}
+		}
+
+		loc = (v3i){3, 6, 1};
+		block_set(world, loc, grass);
 
 		return;
 	}

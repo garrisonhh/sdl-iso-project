@@ -34,11 +34,11 @@ int block_coll_compare(const void *a, const void *b) {
 	v3i *this, *other;
 	int i, diff;
 
-	this = &((block_collidable_t *)a)->loc;
-	other = &((block_collidable_t *)b)->loc;
+	this = &(**(block_collidable_t **)a).loc;
+	other = &(**(block_collidable_t **)b).loc;
 
 	for (i = 0; i < 3; i++) {
-		diff = v3i_get(other, i) - v3i_get(this, i);
+		diff = v3i_get(this, i) - v3i_get(other, i);
 		
 		if (v3i_get(&COLL_SORT_POLARITY, i) < 0)
 			diff = -diff;

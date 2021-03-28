@@ -51,11 +51,10 @@ bbox_t ray_to_bbox(ray_t ray) {
 
 /*
  * returns axis of intersection (-1 for no intersection)
- * intersection point into intersection
- * for collision resolution purposes, determines best modification of ray and outputs
- * into resolved_dir
+ * intersection point -> intersection
+ * modified ray direction -> resolved_dir
  */
-int ray_bbox_intersection(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_dir) {
+int ray_intersects_bbox(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_dir) {
 	double plane, plane_vel;
 	double dim_start, dim_len;
 	double axis_vel, axis_res;
@@ -116,14 +115,14 @@ int ray_bbox_intersection(ray_t ray, bbox_t box, v3d *intersection, v3d *resolve
 	return -1;
 }
 
-bool line_sphere_intersection(ray_t ray, sphere_t sphere, v3d *intersection) {
+bool line_intersects_sphere(ray_t ray, sphere_t sphere, v3d *intersection) {
 	if (d_close(v3d_magnitude(ray.dir), 0.0)) {
 		printf("attempted ray sphere intersection with ray of 0 magnitude.\n");
 		exit(1);
 	}
 
 	double a, b, c;
-	double b4ac_term, sqrt_term, b2a_term;
+	double b4ac_term;
 	double t1, t2;
 
 	a = v3d_dot(ray.dir, ray.dir);
@@ -137,6 +136,8 @@ bool line_sphere_intersection(ray_t ray, sphere_t sphere, v3d *intersection) {
 	if (b4ac_term < 0.0) {
 		return false;
 	} else if (intersection != NULL) {
+		double sqrt_term, b2a_term;
+
 		sqrt_term = sqrt(b4ac_term) / (2.0 * a);
 		b2a_term = -b / (2.0 * a);
 
@@ -149,10 +150,10 @@ bool line_sphere_intersection(ray_t ray, sphere_t sphere, v3d *intersection) {
 	return true;
 }
 
-bool ray_sphere_intersection(ray_t ray, sphere_t sphere, v3d *intersection) {
+bool ray_intersects_sphere(ray_t ray, sphere_t sphere, v3d *intersection) {
 	v3d line_intersect;
 
-	if (line_sphere_intersection(ray, sphere, &line_intersect)
+	if (line_intersects_sphere(ray, sphere, &line_intersect)
 	 && inside_bbox(ray_to_bbox(ray), line_intersect)) {
 		if (intersection != NULL)
 			*intersection = line_intersect;
@@ -162,10 +163,17 @@ bool ray_sphere_intersection(ray_t ray, sphere_t sphere, v3d *intersection) {
 	return false;
 }
 
-bool ray_plane_intersection(ray_t ray, ray_t plane, v3d *intersection, v3d *resolved_dir) {
+/*
+ * returns whether ray intersects plane
+ * intersection point -> intersection
+ * new ray dir as if pushed out of plane -> resolved_dir
+ * ray points behind plane (regardless of intersection) -> behind
+ */
+bool ray_intersects_plane(ray_t ray, ray_t plane, v3d *intersection, v3d *resolved_dir, bool *behind) {
 	double zx, sin_zx, cos_zx;
 	double zpy, sin_zpy, cos_zpy;
 	double zp;
+	double z_sum;
 	ray_t rotated;
 
 	// angle from z to x
@@ -191,25 +199,26 @@ bool ray_plane_intersection(ray_t ray, ray_t plane, v3d *intersection, v3d *reso
 	rotated.dir.y = ray.dir.y * cos_zpy - zp * sin_zpy;
 	rotated.dir.z = zp * cos_zpy + ray.dir.y * sin_zpy;
 
-	printf("rotated pos: %.4f %.4f %.4f\n", rotated.pos.x, rotated.pos.y, rotated.pos.z);
-	printf("rotated dir: %.4f %.4f %.4f\n", rotated.dir.x, rotated.dir.y, rotated.dir.z);
-
 	// check for collision (whether rotated ray points into negative z)
-	if (rotated.pos.z + rotated.dir.z >= 0) {
+	if ((z_sum = rotated.pos.z + rotated.dir.z) >= 0 || d_close(z_sum, 0.0)) {
+		if (behind != NULL)
+			*behind = false;
+
 		return false;
 	} else {
-		double t_intersect = -rotated.pos.z / rotated.dir.z;
+		if (behind != NULL)
+			*behind = true;
 
-		printf("t_intersect: %.4f\n", t_intersect);
+		double t_intersect = rotated.pos.z / rotated.dir.z;
 
-		if (t_intersect > 1) // collision outside of ray bounds
+		if (t_intersect >= 1 || d_close(t_intersect, 1.0)) // collision outside of ray bounds
 			return false;
 
 		// find and put values in pointers if requested
 		if (intersection != NULL)
-			*intersection = v3d_add(ray.pos, v3d_scale(ray.dir, t_intersect));
+			*intersection = v3d_add(v3d_add(plane.pos, ray.pos), v3d_scale(ray.dir, t_intersect));
 		if (resolved_dir != NULL) {
-			double t_resolve = -(rotated.pos.z + rotated.dir.z) / v3d_magnitude(plane.dir);
+			double t_resolve = -z_sum / v3d_magnitude(plane.dir);
 			*resolved_dir = v3d_add(ray.dir, v3d_scale(plane.dir, t_resolve));
 		}
 

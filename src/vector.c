@@ -85,6 +85,10 @@ v3i polarity_of_v3d(v3d v) {
 	return polarity;
 }
 
+void v3i_print(const char *message, v3i v) {
+	printf("%s:\t{%d\t%d\t%d}\n", message, v.x, v.y, v.z);
+}
+
 v3d v3d_from_v3i(v3i v) {
 	return (v3d){v.x, v.y, v.z};
 }
@@ -122,6 +126,14 @@ v3d v3d_sub(v3d a, v3d b) {
 	};
 }
 
+v3d v3d_mul(v3d a, v3d b) {
+	return (v3d){
+		a.x * b.x,
+		a.y * b.y,
+		a.z * b.z
+	};
+}
+
 v3d v3d_scale(v3d v, double scalar) {
 	return (v3d){
 		v.x * scalar,
@@ -138,3 +150,6 @@ double v3d_dot(v3d a, v3d b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
+void v3d_print(const char *message, v3d v) {
+	printf("%s:\t{%9.4f\t%9.4f\t%9.4f}\n", message, v.x, v.y, v.z);
+}

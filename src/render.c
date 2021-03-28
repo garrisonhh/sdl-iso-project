@@ -233,11 +233,6 @@ void render_world(world_t *world) {
 			for (x = min_block.x; x < max_block.x; x++) {
 				block_loc = (v3i){x, y, z};
 				chunk_block_indices(world, block_loc, &chunk_index, &block_index);
-
-				// entities
-				if ((bucket = world->chunks[chunk_index]->buckets[block_index]) != NULL)
-					for (i = 0; i < bucket->size; i++)
-						render_entity(bucket->items[i]);
 				
 				// blocks
 				if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL) {
@@ -254,6 +249,11 @@ void render_world(world_t *world) {
 
 					render_block(world, block, block_loc, void_mask);
 				}
+
+				// entities
+				if ((bucket = world->chunks[chunk_index]->buckets[block_index]) != NULL)
+					for (i = 0; i < bucket->size; i++)
+						render_entity(bucket->items[i]);
 			}
 		}
 	}	
