@@ -9,7 +9,7 @@
 #include "vector.h"
 #include "collision.h"
 #include "raycast.h"
-#include "list.h"
+#include "data_structures/dyn_array.h"
 #include "camera.h"
 #include "render_primitives.h"
 #include "utils.h"
@@ -63,7 +63,7 @@ void render_destroy() {
 	background = NULL;
 }
 
-void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_size]) {
+void render_generate_shadows(world_t *world, dyn_array_t *(*shadows)[world->block_size]) {
 	int z, i;
 	entity_t *entity;
 	block_t *block;
@@ -98,9 +98,9 @@ void render_generate_shadows(world_t *world, list_t *(*shadows)[world->block_siz
 			shadow->radius = (int)((entity->size.x * VOXEL_WIDTH) / 2.0);
 
 			if ((*shadows)[shadow_loc.z] == NULL)
-				(*shadows)[shadow_loc.z] = list_create();
+				(*shadows)[shadow_loc.z] = dyn_array_create();
 
-			list_add((*shadows)[shadow_loc.z], shadow);
+			dyn_array_add((*shadows)[shadow_loc.z], shadow);
 		}
 	}
 }
@@ -151,10 +151,10 @@ void render_world(world_t *world) {
 	bool in_foreground, player_blocked;
 	ray_t cam_ray;
 	block_t *block;
-	list_t *bucket;
+	dyn_array_t *bucket;
 	v3i block_loc, player_loc;
 	v3i min_block, max_block;
-	list_t *shadows[world->block_size];
+	dyn_array_t *shadows[world->block_size];
 
 	// player_loc + raycasting for foregrounding vars
 	in_foreground = false;
@@ -253,8 +253,28 @@ void render_world(world_t *world) {
 	SDL_RenderCopy(renderer, background, &camera.viewport, NULL);
 	SDL_RenderCopy(renderer, foreground, &camera.viewport, NULL);
 
+	// TODO REMOVE
+	/*
+	v2i points[4] = {
+		(v2i){50, 50},
+		(v2i){150, 50},
+		(v2i){150, 150},
+		(v2i){50, 150}
+	};
+
+	SDL_SetRenderDrawColor(renderer, 0x20, 0x00, 0x20, 0x7F);
+	printf("first shape:\n");
+	render_filled_poly(points, 4);
+
+	for (int i = 0; i < 4; i++)
+		points[i].x += 50;
+
+	printf("second shape:\n");
+	render_filled_poly(points, 4);
+	*/
+
 	// destroy shadows
 	for (z = 0; z < world->block_size; z++)
 		if (shadows[z] != NULL)
-			list_deep_destroy(shadows[z]);
+			dyn_array_deep_destroy(shadows[z]);
 }

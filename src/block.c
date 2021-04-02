@@ -4,7 +4,7 @@
 #include "block_gen.h"
 #include "vector.h"
 #include "collision.h"
-#include "list.h"
+#include "data_structures/dyn_array.h"
 
 v3i COLL_SORT_POLARITY = {1, 1, 1};
 
@@ -50,8 +50,8 @@ int block_coll_compare(const void *a, const void *b) {
 	return 1;
 }
 
-void block_coll_list_sort(list_t *list, v3d entity_dir) {
+void block_coll_dyn_array_sort(dyn_array_t *dyn_array, v3d entity_dir) {
 	COLL_SORT_POLARITY = polarity_of_v3d(entity_dir);
-	list_qsort(list, block_coll_compare);
+	dyn_array_qsort(dyn_array, block_coll_compare);
 }
 

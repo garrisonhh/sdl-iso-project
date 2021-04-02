@@ -2,11 +2,13 @@
 #include <SDL2/SDL_image.h>
 #include <json-c/json.h>
 #include <stdlib.h>
+#include <string.h>
 #include "vector.h"
 #include "content.h"
 #include "render.h"
 #include "textures.h"
-#include "hash.h"
+#include "data_structures/hash.h"
+#include "data_structures/hash_functions.h"
 
 texture_t **textures = NULL;
 size_t num_textures;
@@ -58,7 +60,7 @@ void textures_init() {
 void textures_load(json_object *file_obj) {
 	const char *name;
 	char path[100];
-	char *rel_path;
+	char *rel_path, *obj_str;
 	size_t *arr_index;
 	size_t i, num_tex_types;
 	json_object *tex_arr_obj, *current_tex, *obj;
@@ -73,16 +75,16 @@ void textures_load(json_object *file_obj) {
 		"connected"
 	};
 
-	tex_type_table = hash_table_create(num_tex_types * 1.3 + 1);
+	tex_type_table = hash_table_create(num_tex_types * 1.3 + 1, hash_string);
 	tex_arr_obj = json_object_object_get(file_obj, "textures");
 	num_textures = json_object_array_length(tex_arr_obj);
 	textures = (texture_t **)calloc(num_textures, sizeof(texture_t *));
-	texture_table = hash_table_create(num_textures * 1.3 + 1);
+	texture_table = hash_table_create(num_textures * 1.3 + 1, hash_string);
 
 	for (i = 0; i < num_tex_types; i++) {
 		tex_type_ptr = (texture_type *)malloc(sizeof(texture_type));
 		*tex_type_ptr = (texture_type)i;
-		hash_set(tex_type_table, tex_type_strings[i], tex_type_ptr);
+		hash_set(tex_type_table, tex_type_strings[i], sizeof tex_type_strings[i], tex_type_ptr);
 	}
 
 	for (i = 0; i < num_textures; i++) {
@@ -108,7 +110,8 @@ void textures_load(json_object *file_obj) {
 
 		// type
 		obj = json_object_object_get(current_tex, "type");
-		tex_type_ptr = hash_get(tex_type_table, (char *)json_object_get_string(obj));
+		obj_str = (char *)json_object_get_string(obj);
+		tex_type_ptr = hash_get(tex_type_table, obj_str, strlen(obj_str));
 
 		if (tex_type_ptr == NULL) {
 			printf("unknown texture type for texture \"%s\".\n", name);
@@ -146,7 +149,7 @@ void textures_load(json_object *file_obj) {
 		// add to indexing hash table
 		arr_index = (size_t *)malloc(sizeof(size_t));
 		*arr_index = i;
-		hash_set(texture_table, (char *)name, arr_index);
+		hash_set(texture_table, (char *)name, strlen(name), arr_index);
 	}
 
 	hash_table_deep_destroy(tex_type_table);
@@ -192,7 +195,7 @@ void textures_destroy() {
 texture_t *texture_ptr_from_key(char *key) {
 	size_t *value;
 
-	if ((value = (size_t *)hash_get(texture_table, key)) == NULL) {
+	if ((value = (size_t *)hash_get(texture_table, key, strlen(key))) == NULL) {
 		printf("key not found in texture_table: %s\n", key);
 		exit(1);
 	}

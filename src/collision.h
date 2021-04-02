@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 #include "vector.h"
-#include "list.h"
 
 struct bbox_t {
 	v3d pos;

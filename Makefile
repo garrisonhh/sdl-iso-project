@@ -1,4 +1,4 @@
-OBJS = src/*.c
+OBJS = src/*.c src/*/*.c
 COMPILER_FLAGS = -Wall -g
 LINKER_FLAGS = -lm -lSDL2 -lSDL2_image -ljson-c
 TARGET = iso

@@ -8,10 +8,10 @@
 #include "block_gen.h"
 #include "entity.h"
 #include "noise.h"
-#include "list.h"
 #include "player.h"
 #include "textures.h"
 #include "utils.h"
+#include "data_structures/dyn_array.h"
 
 chunk_t *chunk_create() {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
@@ -32,7 +32,7 @@ void chunk_destroy(chunk_t *chunk) {
 		if (chunk->blocks[i] != NULL)
 			block_destroy(chunk->blocks[i]);
 		if (chunk->buckets[i] != NULL)
-			list_destroy(chunk->buckets[i]);
+			dyn_array_destroy(chunk->buckets[i]);
 	}
 
 	free(chunk);
@@ -153,9 +153,9 @@ void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 		world->chunks[chunk_index] = chunk_create();
 
 	if (chunk->buckets[block_index] == NULL)
-		chunk->buckets[block_index] = list_create();
+		chunk->buckets[block_index] = dyn_array_create();
 	
-	list_add(chunk->buckets[block_index], entity);
+	dyn_array_add(chunk->buckets[block_index], entity);
 }
 
 void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
@@ -168,10 +168,10 @@ void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 
 	chunk_t *chunk = world->chunks[chunk_index];
 
-	list_remove(chunk->buckets[block_index], entity);
+	dyn_array_remove(chunk->buckets[block_index], entity);
 	
 	if (chunk->buckets[block_index]->size == 0) {
-		list_destroy(chunk->buckets[block_index]);
+		dyn_array_destroy(chunk->buckets[block_index]);
 		chunk->buckets[block_index] = NULL;
 	}
 }
@@ -191,10 +191,10 @@ world_t *world_create(uint16_t size_power) {
 		world->chunks[i] = chunk_create();
 
 	world->player = player_create();
-	world->entities = list_create();
+	world->entities = dyn_array_create();
 
 	block_bucket_add(world, v3i_from_v3d(world->player->ray.pos), world->player); 
-	list_add(world->entities, world->player);
+	dyn_array_add(world->entities, world->player);
 
 	return world;
 }
@@ -203,7 +203,7 @@ void world_destroy(world_t *world) {
 	for (int i = 0; i < world->num_chunks; i++)
 		chunk_destroy(world->chunks[i]);
 	
-	list_deep_destroy(world->entities); // includes player
+	dyn_array_deep_destroy(world->entities); // includes player
 
 	free(world->chunks);
 	free(world);
@@ -248,7 +248,7 @@ void generate_tree(world_t *world, v3i loc) {
 }
 
 void world_generate(world_t *world) {
-	if (1) { // debug world
+	if (0) { // debug world
 		size_t dirt = block_gen_get_id("dirt");
 		size_t grass = block_gen_get_id("grass");
 		v3i loc;

@@ -19,36 +19,38 @@ void noise_init(v2i dims) {
 	perlin_dims = dims;
 	perlin_size = (dims.y + 1) * (dims.x + 1);
 	perlin_vectors = (v2d *)malloc(sizeof(v2d) * perlin_size);
+
 	for (int i = 0; i < perlin_size; i++) {
-		perlin_vectors[i].x = (double)(2 * (rand() % 2) - 1);
-		perlin_vectors[i].y = (double)(2 * (rand() % 2) - 1);
+		perlin_vectors[i].x = (double)((rand() % 3) - 1);
+		perlin_vectors[i].y = (double)((rand() % 3) - 1);
 	}
 }
 
 // TODO rewrite this, it's not that complicated just unreadable shitty code
 // generates numbers between -1 and 1
 double noise_at(v2d point) {
-	v2d *mod_pt = (v2d *)malloc(sizeof(v2d));
-	mod_pt->x = fmod(point.x, 1);
-	mod_pt->y = fmod(point.y, 1);
-
 	v2d corner;
-	double dot_corners[4], value;
-	int i, j, pX = (int)point.x, pY = (int)point.y;
-	for (j = 0; j <= 1; j++) {
-		for (i = 0; i < 2; i++) {
-			corner.x = i ? 1 - mod_pt->x : mod_pt->x;
-			corner.y = j ? 1 - mod_pt->y : mod_pt->y;
-			dot_corners[j * 2 + i] = v2d_dot(
+	double dot_corners[4];
+	int i, j;
+
+	int pX = (int)point.x, pY = (int)point.y;
+	v2d mod_pt = {
+		fmod(point.x, 1),
+		fmod(point.y, 1)
+	};
+
+	for (i = 0; i <= 1; i++) {
+		for (j = 0; j <= 1; j++) {
+			corner.x = i ? 1 - mod_pt.x : mod_pt.x;
+			corner.y = j ? 1 - mod_pt.y : mod_pt.y;
+			dot_corners[(j << 1) + i] = v2d_dot(
 				corner,
 				perlin_vectors[(pY + j) * (perlin_dims.x + 1) + (pX + i)]
 			);
 		}
 	}
 	
-	value = lerp2d(dot_corners, mod_pt);
-	free(mod_pt);
-	return value;
+	return lerp2d(dot_corners, &mod_pt);
 }
 
 void noise_quit() {

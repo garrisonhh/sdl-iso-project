@@ -5,6 +5,7 @@
 #include "vector.h"
 #include "render.h"
 #include "render_primitives.h"
+#include "utils.h"
 
 // only applicable where deltax > deltay and x and y are positive
 // so the main bresenham function handles the paperwork and this does the fun stuff
@@ -26,15 +27,15 @@ void bresenham_down_right(v2i delta, v2i *points) {
 }
 
 // **need to free() points afterwards**
-void bresenham(v2i a, v2i b, v2i **points, size_t *num_points) {
+v2i *bresenham(v2i a, v2i b, size_t *num_points) {
 	if (a.x == b.x && a.y == b.y) {
 		*num_points = 0;
-		return;
+		return NULL;
 	}
 
-	v2i delta;
+	v2i delta, current;
+	v2i *points;
 	bool flipx, flipy, flipd;
-	v2i current;
 
 	delta = v2i_sub(b, a);
 
@@ -50,12 +51,12 @@ void bresenham(v2i a, v2i b, v2i **points, size_t *num_points) {
 		delta = (v2i){delta.y, delta.x};
 
 	*num_points = delta.x + 1;
-	*points = (v2i *)calloc(*num_points, sizeof(v2i));
+	points = (v2i *)calloc(*num_points, sizeof(v2i));
 
-	bresenham_down_right(delta, *points);
+	bresenham_down_right(delta, points);
 
 	for (size_t i = 0; i < *num_points; i++) {
-		current = (*points)[i];
+		current = points[i];
 
 		if (flipx)
 			current.x = -current.x;
@@ -64,8 +65,10 @@ void bresenham(v2i a, v2i b, v2i **points, size_t *num_points) {
 		if (flipd)
 			current = (v2i){current.y, current.x};
 
-		(*points)[i] = v2i_add(a, current);
+		points[i] = v2i_add(a, current);
 	}
+
+	return points;
 }
 
 void render_iso_circle(circle_t circle) {
@@ -87,7 +90,6 @@ void render_iso_circle(circle_t circle) {
 }
 
 // only works for convex polygons
-// TODO debug
 void render_filled_poly(v2i *points, size_t num_points) {
 	if (num_points < 3) {
 		printf("attempted to render polygon with too few points.\n");
@@ -95,7 +97,8 @@ void render_filled_poly(v2i *points, size_t num_points) {
 	}
 
 	int min_y, max_y, range_y;
-	size_t i, j, py, px;
+	int py, px;
+	size_t i, j;
 	v2i *line;
 	size_t line_size;
 
@@ -117,25 +120,28 @@ void render_filled_poly(v2i *points, size_t num_points) {
 	}
 
 	for (i = 0; i < num_points; i++) {
-		bresenham(points[i], points[(i + 1) % num_points], &line, &line_size);
+		if ((line = bresenham(points[i], points[(i + 1) % num_points], &line_size)) != NULL) {
+			printf("line: %p %lu\n", line, line_size);
+			printf("line[0]: %i %i\n", line[0].x, line[0].y);
+			printf("line[1]: %i %i\n", line[1].x, line[1].y);
 
-		for (j = 0; j < line_size; j++) {
-			px = line[j].x;
-			py = line[j].y;
-			if (raster[py][0] < 0 || px < raster[py][0])
-				raster[py][0] = px;
-			if (raster[py][1] < 0 || px > raster[py][1])
-				raster[py][1] = px;
+			for (j = 0; j < line_size; j++) {
+				printf("j: %lu --> %lu\n", j, line_size);
+				px = line[j].x;
+				py = line[j].y;
+				printf("px, py: %i %i\n", px, py);
+
+				if (raster[py][0] < 0 || px < raster[py][0])
+					raster[py][0] = px;
+				if (raster[py][1] < 0 || px > raster[py][1])
+					raster[py][1] = px;
+			}
+
+			free(line);
 		}
-
-		free(line);
 	}
 
 	for (i = 0; i < range_y; i++)
-		if (raster[i][0] != -1)
+		if (raster[i][0] >= 0 && raster[i][1] >= 0)
 			SDL_RenderDrawLine(renderer, raster[i][0], min_y + i, raster[i][1], min_y + i);
-}
-
-void render_filled_box(box_t box) {
-	// TODO
 }
