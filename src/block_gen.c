@@ -53,7 +53,7 @@ void block_gen_load(json_object *file_obj) {
 	for (i = 0; i < num_coll_types; i++) {
 		coll_type_ptr = (block_coll_type *)malloc(sizeof(block_coll_type));
 		*coll_type_ptr = (block_coll_type)i;
-		hash_set(coll_type_table, coll_type_strings[i], sizeof coll_type_strings[i], coll_type_ptr);
+		hash_set(coll_type_table, coll_type_strings[i], strlen(coll_type_strings[i]), coll_type_ptr);
 	}
 
 	for (i = 0; i < num_blocks; i++) {
@@ -77,7 +77,7 @@ void block_gen_load(json_object *file_obj) {
 		// coll type
 		if ((obj = json_object_object_get(current_block, "collision")) != NULL) {
 			obj_str = (char *)json_object_get_string(obj);
-			coll_type_ptr = (block_coll_type *)hash_get(coll_type_table, obj_str, sizeof obj_str);
+			coll_type_ptr = (block_coll_type *)hash_get(coll_type_table, obj_str, strlen(obj_str));
 
 			if (coll_type_ptr == NULL) {
 				printf("unknown collision type for block \"%s\".\n", name);
@@ -144,7 +144,7 @@ void block_gen_load(json_object *file_obj) {
 		// add to indexing hash table
 		arr_index = (size_t *)malloc(sizeof(size_t));
 		*arr_index = i;
-		hash_set(block_table, (char *)name, sizeof name, arr_index);
+		hash_set(block_table, (char *)name, strlen(name), arr_index);
 	}
 
 	hash_table_deep_destroy(coll_type_table);
@@ -169,7 +169,7 @@ void block_gen_destroy() {
 size_t block_gen_get_id(char *key) {
 	size_t *value;
 
-	if ((value = (size_t *)hash_get(block_table, key, sizeof key)) == NULL) {
+	if ((value = (size_t *)hash_get(block_table, key, strlen(key))) == NULL) {
 		printf("key not found in block_table: %s\n", key);
 		exit(1);
 	}

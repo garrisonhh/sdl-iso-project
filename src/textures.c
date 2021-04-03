@@ -84,7 +84,7 @@ void textures_load(json_object *file_obj) {
 	for (i = 0; i < num_tex_types; i++) {
 		tex_type_ptr = (texture_type *)malloc(sizeof(texture_type));
 		*tex_type_ptr = (texture_type)i;
-		hash_set(tex_type_table, tex_type_strings[i], sizeof tex_type_strings[i], tex_type_ptr);
+		hash_set(tex_type_table, tex_type_strings[i], strlen(tex_type_strings[i]), tex_type_ptr);
 	}
 
 	for (i = 0; i < num_textures; i++) {

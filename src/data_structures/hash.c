@@ -22,6 +22,7 @@ void hash_bucket_destroy(hash_bucket *bucket) {
 	if (bucket->overflow != NULL)
 		hash_bucket_destroy(bucket->overflow);
 
+	free(bucket->key);
 	free(bucket);
 }
 
@@ -37,6 +38,7 @@ void hash_table_destroy(hash_table *table) {
 		if (table->buckets[i] != NULL)
 			hash_bucket_destroy(table->buckets[i]);
 
+	free(table->buckets);
 	free(table);
 }
 
@@ -74,37 +76,30 @@ void hash_rehash(hash_table *table) {
 			hash_bucket_destroy(old_buckets[i]);
 		}
 	}
+
+	free(old_buckets);
 }
 
 hash_bucket *hash_get_pair(hash_table *table, void *key, size_t size_key) {
 	hash_t hash = hash_key(table, key, size_key);
-	hash_bucket *trav;
+	hash_bucket *trav = table->buckets[hash];
 
-	trav = table->buckets[hash];
-
-	while (trav != NULL && size_key != trav->size_key
-		&& memcmp(key, trav->key, MAX(size_key, trav->size_key)))
+	//printf("new traversal \"%s\" %lu:\n", (char *)key, size_key);
+	while (trav != NULL && (size_key != trav->size_key || memcmp(key, trav->key, trav->size_key))) {
+		//printf("traversing \"%s\" %lu\n", (char *)trav->key, trav->size_key);
 		trav = trav->overflow;
+	}
 
 	return trav;
 }
 
 void *hash_get(hash_table *table, void *key, size_t size_key) {
-	hash_bucket *bucket;
+	hash_bucket *bucket = hash_get_pair(table, key, size_key);
 
-	return (bucket = hash_get_pair(table, key, size_key)) != NULL ? bucket->value : NULL;
+	return (bucket != NULL ? bucket->value : NULL);
 }
 
 void hash_remove(hash_table *table, void *key, size_t size_key) {
-	size_t hash;
-	hash_bucket *trav;
-
-	hash = hash_key(table, key, size_key);
-	trav = table->buckets[hash];
-
-	while (trav != NULL && memcmp(key, trav->key, size_key))
-		trav = trav->overflow;
-
 	printf("UNIMPLEMENTED!!!\n");
 	exit(1);
 }
@@ -117,7 +112,7 @@ hash_t hash_set(hash_table *table, void *key, size_t size_key, void *value) {
 	hash = hash_key(table, key, size_key);
 	trav = table->buckets[hash];
 
-	while (trav != NULL && strcmp(key, trav->key))
+	while (trav != NULL && (size_key != trav->size_key || memcmp(key, trav->key, trav->size_key)))
 		trav = trav->overflow;
 
 	if (trav != NULL) { // found matching bucket, modify value
@@ -125,7 +120,9 @@ hash_t hash_set(hash_table *table, void *key, size_t size_key, void *value) {
 	} else { // no matching bucket, create new bucket
 		bucket = (hash_bucket *)malloc(sizeof(hash_bucket));
 
-		bucket->key = key; 
+		bucket->key = malloc(size_key);
+		memcpy(bucket->key, key, size_key);
+
 		bucket->size_key = size_key;
 		bucket->value = value;
 		bucket->overflow = NULL;
