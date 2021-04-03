@@ -55,10 +55,9 @@ void render_init(SDL_Window *window) {
 }
 
 void render_destroy() {
+	// foreground and background are free'd by DestroyRenderer
 	SDL_DestroyRenderer(renderer);
 	renderer = NULL;
-	SDL_DestroyTexture(foreground);
-	SDL_DestroyTexture(background);
 	foreground = NULL;
 	background = NULL;
 }

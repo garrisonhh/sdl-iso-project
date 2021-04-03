@@ -157,8 +157,15 @@ void block_gen_load(json_object *file_obj) {
 }
 
 void block_gen_destroy() {
-	for (size_t i = 0; i < num_blocks; i++)
+	for (size_t i = 0; i < num_blocks; i++) {
+		if (block_coll_data[i]->bbox != NULL && block_coll_data[i]->bbox != &BLOCK_DEFAULT_BOX)
+			free(block_coll_data[i]->bbox);
+		if (block_coll_data[i]->plane != NULL)
+			free(block_coll_data[i]->plane);
+
+		free(block_coll_data[i]);
 		block_destroy(blocks[i]);
+	}
 
 	free(blocks);
 	blocks = NULL;

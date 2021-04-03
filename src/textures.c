@@ -165,6 +165,7 @@ void textures_destroy() {
 				break;
 			case TEX_SPRITE:
 				SDL_DestroyTexture(textures[i]->tex.sprite->texture);
+				free(textures[i]->tex.sprite);
 				break;
 			case TEX_VOXEL:
 				SDL_DestroyTexture(textures[i]->tex.voxel->top);
