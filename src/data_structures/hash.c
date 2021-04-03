@@ -18,35 +18,28 @@ hash_table *hash_table_create(size_t initial_size, hash_t (*hash_func)(const voi
 	return table;
 }
 
-void hash_bucket_destroy(hash_bucket *bucket) {
-	if (bucket->overflow != NULL)
-		hash_bucket_destroy(bucket->overflow);
+hash_bucket *hash_bucket_destroy(hash_bucket *bucket, bool destroy_value) {
+	hash_bucket *overflow = bucket->overflow;
+
+	if (destroy_value && bucket->value != NULL)
+		free(bucket->value);
 
 	free(bucket->key);
 	free(bucket);
+
+	return overflow;
 }
 
-void hash_bucket_deep_destroy(hash_bucket *bucket) {
-	if (bucket->value != NULL)
-		free(bucket->value);
+void hash_table_destroy(hash_table *table, bool destroy_values) {
+	hash_bucket *trav;
 
-	hash_bucket_destroy(bucket);
-}
-
-void hash_table_destroy(hash_table *table) {
+	// I like this code right here. C can be so much more concise than you expect
 	for (size_t i = 0; i < table->size; i++)
-		if (table->buckets[i] != NULL)
-			hash_bucket_destroy(table->buckets[i]);
+		if ((trav = table->buckets[i]) != NULL)
+			while ((trav = hash_bucket_destroy(trav, destroy_values)) != NULL)
+				;
 
 	free(table->buckets);
-	free(table);
-}
-
-void hash_table_deep_destroy(hash_table *table) {
-	for (size_t i = 0; i < table->size; i++)
-		if (table->buckets[i] != NULL)
-			hash_bucket_deep_destroy(table->buckets[i]);
-
 	free(table);
 }
 
@@ -73,7 +66,7 @@ void hash_rehash(hash_table *table) {
 				trav = trav->overflow;
 			}
 
-			hash_bucket_destroy(old_buckets[i]);
+			hash_bucket_destroy(old_buckets[i], false);
 		}
 	}
 
@@ -84,11 +77,8 @@ hash_bucket *hash_get_pair(hash_table *table, void *key, size_t size_key) {
 	hash_t hash = hash_key(table, key, size_key);
 	hash_bucket *trav = table->buckets[hash];
 
-	//printf("new traversal \"%s\" %lu:\n", (char *)key, size_key);
-	while (trav != NULL && (size_key != trav->size_key || memcmp(key, trav->key, trav->size_key))) {
-		//printf("traversing \"%s\" %lu\n", (char *)trav->key, trav->size_key);
+	while (trav != NULL && (size_key != trav->size_key || memcmp(key, trav->key, trav->size_key)))
 		trav = trav->overflow;
-	}
 
 	return trav;
 }
@@ -99,12 +89,23 @@ void *hash_get(hash_table *table, void *key, size_t size_key) {
 	return (bucket != NULL ? bucket->value : NULL);
 }
 
-void hash_remove(hash_table *table, void *key, size_t size_key) {
-	printf("UNIMPLEMENTED!!!\n");
-	exit(1);
+void hash_remove(hash_table *table, void *key, size_t size_key, bool destroy_value) {
+	hash_t hash;
+	hash_bucket *trav, *last;
+
+	hash = hash_key(table, key, size_key);
+	last = NULL;
+	trav = table->buckets[hash];
+
+	while (trav != NULL && (size_key != trav->size_key || memcmp(key, trav->key, trav->size_key))) {
+		last = trav;
+		trav = trav->overflow;
+	}
+
+	if (last != NULL)
+		last->overflow = hash_bucket_destroy(trav, destroy_value);
 }
 
-// if unused bucket pointers are not NULL, this will segfault
 hash_t hash_set(hash_table *table, void *key, size_t size_key, void *value) {
 	hash_bucket *bucket, *trav;
 	hash_t hash;
@@ -126,7 +127,7 @@ hash_t hash_set(hash_table *table, void *key, size_t size_key, void *value) {
 		bucket->size_key = size_key;
 		bucket->value = value;
 		bucket->overflow = NULL;
-		
+
 		if (table->buckets[hash] == NULL)
 			table->buckets[hash] = bucket;
 		else {

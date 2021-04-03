@@ -147,7 +147,7 @@ void block_gen_load(json_object *file_obj) {
 		hash_set(block_table, (char *)name, strlen(name), arr_index);
 	}
 
-	hash_table_deep_destroy(coll_type_table);
+	hash_table_destroy(coll_type_table, true);
 
 	WALL_COLL_DATA = (block_coll_data_t){
 		.coll_type = BLOCK_COLL_DEFAULT_BOX,
@@ -162,7 +162,7 @@ void block_gen_destroy() {
 
 	free(blocks);
 	blocks = NULL;
-	hash_table_deep_destroy(block_table);
+	hash_table_destroy(block_table, true);
 	block_table = NULL;
 }
 

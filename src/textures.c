@@ -152,7 +152,7 @@ void textures_load(json_object *file_obj) {
 		hash_set(texture_table, (char *)name, strlen(name), arr_index);
 	}
 
-	hash_table_deep_destroy(tex_type_table);
+	hash_table_destroy(tex_type_table, true);
 
 	VOID_VOXEL_TEXTURE = texture_ptr_from_key("void")->tex.voxel;
 }
@@ -188,7 +188,7 @@ void textures_destroy() {
 
 	free(textures);
 	textures = NULL;
-	hash_table_deep_destroy(texture_table);
+	hash_table_destroy(texture_table, true);
 	texture_table = NULL;
 }
 

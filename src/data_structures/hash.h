@@ -2,6 +2,7 @@
 #define HASH_H
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef size_t hash_t;
 
@@ -19,12 +20,11 @@ typedef struct hash_table {
 } hash_table;
 
 hash_table *hash_table_create(size_t initial_size, hash_t (*hash_func)(const void *, size_t));
-void hash_table_destroy(hash_table *);
-void hash_table_deep_destroy(hash_table *);
+void hash_table_destroy(hash_table *, bool destroy_values);
 
 void *hash_get(hash_table *, void *, size_t);
 hash_t hash_set(hash_table *, void *, size_t, void *value);
-void hash_remove(hash_table *, void *, size_t);
+void hash_remove(hash_table *, void *, size_t, bool destroy_value);
 
 #endif
 
