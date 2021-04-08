@@ -1,6 +1,6 @@
 # sdl-iso-project
 
-this is a hobby project which started as an idea for efficiently rendering 90s CRPG-inspired isometric voxels, and has become a programming sandbox with goals to turn it into a fully-fledged indie game.
+this is a hobby project which started as an idea for efficiently rendering Gnomoria/Ingnomia inspired isometric voxels, and has become a programming sandbox with goals to turn it into a fully-fledged indie game. notably in comparison, it is fully 3d and real-time and supports custom collision and free movement.
 
 check out the wiki (WIP) for info on (some) of the fun stuff I've implemented to make this thing work.
 
