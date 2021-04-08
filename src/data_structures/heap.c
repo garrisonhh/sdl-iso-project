@@ -78,7 +78,6 @@ void heap_insert(heap_t *heap, void *item) {
 	}
 
 	if (++heap->entries == heap->size) {
-		printf("resizing: %lu -> ", heap->size);
 		heap->size = (heap->size << 1) | 1;
 		printf("%lu\n", heap->size);
 		heap->items = (void **)realloc(heap->items, sizeof(void *) * heap->size);
