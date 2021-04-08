@@ -6,7 +6,7 @@
 #include "vector.h"
 #include "collision.h"
 #include "textures.h"
-#include "data_structures/dyn_array.h"
+#include "data_structures/array.h"
 
 enum block_coll_type {
 	BLOCK_COLL_NONE,		// block does not collide
@@ -44,6 +44,6 @@ typedef struct block_t block_t;
 
 block_t *block_create(size_t);
 void block_destroy(block_t *);
-void block_coll_dyn_array_sort(dyn_array_t *, v3d);
+void block_coll_array_sort(array_t *, v3d);
 
 #endif

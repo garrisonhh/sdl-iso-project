@@ -11,7 +11,7 @@
 #include "player.h"
 #include "textures.h"
 #include "utils.h"
-#include "data_structures/dyn_array.h"
+#include "data_structures/array.h"
 
 chunk_t *chunk_create() {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
@@ -31,8 +31,8 @@ void chunk_destroy(chunk_t *chunk) {
 	for (int i = 0; i < CHUNK_SIZE; i++) {
 		if (chunk->blocks[i] != NULL)
 			block_destroy(chunk->blocks[i]);
-		if (chunk->buckets[i] != NULL)
-			dyn_array_destroy(chunk->buckets[i]);
+		if (chunk->buckets[i] != NULL) // TODO do I need to destroy() these somehow?
+			array_destroy(chunk->buckets[i], false);
 	}
 
 	free(chunk);
@@ -153,9 +153,9 @@ void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 		world->chunks[chunk_index] = chunk_create();
 
 	if (chunk->buckets[block_index] == NULL)
-		chunk->buckets[block_index] = dyn_array_create();
+		chunk->buckets[block_index] = array_create(2);
 	
-	dyn_array_add(chunk->buckets[block_index], entity);
+	array_add(chunk->buckets[block_index], entity);
 }
 
 void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
@@ -168,10 +168,10 @@ void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 
 	chunk_t *chunk = world->chunks[chunk_index];
 
-	dyn_array_remove(chunk->buckets[block_index], entity);
+	array_remove(chunk->buckets[block_index], entity);
 	
 	if (chunk->buckets[block_index]->size == 0) {
-		dyn_array_destroy(chunk->buckets[block_index]);
+		array_destroy(chunk->buckets[block_index], false);
 		chunk->buckets[block_index] = NULL;
 	}
 }
@@ -191,10 +191,10 @@ world_t *world_create(uint16_t size_power) {
 		world->chunks[i] = chunk_create();
 
 	world->player = player_create();
-	world->entities = dyn_array_create();
+	world->entities = array_create(2);
 
 	block_bucket_add(world, v3i_from_v3d(world->player->ray.pos), world->player); 
-	dyn_array_add(world->entities, world->player);
+	array_add(world->entities, world->player);
 
 	return world;
 }
@@ -203,7 +203,7 @@ void world_destroy(world_t *world) {
 	for (int i = 0; i < world->num_chunks; i++)
 		chunk_destroy(world->chunks[i]);
 	
-	dyn_array_deep_destroy(world->entities); // includes player
+	array_destroy(world->entities, true); // includes player
 
 	free(world->chunks);
 	free(world);

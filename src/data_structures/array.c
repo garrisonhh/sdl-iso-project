@@ -2,16 +2,11 @@
 #include <stdbool.h>
 #include "array.h"
 
-struct array_t {
-	void **items;
-	size_t max_size, size;
-};
-
-array_t *array_create() {
+array_t *array_create(size_t initial_size) {
 	array_t *array = (array_t *)malloc(sizeof(array_t));
 	
 	array->size = 0;
-	array->max_size = 4;
+	array->max_size = initial_size;
 	array->items = (void **)malloc(sizeof(void *) * array->max_size);
 
 	return array;
@@ -26,17 +21,13 @@ void array_destroy(array_t *array, bool destroy_values) {
 	free(array);
 }
 
-size_t array_size(array_t *array) {
-	return array->size;
-}
-
 void array_add(array_t *array, void *item) {
-	array->items[array->size++] = item;
-
 	if (array->size == array->max_size) {
 		array->max_size <<= 1;
 		array->items = realloc(array->items, sizeof(void *) * array->max_size);
 	}
+
+	array->items[array->size++] = item;
 }
 
 void array_remove(array_t *array, void *item) {

@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "vector.h"
 #include "entity.h"
-#include "data_structures/dyn_array.h"
+#include "data_structures/array.h"
 #include "block.h"
 
 #define CHUNK_SIZE 4096 // 0x000 -> 0xFFF
@@ -13,14 +13,14 @@
 
 struct chunk_t {
 	block_t *blocks[CHUNK_SIZE];
-	dyn_array_t *buckets[CHUNK_SIZE];
+	array_t *buckets[CHUNK_SIZE];
 	size_t num_blocks, num_entities; // TODO remove null chunks?
 };
 typedef struct chunk_t chunk_t;
 
 struct world_t {
 	chunk_t **chunks;
-	dyn_array_t *entities;
+	array_t *entities;
 	struct entity_t *player;
 
 	unsigned int num_chunks, chunk_mask;

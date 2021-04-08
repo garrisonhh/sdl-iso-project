@@ -6,7 +6,7 @@
 #include "world.h"
 #include "block.h"
 #include "block_gen.h"
-#include "data_structures/dyn_array.h"
+#include "data_structures/array.h"
 
 entity_t *entity_create(texture_t *sprite, v3d pos, v3d size) {
 	entity_t *entity = (entity_t *)malloc(sizeof(entity_t));
@@ -31,15 +31,15 @@ void entity_destroy(entity_t *entity) {
  * that with the shape of the scaled_ray, and then checking any blocks which might collide with
  * that box.
  */
-dyn_array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
+array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 	int x, y, z;
 	unsigned int chunk_index, block_index;
 	v3i entity_loc, current_loc;
-	dyn_array_t *block_colls;
+	array_t *block_colls;
 	block_t *block;
 	block_collidable_t *block_coll;
 
-	block_colls = dyn_array_create();
+	block_colls = array_create(27);
 	entity_loc = v3i_from_v3d(entity->ray.pos);
 
 	for (z = -1; z <= 1; z++) {
@@ -56,7 +56,7 @@ dyn_array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 						block_coll->loc = current_loc;
 						block_coll->coll_data = block->coll_data;
 
-						dyn_array_add(block_colls, block_coll);
+						array_add(block_colls, block_coll);
 					 }
 				} else {
 					block_coll = (block_collidable_t *)malloc(sizeof(block_collidable_t));
@@ -64,7 +64,7 @@ dyn_array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 					block_coll->loc = current_loc;
 					block_coll->coll_data = &WALL_COLL_DATA;
 
-					dyn_array_add(block_colls, block_coll);
+					array_add(block_colls, block_coll);
 				}
 			}
 		}
@@ -74,7 +74,7 @@ dyn_array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 }
 
 // TODO this is absolutely unreadable and extremely messy. figure out how to split it up.
-void entity_move_and_collide(entity_t *entity, dyn_array_t *block_colls, double time) {
+void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time) {
 	int bbox_coll_axis;
 	bool intersecting, behind, check_bbox;
 	ray_t scaled_ray, block_plane;
@@ -86,10 +86,10 @@ void entity_move_and_collide(entity_t *entity, dyn_array_t *block_colls, double 
 	scaled_ray = entity->ray;
 	scaled_ray.dir = v3d_scale(scaled_ray.dir, time);
 
-	block_coll_dyn_array_sort(block_colls, entity->ray.dir);
+	block_coll_array_sort(block_colls, entity->ray.dir);
 
 	if (block_colls->size > 0)
-		;//printf("new frame, new dyn_array:\n");
+		;//printf("new frame, new array:\n");
 
 	for (size_t i = 0; i < block_colls->size; i++) {
 		block_coll = (block_collidable_t *)block_colls->items[i];
@@ -149,7 +149,7 @@ void entity_move_and_collide(entity_t *entity, dyn_array_t *block_colls, double 
 
 void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 	double time;
-	dyn_array_t *block_colls;
+	array_t *block_colls;
 
 	time = ms / 1000;
 	entity->ray.dir.z += GRAVITY * time;
@@ -158,5 +158,5 @@ void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 	block_colls = entity_surrounding_block_colls(entity, world);
 	entity_move_and_collide(entity, block_colls, time);
 
-	dyn_array_deep_destroy(block_colls);
+	array_destroy(block_colls, true);
 }

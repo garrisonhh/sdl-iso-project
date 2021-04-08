@@ -9,7 +9,7 @@
 #include "vector.h"
 #include "collision.h"
 #include "raycast.h"
-#include "data_structures/dyn_array.h"
+#include "data_structures/array.h"
 #include "camera.h"
 #include "render_primitives.h"
 #include "utils.h"
@@ -62,7 +62,7 @@ void render_destroy() {
 	background = NULL;
 }
 
-void render_generate_shadows(world_t *world, dyn_array_t *(*shadows)[world->block_size]) {
+void render_generate_shadows(world_t *world, array_t *(*shadows)[world->block_size]) {
 	int z, i;
 	entity_t *entity;
 	block_t *block;
@@ -97,9 +97,9 @@ void render_generate_shadows(world_t *world, dyn_array_t *(*shadows)[world->bloc
 			shadow->radius = (int)((entity->size.x * VOXEL_WIDTH) / 2.0);
 
 			if ((*shadows)[shadow_loc.z] == NULL)
-				(*shadows)[shadow_loc.z] = dyn_array_create();
+				(*shadows)[shadow_loc.z] = array_create(2);
 
-			dyn_array_add((*shadows)[shadow_loc.z], shadow);
+			array_add((*shadows)[shadow_loc.z], shadow);
 		}
 	}
 }
@@ -150,10 +150,10 @@ void render_world(world_t *world) {
 	bool in_foreground, player_blocked;
 	ray_t cam_ray;
 	block_t *block;
-	dyn_array_t *bucket;
+	array_t *bucket;
 	v3i block_loc, player_loc;
 	v3i min_block, max_block;
-	dyn_array_t *shadows[world->block_size];
+	array_t *shadows[world->block_size];
 
 	// player_loc + raycasting for foregrounding vars
 	in_foreground = false;
@@ -275,5 +275,5 @@ void render_world(world_t *world) {
 	// destroy shadows
 	for (z = 0; z < world->block_size; z++)
 		if (shadows[z] != NULL)
-			dyn_array_deep_destroy(shadows[z]);
+			array_destroy(shadows[z], true);
 }
