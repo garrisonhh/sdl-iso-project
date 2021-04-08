@@ -7,12 +7,12 @@
 #include "content.h"
 #include "render.h"
 #include "textures.h"
-#include "data_structures/hash.h"
+#include "data_structures/hashmap.h"
 #include "data_structures/hash_functions.h"
 
 texture_t **textures = NULL;
 size_t num_textures;
-hash_table *texture_table;
+hashmap_t *texture_table;
 
 voxel_tex_t *VOID_VOXEL_TEXTURE;
 
@@ -65,7 +65,7 @@ void textures_load(json_object *file_obj) {
 	size_t i, num_tex_types;
 	json_object *tex_arr_obj, *current_tex, *obj;
 
-	hash_table *tex_type_table;
+	hashmap_t *tex_type_table;
 	texture_type *tex_type_ptr;
 	num_tex_types = 4;
 	char *tex_type_strings[] = {
@@ -75,16 +75,16 @@ void textures_load(json_object *file_obj) {
 		"connected"
 	};
 
-	tex_type_table = hash_table_create(num_tex_types * 1.3 + 1, hash_string);
+	tex_type_table = hashmap_create(num_tex_types * 1.3 + 1, true, hash_string);
 	tex_arr_obj = json_object_object_get(file_obj, "textures");
 	num_textures = json_object_array_length(tex_arr_obj);
 	textures = (texture_t **)calloc(num_textures, sizeof(texture_t *));
-	texture_table = hash_table_create(num_textures * 1.3 + 1, hash_string);
+	texture_table = hashmap_create(num_textures * 1.3 + 1, true, hash_string);
 
 	for (i = 0; i < num_tex_types; i++) {
 		tex_type_ptr = (texture_type *)malloc(sizeof(texture_type));
 		*tex_type_ptr = (texture_type)i;
-		hash_set(tex_type_table, tex_type_strings[i], strlen(tex_type_strings[i]), tex_type_ptr);
+		hashmap_set(tex_type_table, tex_type_strings[i], strlen(tex_type_strings[i]), tex_type_ptr);
 	}
 
 	for (i = 0; i < num_textures; i++) {
@@ -111,7 +111,7 @@ void textures_load(json_object *file_obj) {
 		// type
 		obj = json_object_object_get(current_tex, "type");
 		obj_str = (char *)json_object_get_string(obj);
-		tex_type_ptr = hash_get(tex_type_table, obj_str, strlen(obj_str));
+		tex_type_ptr = hashmap_get(tex_type_table, obj_str, strlen(obj_str));
 
 		if (tex_type_ptr == NULL) {
 			printf("unknown texture type for texture \"%s\".\n", name);
@@ -149,10 +149,10 @@ void textures_load(json_object *file_obj) {
 		// add to indexing hash table
 		arr_index = (size_t *)malloc(sizeof(size_t));
 		*arr_index = i;
-		hash_set(texture_table, (char *)name, strlen(name), arr_index);
+		hashmap_set(texture_table, (char *)name, strlen(name), arr_index);
 	}
 
-	hash_table_destroy(tex_type_table, true);
+	hashmap_destroy(tex_type_table, true);
 
 	VOID_VOXEL_TEXTURE = texture_ptr_from_key("void")->tex.voxel;
 }
@@ -189,14 +189,14 @@ void textures_destroy() {
 
 	free(textures);
 	textures = NULL;
-	hash_table_destroy(texture_table, true);
+	hashmap_destroy(texture_table, true);
 	texture_table = NULL;
 }
 
 texture_t *texture_ptr_from_key(char *key) {
 	size_t *value;
 
-	if ((value = (size_t *)hash_get(texture_table, key, strlen(key))) == NULL) {
+	if ((value = (size_t *)hashmap_get(texture_table, key, strlen(key))) == NULL) {
 		printf("key not found in texture_table: %s\n", key);
 		exit(1);
 	}

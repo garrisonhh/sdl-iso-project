@@ -3,9 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <json-c/json.h>
-#include <stdint.h>
 #include "vector.h"
-#include "data_structures/hash.h"
 
 // numbers are used for json loading, if you change them make sure to
 // check the textures_load function

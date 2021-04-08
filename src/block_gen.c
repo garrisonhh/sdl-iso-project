@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "block.h"
 #include "textures.h"
-#include "data_structures/hash.h"
+#include "data_structures/hashmap.h"
 #include "data_structures/hash_functions.h"
 
 /*
@@ -14,7 +14,7 @@
 block_t **blocks = NULL;
 block_coll_data_t **block_coll_data;
 size_t num_blocks;
-hash_table *block_table;
+hashmap_t *block_table;
 
 bbox_t BLOCK_DEFAULT_BOX = {
 	(v3d){0, 0, 0},
@@ -33,7 +33,7 @@ void block_gen_load(json_object *file_obj) {
 	bbox_t *bbox;
 	ray_t *plane;
 
-	hash_table *coll_type_table;
+	hashmap_t *coll_type_table;
 	block_coll_type *coll_type_ptr;
 	num_coll_types = 4;
 	char *coll_type_strings[] = {
@@ -43,17 +43,17 @@ void block_gen_load(json_object *file_obj) {
 		"chopped"
 	};
 
-	coll_type_table = hash_table_create(num_coll_types * 1.3 + 1, hash_string);
+	coll_type_table = hashmap_create(num_coll_types * 1.3 + 1, true, hash_string);
 	block_arr_obj = json_object_object_get(file_obj, "blocks");
 	num_blocks = json_object_array_length(block_arr_obj);
 	blocks = (block_t **)calloc(num_blocks, sizeof(block_t *));
 	block_coll_data = (block_coll_data_t **)calloc(num_blocks, sizeof(block_coll_data_t *));
-	block_table = hash_table_create(num_blocks * 1.3 + 1, hash_string);
+	block_table = hashmap_create(num_blocks * 1.3 + 1, true, hash_string);
 
 	for (i = 0; i < num_coll_types; i++) {
 		coll_type_ptr = (block_coll_type *)malloc(sizeof(block_coll_type));
 		*coll_type_ptr = (block_coll_type)i;
-		hash_set(coll_type_table, coll_type_strings[i], strlen(coll_type_strings[i]), coll_type_ptr);
+		hashmap_set(coll_type_table, coll_type_strings[i], strlen(coll_type_strings[i]), coll_type_ptr);
 	}
 
 	for (i = 0; i < num_blocks; i++) {
@@ -77,7 +77,7 @@ void block_gen_load(json_object *file_obj) {
 		// coll type
 		if ((obj = json_object_object_get(current_block, "collision")) != NULL) {
 			obj_str = (char *)json_object_get_string(obj);
-			coll_type_ptr = (block_coll_type *)hash_get(coll_type_table, obj_str, strlen(obj_str));
+			coll_type_ptr = (block_coll_type *)hashmap_get(coll_type_table, obj_str, strlen(obj_str));
 
 			if (coll_type_ptr == NULL) {
 				printf("unknown collision type for block \"%s\".\n", name);
@@ -144,10 +144,10 @@ void block_gen_load(json_object *file_obj) {
 		// add to indexing hash table
 		arr_index = (size_t *)malloc(sizeof(size_t));
 		*arr_index = i;
-		hash_set(block_table, (char *)name, strlen(name), arr_index);
+		hashmap_set(block_table, (char *)name, strlen(name), arr_index);
 	}
 
-	hash_table_destroy(coll_type_table, true);
+	hashmap_destroy(coll_type_table, true);
 
 	WALL_COLL_DATA = (block_coll_data_t){
 		.coll_type = BLOCK_COLL_DEFAULT_BOX,
@@ -169,14 +169,14 @@ void block_gen_destroy() {
 
 	free(blocks);
 	blocks = NULL;
-	hash_table_destroy(block_table, true);
+	hashmap_destroy(block_table, true);
 	block_table = NULL;
 }
 
 size_t block_gen_get_id(char *key) {
 	size_t *value;
 
-	if ((value = (size_t *)hash_get(block_table, key, strlen(key))) == NULL) {
+	if ((value = (size_t *)hashmap_get(block_table, key, strlen(key))) == NULL) {
 		printf("key not found in block_table: %s\n", key);
 		exit(1);
 	}

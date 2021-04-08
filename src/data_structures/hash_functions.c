@@ -1,4 +1,4 @@
-#include "hash.h"
+#include "hashmap.h"
 
 hash_t hash_string(const void *string, size_t size_key) {
 	hash_t hash = 0;
