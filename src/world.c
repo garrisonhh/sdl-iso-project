@@ -38,11 +38,10 @@ void chunk_destroy(chunk_t *chunk) {
 	free(chunk);
 }
 
-// chunk_t *chunk_get()? maybe completely unnecessary honestly
-
-// returns whether successful (chunk exists), pastes results in pointers if not null
-bool chunk_block_indices(world_t *world, v3i loc, unsigned int *chunk_result, unsigned int *block_result) {
-	unsigned int chunk_index = 0, block_index = 0;
+// returns whether loc is within bounds
+// TODO remove bool component, I don't think it's actually useful
+bool chunk_block_indices(world_t *world, v3i loc, unsigned *chunk_result, unsigned *block_result) {
+	unsigned chunk_index = 0, block_index = 0;
 	int dim, i;
 
 	for (i = 0; i < 3; i++) {
@@ -64,12 +63,23 @@ bool chunk_block_indices(world_t *world, v3i loc, unsigned int *chunk_result, un
 	return true;
 }
 
+void chunk_check_destroy(world_t *world, unsigned chunk_index) {
+	chunk_t *chunk;
+
+	if ((chunk = world->chunks[chunk_index]) != NULL
+	 && chunk->num_blocks == 0 && chunk->num_entities == 0) {
+		chunk_destroy(chunk);
+		world->chunks[chunk_index] = NULL;
+	}
+}
+
 bool block_transparent(block_t *block) {
 	return block->texture->transparent;
 }
 
 void block_update_masks(world_t *world, v3i loc) {
-	unsigned int chunk_index, block_index;
+	//unsigned chunk_index, block_index;
+	//chunk_t *chunk;
 	block_t *block, *other_block;
 	v3i other_loc;
 	bool exposed, connected;
@@ -82,27 +92,25 @@ void block_update_masks(world_t *world, v3i loc) {
 		other_loc = loc;
 		v3i_set(&other_loc, i, v3i_get(&other_loc, i) - 1);
 
-		if (chunk_block_indices(world, other_loc, &chunk_index, &block_index)) {
-			other_block = world->chunks[chunk_index]->blocks[block_index];
+		other_block = block_get(world, other_loc);
 
-			if (other_block != NULL) {
-				if (!block_transparent(other_block)) {
-					if (exposed)
-						other_block->expose_mask |= 0x04 >> i; // 0b00100
-					else
-						other_block->expose_mask &= 0x1b >> i; // 0b11011
-				}
+		if (other_block != NULL) {
+			if (!block_transparent(other_block)) {
+				if (exposed)
+					other_block->expose_mask |= 0x04 >> i; // 0b00100
+				else
+					other_block->expose_mask &= 0x1b >> i; // 0b11011
+			}
 
-				if (connected) {
-					// 0x20 == 0b00100000
-					// 0x10 == 0b00010000
-					// 0xEF == !0x10
-					if (other_block->texture == block->texture) {
-						other_block->connect_mask |= 0x20 >> (i << 1);
-						block->connect_mask |= 0x10 >> (i << 1);
-					} else {
-						block->connect_mask &= 0xFEF >> (i << 1);
-					}
+			if (connected) {
+				// 0x20 == 0b00100000
+				// 0x10 == 0b00010000
+				// 0xEF == 0b11101111
+				if (other_block->texture == block->texture) {
+					other_block->connect_mask |= 0x20 >> (i << 1);
+					block->connect_mask |= 0x10 >> (i << 1);
+				} else {
+					block->connect_mask &= 0xFEF >> (i << 1);
 				}
 			}
 		}
@@ -110,37 +118,42 @@ void block_update_masks(world_t *world, v3i loc) {
 }
 
 block_t *block_get(world_t *world, v3i loc) {
-	unsigned int chunk_index, block_index;
+	unsigned chunk_index, block_index;
+	chunk_t *chunk;
 
-	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
+	if (!chunk_block_indices(world, loc, &chunk_index, &block_index)
+	 || (chunk = world->chunks[chunk_index]) == NULL)
 		return NULL;
-	return world->chunks[chunk_index]->blocks[block_index];
+	return chunk->blocks[block_index];
 }
 
-
+// TODO removing blocks is not currently possible with this
 void block_set(world_t *world, v3i loc, size_t block_id) {
-	unsigned int chunk_index, block_index;
+	unsigned chunk_index, block_index;
 	
 	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
 		return;
 
 	chunk_t *chunk = world->chunks[chunk_index];
 
-	if (chunk == NULL)
-		world->chunks[chunk_index] = chunk_create();
-
-	if (chunk->blocks[block_index] != NULL) {
-		free(chunk->blocks[block_index]);
-		chunk->num_blocks--;
+	if (chunk == NULL) {
+		chunk = chunk_create();
+		world->chunks[chunk_index] = chunk;
 	}
 
+	if (chunk->blocks[block_index] != NULL)
+		free(chunk->blocks[block_index]);
+	else
+		chunk->num_blocks++;
+
 	chunk->blocks[block_index] = block_create(block_id);
+	//check_chunk_destroy(chunk_index); // uncomment if this method doesn't get used to remove blocks.
 
 	block_update_masks(world, loc);
 }
 
 void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
-	unsigned int chunk_index, block_index;
+	unsigned chunk_index, block_index;
 	
 	if (!chunk_block_indices(world, loc, &chunk_index, &block_index)) {
 		printf("adding to out of bounds entity bucket.\n");
@@ -149,31 +162,37 @@ void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 
 	chunk_t *chunk = world->chunks[chunk_index];
 
-	if (chunk == NULL)
-		world->chunks[chunk_index] = chunk_create();
+	if (chunk == NULL) {
+		chunk = chunk_create();
+		world->chunks[chunk_index] = chunk;
+	}
 
 	if (chunk->buckets[block_index] == NULL)
 		chunk->buckets[block_index] = array_create(2);
 	
 	array_add(chunk->buckets[block_index], entity);
+	chunk->num_entities++;
 }
 
 void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
-	unsigned int chunk_index, block_index;
+	unsigned chunk_index, block_index;
 	
 	if (!chunk_block_indices(world, loc, &chunk_index, &block_index)) {
 		printf("removing from out of bounds entity bucket.\n");
 		exit(1);
 	}
 
-	chunk_t *chunk = world->chunks[chunk_index];
+	chunk_t *chunk = world->chunks[chunk_index]; // will never be null
 
 	array_remove(chunk->buckets[block_index], entity);
+	chunk->num_entities--;
 	
 	if (chunk->buckets[block_index]->size == 0) {
 		array_destroy(chunk->buckets[block_index], false);
 		chunk->buckets[block_index] = NULL;
 	}
+
+	chunk_check_destroy(world, chunk_index);
 }
 
 // sizes are a power of 2
@@ -188,7 +207,7 @@ world_t *world_create(uint16_t size_power) {
 	world->chunks = (chunk_t **)malloc(sizeof(chunk_t *) * world->num_chunks);
 
 	for (int i = 0; i < world->num_chunks; i++)
-		world->chunks[i] = chunk_create();
+	 	world->chunks[i] = NULL; //world->chunks[i] = chunk_create();
 
 	world->player = player_create();
 	world->entities = array_create(2);
@@ -201,7 +220,8 @@ world_t *world_create(uint16_t size_power) {
 
 void world_destroy(world_t *world) {
 	for (int i = 0; i < world->num_chunks; i++)
-		chunk_destroy(world->chunks[i]);
+		if (world->chunks[i] != NULL)
+			chunk_destroy(world->chunks[i]);
 	
 	array_destroy(world->entities, true); // includes player
 
@@ -271,7 +291,7 @@ void world_generate(world_t *world) {
 		return;
 	}
 
-	unsigned int x, y, z;
+	unsigned x, y, z;
 	int noise_val;
 	v2d noise_pos;
 	v2i dims = {world->size >> 1, world->size >> 1};

@@ -149,6 +149,7 @@ void render_world(world_t *world) {
 	unsigned int chunk_index, block_index;
 	bool in_foreground, player_blocked;
 	ray_t cam_ray;
+	chunk_t *chunk;
 	block_t *block;
 	array_t *bucket;
 	v3i block_loc, player_loc;
@@ -197,9 +198,8 @@ void render_world(world_t *world) {
 			for (y = min_block.y; y < max_block.y; y++) {
 				for (x = min_block.x; x < max_block.x; x++) {
 					block_loc = (v3i){x, y, z};
-					chunk_block_indices(world, block_loc, &chunk_index, &block_index);
 
-					if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL
+					if ((block = block_get(world, block_loc)) != NULL
 					  && block->texture->transparent) {
 						render_block(world, block, block_loc, void_mask);
 					}
@@ -215,27 +215,27 @@ void render_world(world_t *world) {
 			for (x = min_block.x; x < max_block.x; x++) {
 				block_loc = (v3i){x, y, z};
 				chunk_block_indices(world, block_loc, &chunk_index, &block_index);
-				
-				// blocks
-				if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL) {
-					if (block->texture->type == TEX_VOXEL) {
-						void_mask = 0x0;
 
-						for (i = 0; i < 3; i++) {
-							void_mask <<= 1;
-							void_mask |= (v3i_get(&block_loc, i) == v3i_get(&max_block, i) - 1 ? 0x1 : 0x0);
+				if ((chunk = world->chunks[chunk_index]) != NULL) {
+					if ((block = chunk->blocks[block_index]) != NULL) {
+						if (block->texture->type == TEX_VOXEL) {
+							void_mask = 0x0;
+
+							for (i = 0; i < 3; i++) {
+								void_mask <<= 1;
+								void_mask |= (v3i_get(&block_loc, i) == v3i_get(&max_block, i) - 1 ? 0x1 : 0x0);
+							}
+
+							void_mask |= (block_loc.z == player_loc.z && !(block->expose_mask & 0x1) ? 0x1 : 0x0);
 						}
 
-						void_mask |= (block_loc.z == player_loc.z && !(block->expose_mask & 0x1) ? 0x1 : 0x0);
+						render_block(world, block, block_loc, void_mask);
 					}
 
-					render_block(world, block, block_loc, void_mask);
+					if ((bucket = chunk->buckets[block_index]) != NULL)
+						for (i = 0; i < bucket->size; i++)
+							render_entity(bucket->items[i]);
 				}
-
-				// entities
-				if ((bucket = world->chunks[chunk_index]->buckets[block_index]) != NULL)
-					for (i = 0; i < bucket->size; i++)
-						render_entity(bucket->items[i]);
 			}
 		}
 	}	
@@ -251,26 +251,6 @@ void render_world(world_t *world) {
 	SDL_SetRenderTarget(renderer, NULL);
 	SDL_RenderCopy(renderer, background, &camera.viewport, NULL);
 	SDL_RenderCopy(renderer, foreground, &camera.viewport, NULL);
-
-	// TODO REMOVE
-	/*
-	v2i points[4] = {
-		(v2i){50, 50},
-		(v2i){150, 50},
-		(v2i){150, 150},
-		(v2i){50, 150}
-	};
-
-	SDL_SetRenderDrawColor(renderer, 0x20, 0x00, 0x20, 0x7F);
-	printf("first shape:\n");
-	render_filled_poly(points, 4);
-
-	for (int i = 0; i < 4; i++)
-		points[i].x += 50;
-
-	printf("second shape:\n");
-	render_filled_poly(points, 4);
-	*/
 
 	// destroy shadows
 	for (z = 0; z < world->block_size; z++)

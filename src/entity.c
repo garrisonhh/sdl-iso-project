@@ -7,6 +7,7 @@
 #include "block.h"
 #include "block_gen.h"
 #include "data_structures/array.h"
+#include "utils.h"
 
 entity_t *entity_create(texture_t *sprite, v3d pos, v3d size) {
 	entity_t *entity = (entity_t *)malloc(sizeof(entity_t));
@@ -33,7 +34,6 @@ void entity_destroy(entity_t *entity) {
  */
 array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 	int x, y, z;
-	unsigned int chunk_index, block_index;
 	v3i entity_loc, current_loc;
 	array_t *block_colls;
 	block_t *block;
@@ -48,17 +48,17 @@ array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 				current_loc = (v3i){x, y, z};
 				current_loc = v3i_add(entity_loc, current_loc);
 
-				if (chunk_block_indices(world, current_loc, &chunk_index, &block_index)) {	
-					if ((block = world->chunks[chunk_index]->blocks[block_index]) != NULL
-					 && block->coll_data->coll_type != BLOCK_COLL_NONE) {
-						block_coll = (block_collidable_t *)malloc(sizeof(block_collidable_t));
+				if ((block = block_get(world, current_loc)) != NULL
+				  && block->coll_data->coll_type != BLOCK_COLL_NONE) {
+					block_coll = (block_collidable_t *)malloc(sizeof(block_collidable_t));
 
-						block_coll->loc = current_loc;
-						block_coll->coll_data = block->coll_data;
+					block_coll->loc = current_loc;
+					block_coll->coll_data = block->coll_data;
 
-						array_add(block_colls, block_coll);
-					 }
-				} else {
+					array_add(block_colls, block_coll);
+				} else if (current_loc.x < 0 || current_loc.x >= world->block_size
+						|| current_loc.y < 0 || current_loc.y >= world->block_size
+						|| current_loc.z < 0 || current_loc.z >= world->block_size) {
 					block_coll = (block_collidable_t *)malloc(sizeof(block_collidable_t));
 
 					block_coll->loc = current_loc;
@@ -87,9 +87,6 @@ void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time
 	scaled_ray.dir = v3d_scale(scaled_ray.dir, time);
 
 	block_coll_array_sort(block_colls, entity->ray.dir);
-
-	if (block_colls->size > 0)
-		;//printf("new frame, new array:\n");
 
 	for (size_t i = 0; i < block_colls->size; i++) {
 		block_coll = (block_collidable_t *)block_colls->items[i];
@@ -152,6 +149,7 @@ void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 	array_t *block_colls;
 
 	time = ms / 1000;
+	time = MIN(time, 0.1); // makes valgrind debugging smoother
 	entity->ray.dir.z += GRAVITY * time;
 	entity->on_ground = false;
 
