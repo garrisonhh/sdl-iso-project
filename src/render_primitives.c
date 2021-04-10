@@ -71,24 +71,6 @@ v2i *bresenham(v2i a, v2i b, size_t *num_points) {
 	return points;
 }
 
-void render_iso_circle(circle_t circle) {
-	int i, ix;
-	float y = 0.0, y_step = 2 / (float)circle.radius;
-
-	SDL_RenderDrawLine(renderer, circle.loc.x + circle.radius, circle.loc.y,
-								 circle.loc.x - circle.radius, circle.loc.y);
-
-	for (i = 1; i <= circle.radius >> 1; i++) {
-		ix = (int)(sqrt(1 - (y * y)) * circle.radius);
-		y += y_step;
-
-		SDL_RenderDrawLine(renderer, circle.loc.x + ix, circle.loc.y + i,
-									 circle.loc.x - ix, circle.loc.y + i);
-		SDL_RenderDrawLine(renderer, circle.loc.x + ix, circle.loc.y - i,
-									 circle.loc.x - ix, circle.loc.y - i);
-	}
-}
-
 // only works for convex polygons
 void render_filled_poly(v2i *points, size_t num_points) {
 	if (num_points < 3) {
@@ -144,4 +126,59 @@ void render_filled_poly(v2i *points, size_t num_points) {
 	for (i = 0; i < range_y; i++)
 		if (raster[i][0] >= 0 && raster[i][1] >= 0)
 			SDL_RenderDrawLine(renderer, raster[i][0], min_y + i, raster[i][1], min_y + i);
+}
+
+// bresenham's circle algo adapted from https://web.engr.oregonstate.edu/~sllu/bcircle.pdf
+// TODO find a real citation for this ^
+void render_iso_circle(circle_t circle) {
+	int x, y;
+	int dx, dy;
+	int r_err;
+	int halfy, halfx;
+
+	// toggle flags are used to render only half of the lines, resulting in ellipse
+	bool toggle = false, toggle_flipped = false;
+	bool draw_flipped = false;
+
+	x = circle.radius;
+	y = 0;
+	dx = 1 - (circle.radius << 1);
+	dy = 1;
+	r_err = 0;
+
+	SDL_RenderDrawLine(renderer, circle.loc.x + x, circle.loc.y,
+								 circle.loc.x - x, circle.loc.y);
+	
+	while (x >= y) {
+		if (toggle && y > 1) {
+			halfy = y >> 1;
+			SDL_RenderDrawLine(renderer, circle.loc.x + x, circle.loc.y + halfy,
+										 circle.loc.x - x, circle.loc.y + halfy);
+			SDL_RenderDrawLine(renderer, circle.loc.x + x, circle.loc.y - halfy,
+										 circle.loc.x - x, circle.loc.y - halfy);
+
+		}
+		toggle = !toggle;
+
+		if (draw_flipped && toggle_flipped) {
+			halfx = x >> 1;
+			SDL_RenderDrawLine(renderer, circle.loc.x + y, circle.loc.y + halfx,
+										 circle.loc.x - y, circle.loc.y + halfx);
+			SDL_RenderDrawLine(renderer, circle.loc.x + y, circle.loc.y - halfx,
+										 circle.loc.x - y, circle.loc.y - halfx);
+		}
+		draw_flipped = false;
+
+		y++;
+		r_err += dy;
+		dy += 2;
+
+		if ((r_err << 1) + dx > 0) {
+			x--;
+			r_err += dx;
+			dx += 2;
+			draw_flipped = x != y;
+			toggle_flipped = !toggle_flipped;
+		}
+	}
 }
