@@ -18,6 +18,14 @@ struct path_connect_t {
 };
 typedef struct path_connect_t path_connect_t;
 
-hashmap_t *path_map_construct(world_t *);
+struct path_network_t {
+	// nodes is {v3i : path_node_t *}
+	// ids is {v3i : group id}
+	hashmap_t *nodes, *ids;
+	int groups;
+};
+typedef struct path_network_t path_network_t;
+
+path_network_t *path_generate_world_network(world_t *);
 
 #endif

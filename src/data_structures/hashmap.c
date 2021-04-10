@@ -49,10 +49,15 @@ hash_t hash_key(hashmap_t *hmap, void *key, size_t size_key) {
 	return hmap->hash_func(key, size_key) % hmap->max_size;
 }
 
-void hashmap_rehash(hashmap_t *hmap) {
+void hashmap_rehash(hashmap_t *hmap, bool increase) {
 	size_t old_size = hmap->max_size, i;
 	hashbucket_t **old_buckets = hmap->buckets;
 	hashbucket_t *trav;
+
+	if (increase)
+		hmap->max_size <<= 1;
+	else
+		hmap->max_size >>= 1;
 
 	hmap->buckets = (hashbucket_t **)malloc(sizeof(hashbucket_t *) * hmap->max_size);
 	hmap->size = 0;
@@ -93,13 +98,14 @@ void *hashmap_get(hashmap_t *hmap, void *key, size_t size_key) {
 void *hashmap_remove(hashmap_t *hmap, void *key, size_t size_key) {
 	hash_t hash;
 	hashbucket_t *trav, *last;
-	bool match;
 	void *value;
+	bool match;
 
 	hash = hash_key(hmap, key, size_key);
-	last = NULL;
 	trav = hmap->buckets[hash];
+	last = NULL;
 	value = NULL;
+	match = false;
 
 	while (trav != NULL && !(match = (size_key == trav->size_key && !memcmp(key, trav->key, size_key)))) {
 		last = trav;
@@ -116,10 +122,8 @@ void *hashmap_remove(hashmap_t *hmap, void *key, size_t size_key) {
 
 		hmap->size--;
 
-		if (hmap->rehashes && hmap->size < (hmap->max_size >> 2)) {
-			hmap->max_size >>= 1;
-			hashmap_rehash(hmap);
-		}
+		if (hmap->rehashes && hmap->size < (hmap->max_size >> 2))
+			hashmap_rehash(hmap, false);
 	}
 
 	return value;
@@ -158,10 +162,8 @@ hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
 			trav->overflow = bucket;
 		}
 
-		if (hmap->rehashes && ++hmap->size == hmap->max_size) {
-			hmap->max_size <<= 1;
-			hashmap_rehash(hmap);
-		}
+		if (hmap->rehashes && ++hmap->size == hmap->max_size)
+			hashmap_rehash(hmap, true);
 	}
 
 	return hash;

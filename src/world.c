@@ -12,8 +12,7 @@
 #include "textures.h"
 #include "utils.h"
 #include "data_structures/array.h"
-
-#include "pathing.h" // TODO DEBUG REMOVE
+#include "pathing.h"
 
 chunk_t *chunk_create() {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
@@ -33,7 +32,7 @@ void chunk_destroy(chunk_t *chunk) {
 	for (int i = 0; i < CHUNK_SIZE; i++) {
 		if (chunk->blocks[i] != NULL)
 			block_destroy(chunk->blocks[i]);
-		if (chunk->buckets[i] != NULL) // TODO do I need to destroy() these somehow?
+		if (chunk->buckets[i] != NULL)
 			array_destroy(chunk->buckets[i], false);
 	}
 
@@ -338,8 +337,7 @@ void world_generate(world_t *world) {
 
 	noise_quit();
 	
-	// TODO DEBUG REMOVE
-	world->NODES = path_map_construct(world);
+	world->path_net = path_generate_world_network(world);
 }
 
 void world_tick(world_t *world, int ms) {

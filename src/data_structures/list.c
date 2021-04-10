@@ -58,6 +58,8 @@ void *list_pop(list_t *list) {
 
 	free(old_root);
 
+	--list->size;
+
 	return item;
 }
 
