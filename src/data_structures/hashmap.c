@@ -26,6 +26,7 @@ hashmap_t *hashmap_create(size_t initial_size, bool rehashes, hash_t (*hash_func
 	return hmap;
 }
 
+// returns bucket overflow
 hashbucket_t *hashbucket_destroy(hashbucket_t *bucket, bool destroy_value) {
 	hashbucket_t *overflow = bucket->overflow;
 
@@ -97,21 +98,34 @@ void *hashmap_get(hashmap_t *hmap, void *key, size_t size_key) {
 	return (bucket != NULL ? bucket->value : NULL);
 }
 
-void hashmap_remove(hashmap_t *hmap, void *key, size_t size_key, bool destroy_value) {
+void *hashmap_remove(hashmap_t *hmap, void *key, size_t size_key) {
 	hash_t hash;
 	hashbucket_t *trav, *last;
+	bool match;
+	void *value;
 
 	hash = hash_key(hmap, key, size_key);
 	last = NULL;
 	trav = hmap->buckets[hash];
+	value = NULL;
 
-	while (trav != NULL && (size_key != trav->size_key || memcmp(key, trav->key, trav->size_key))) {
+	while (trav != NULL && !(match = (size_key == trav->size_key && !memcmp(key, trav->key, size_key)))) {
 		last = trav;
 		trav = trav->overflow;
 	}
 
-	if (last != NULL)
-		last->overflow = hashbucket_destroy(trav, destroy_value);
+	if (match) {
+		value = trav->value;
+
+		if (last == NULL)
+			hmap->buckets[hash] = hashbucket_destroy(trav, false);
+		else
+			last->overflow = hashbucket_destroy(trav, false);
+
+		hmap->size--;
+	}
+
+	return value;
 }
 
 hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
