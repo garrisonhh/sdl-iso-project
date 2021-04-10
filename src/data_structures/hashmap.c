@@ -4,13 +4,6 @@
 #include "hashmap.h"
 #include "../utils.h"
 
-struct hashbucket_t {
-	void *key;
-	size_t size_key;
-	void *value;
-	struct hashbucket_t *overflow;
-};
-
 hashmap_t *hashmap_create(size_t initial_size, bool rehashes, hash_t (*hash_func)(const void *, size_t)) {
 	hashmap_t *hmap = (hashmap_t *)malloc(sizeof(hashmap_t));
 
@@ -61,7 +54,6 @@ void hashmap_rehash(hashmap_t *hmap) {
 	hashbucket_t **old_buckets = hmap->buckets;
 	hashbucket_t *trav;
 
-	hmap->max_size <<= 1;
 	hmap->buckets = (hashbucket_t **)malloc(sizeof(hashbucket_t *) * hmap->max_size);
 	hmap->size = 0;
 
@@ -123,6 +115,11 @@ void *hashmap_remove(hashmap_t *hmap, void *key, size_t size_key) {
 			last->overflow = hashbucket_destroy(trav, false);
 
 		hmap->size--;
+
+		if (hmap->rehashes && hmap->size < (hmap->max_size >> 2)) {
+			hmap->max_size >>= 1;
+			hashmap_rehash(hmap);
+		}
 	}
 
 	return value;
@@ -139,7 +136,6 @@ hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
 		trav = trav->overflow;
 
 	if (trav != NULL) { // found matching bucket, modify value
-		printf("modifying value\n");
 		trav->value = value;
 	} else { // no matching bucket, create new bucket
 		bucket = (hashbucket_t *)malloc(sizeof(hashbucket_t));
@@ -162,8 +158,10 @@ hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
 			trav->overflow = bucket;
 		}
 
-		if (hmap->rehashes && ++hmap->size == hmap->max_size)
+		if (hmap->rehashes && ++hmap->size == hmap->max_size) {
+			hmap->max_size <<= 1;
 			hashmap_rehash(hmap);
+		}
 	}
 
 	return hash;

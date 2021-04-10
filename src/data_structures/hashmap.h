@@ -5,6 +5,13 @@
 #include <stdbool.h>
 
 typedef unsigned hash_t;
+
+struct hashbucket_t {
+	void *key;
+	size_t size_key;
+	void *value;
+	struct hashbucket_t *overflow;
+};
 typedef struct hashbucket_t hashbucket_t;
 
 struct hashmap_t {
