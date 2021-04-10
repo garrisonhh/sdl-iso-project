@@ -154,3 +154,24 @@ hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
 	return hash;
 }
 
+// useful for iteration
+void **hashmap_values(hashmap_t *hmap) {
+	void **values;
+	hashbucket_t *trav;
+	size_t i, cur_values;
+
+	values = (void **)calloc(hmap->size, sizeof(void *));
+	cur_values = 0;
+
+	for (i = 0; i < hmap->max_size; i++) {
+		trav = hmap->buckets[i];
+
+		while (trav != NULL) {
+			values[cur_values++] = trav->value;
+			trav = trav->overflow;
+		}
+	}
+
+	return values;
+}
+
