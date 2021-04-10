@@ -13,6 +13,8 @@
 #include "utils.h"
 #include "data_structures/array.h"
 
+#include "pathing.h" // TODO DEBUG REMOVE
+
 chunk_t *chunk_create() {
 	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
 
@@ -38,8 +40,8 @@ void chunk_destroy(chunk_t *chunk) {
 	free(chunk);
 }
 
-// returns whether loc is within bounds
-// TODO remove bool component, I don't think it's actually useful
+// if you just want to access a block, use block_get() unless you're REALLY going for optimization,
+// it is very safe and doesn't have any hidden gotchas
 bool chunk_block_indices(world_t *world, v3i loc, unsigned *chunk_result, unsigned *block_result) {
 	unsigned chunk_index = 0, block_index = 0;
 	int dim, i;
@@ -63,6 +65,7 @@ bool chunk_block_indices(world_t *world, v3i loc, unsigned *chunk_result, unsign
 	return true;
 }
 
+// call after a potential net decrease in entities/blocks in chunk
 void chunk_check_destroy(world_t *world, unsigned chunk_index) {
 	chunk_t *chunk;
 
@@ -196,7 +199,7 @@ void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 }
 
 // sizes are a power of 2
-world_t *world_create(uint16_t size_power) {
+world_t *world_create(unsigned size_power) {
 	world_t *world = (world_t *)malloc(sizeof(world_t));
 
 	world->size_power = size_power;
@@ -334,6 +337,9 @@ void world_generate(world_t *world) {
 	}
 
 	noise_quit();
+	
+	// TODO DEBUG REMOVE
+	world->NODES = path_map_construct(world);
 }
 
 void world_tick(world_t *world, int ms) {

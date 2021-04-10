@@ -125,6 +125,7 @@ hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
 		trav = trav->overflow;
 
 	if (trav != NULL) { // found matching bucket, modify value
+		printf("modifying value\n");
 		trav->value = value;
 	} else { // no matching bucket, create new bucket
 		bucket = (hashbucket_t *)malloc(sizeof(hashbucket_t));

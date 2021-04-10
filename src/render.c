@@ -10,10 +10,12 @@
 #include "collision.h"
 #include "raycast.h"
 #include "data_structures/array.h"
+#include "data_structures/hashmap.h"
 #include "camera.h"
 #include "render_primitives.h"
 #include "utils.h"
 #include "world.h"
+#include "pathing.h"
 
 #define BG_GRAY 31
 #define SHADOW_ALPHA 63
@@ -236,6 +238,51 @@ void render_world(world_t *world) {
 						for (i = 0; i < bucket->size; i++)
 							render_entity(bucket->items[i]);
 				}
+
+				// TODO DEBUG REMOVE
+				/*
+				path_node_t *node;
+
+				if ((node = hashmap_get(world->NODES, &block_loc, sizeof block_loc)) != NULL) {
+					// center node
+					v3d node_pos = v3d_from_v3i(block_loc);
+					node_pos.x += .5;
+					node_pos.y += .5;
+					circle_t node_circle = {
+						.loc = project_v3d(node_pos, true),
+						.radius = 4
+					};
+
+					// connections
+					SDL_SetRenderDrawColor(renderer, 0x3F, 0x00, 0xFF, 0xFF);
+					v2i node_v2i = node_circle.loc;
+					void **connects = hashmap_values(node->connects);
+
+					for (int c = 0; c < node->connects->size; c++) {
+						v3d nbor_pos = v3d_from_v3i(((path_connect_t *)connects[c])->node->pos);
+						nbor_pos.x += .5;
+						nbor_pos.y += .5;
+						nbor_pos = v3d_add(node_pos, v3d_scale(v3d_sub(nbor_pos, node_pos), 0.5));
+
+						v2i nbor_v2i = project_v3d(nbor_pos, true);
+
+						SDL_RenderDrawLine(renderer, node_v2i.x, node_v2i.y, nbor_v2i.x, nbor_v2i.y);
+					}
+					
+					free(connects);
+
+					switch (node->connects->size) {
+						case 4:
+							SDL_SetRenderDrawColor(renderer, 0x3F, 0xFF, 0x3F, 0xFF);
+							break;
+						default:
+							SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x3F, 0xFF);
+							break;
+					}
+					render_iso_circle(node_circle);
+					SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
+				}
+				*/
 			}
 		}
 	}	

@@ -6,6 +6,7 @@
 #include "vector.h"
 #include "entity.h"
 #include "data_structures/array.h"
+#include "data_structures/hashmap.h"
 #include "block.h"
 
 #define CHUNK_SIZE 4096 // 0x000 -> 0xFFF
@@ -26,6 +27,8 @@ struct world_t {
 	array_t *entities;
 	struct entity_t *player;
 
+	hashmap_t *NODES; // TODO DEBUG REMOVE
+
 	unsigned num_chunks, chunk_mask;
 	// size = chunks along 1 dimension
 	// size_power = power of 2 for size
@@ -34,7 +37,7 @@ struct world_t {
 };
 typedef struct world_t world_t;
 
-world_t *world_create(uint16_t);
+world_t *world_create(unsigned);
 void world_destroy(world_t *);
 void world_generate(world_t *);
 void world_tick(world_t *, int ms);

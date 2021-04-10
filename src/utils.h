@@ -17,9 +17,16 @@
 #define MIN(a, b) (a < b ? a : b)
 #define CLAMP(x, a, b) (MAX(MIN(x, b), a))
 
-// most useful god damn macro on the planet holy guacamole
+#define SWAP(a, b, temp) {\
+	temp = a;\
+	a = b;\
+	b = temp;\
+}
+
+// most useful god damn macros on the planet holy guacamole
 #define FOR_XY(x, y, mx, my) for (y = 0; y < my; y++) for (x = 0; x < mx; x++)
 #define FOR_XYZ(x, y, z, mx, my, mz) for (z = 0; z < mz; z++) for (y = 0; y < my; y++) for (x = 0; x < mx; x++)
+#define FOR_CUBE(x, y, z, minv, maxv) for (z = minv; z < maxv; z++) for (y = minv; y < maxv; y++) for (x = minv; x < maxv; x++)
 
 bool d_close(double a, double b);
 
