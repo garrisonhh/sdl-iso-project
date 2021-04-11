@@ -86,7 +86,9 @@ v3i polarity_of_v3d(v3d v) {
 }
 
 void v3i_print(const char *message, v3i v) {
-	printf("%s:\t{%d\t%d\t%d}\n", message, v.x, v.y, v.z);
+	if (message != NULL)
+		printf("%s:\t", message);
+	printf("{%d\t%d\t%d}\n", v.x, v.y, v.z);
 }
 
 v3d v3d_from_v3i(v3i v) {
@@ -151,5 +153,7 @@ double v3d_dot(v3d a, v3d b) {
 }
 
 void v3d_print(const char *message, v3d v) {
-	printf("%s:\t{%9.4f\t%9.4f\t%9.4f}\n", message, v.x, v.y, v.z);
+	if (message != NULL)
+		printf("%s:\t", message);
+	printf("{%9.4f\t%9.4f\t%9.4f}\n", v.x, v.y, v.z);
 }
