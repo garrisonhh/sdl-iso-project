@@ -110,6 +110,10 @@ void *list_get(list_t *list, size_t index) {
 // list_delete
 
 void list_merge(list_t *list, list_t *other) {
-	while (other->size > 0)
-		list_append(list, list_pop(other));
+	list->tip->next = other->root;
+	list->tip = other->tip;
+
+	other->root = NULL;
+	other->tip = NULL;
+	other->size = 0;
 }
