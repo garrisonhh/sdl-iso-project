@@ -34,7 +34,7 @@ void block_gen_load(json_object *file_obj) {
 	ray_t *plane;
 
 	hashmap_t *coll_type_table;
-	block_coll_type *coll_type_ptr;
+	block_coll_e *coll_type_ptr;
 	num_coll_types = 4;
 	char *coll_type_strings[] = {
 		"none",
@@ -51,8 +51,8 @@ void block_gen_load(json_object *file_obj) {
 	block_table = hashmap_create(num_blocks * 1.3 + 1, true, hash_string);
 
 	for (i = 0; i < num_coll_types; i++) {
-		coll_type_ptr = (block_coll_type *)malloc(sizeof(block_coll_type));
-		*coll_type_ptr = (block_coll_type)i;
+		coll_type_ptr = (block_coll_e *)malloc(sizeof(block_coll_e));
+		*coll_type_ptr = (block_coll_e)i;
 		hashmap_set(coll_type_table, coll_type_strings[i], strlen(coll_type_strings[i]), coll_type_ptr);
 	}
 
@@ -77,7 +77,7 @@ void block_gen_load(json_object *file_obj) {
 		// coll type
 		if ((obj = json_object_object_get(current_block, "collision")) != NULL) {
 			obj_str = (char *)json_object_get_string(obj);
-			coll_type_ptr = (block_coll_type *)hashmap_get(coll_type_table, obj_str, strlen(obj_str));
+			coll_type_ptr = (block_coll_e *)hashmap_get(coll_type_table, obj_str, strlen(obj_str));
 
 			if (coll_type_ptr == NULL) {
 				printf("unknown collision type for block \"%s\".\n", name);

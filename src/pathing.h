@@ -4,7 +4,9 @@
 #include "world.h"
 #include "vector.h"
 #include "data_structures/hashmap.h"
+#include "data_structures/list.h"
 
+// path network types
 struct path_node_t {
 	v3i pos;
 	// map of {connected pos : path_connect_t *}
@@ -26,6 +28,21 @@ struct path_network_t {
 };
 typedef struct path_network_t path_network_t;
 
+// astar types
+enum path_astar_set_e {
+	PATH_ASTAR_OPEN,
+	PATH_ASTAR_CLOSED
+};
+typedef enum path_astar_set_e path_astar_set_e;
+
+struct path_asnode_t {
+	double g, h, f;
+	v3i pos, prev;
+	path_astar_set_e set;
+};
+typedef struct path_asnode_t path_asnode_t;
+
 path_network_t *path_generate_world_network(world_t *);
+list_t *path_find(path_network_t *, v3i start_pos, v3i goal_pos);
 
 #endif

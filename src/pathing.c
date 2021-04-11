@@ -7,6 +7,7 @@
 #include "data_structures/hashmap.h"
 #include "data_structures/hash_functions.h"
 #include "data_structures/list.h"
+#include "data_structures/heap.h"
 #include "world.h"
 #include "block.h"
 #include "utils.h"
@@ -27,6 +28,15 @@ void path_node_destroy(path_node_t *node) {
 
 	free(node);
 }
+
+/*
+void path_network_destroy(path_network_t *network) {
+	hashmap_destroy(network->nodes, true);
+	hashmap_destroy(network->ids, false); // TODO this leaks the ids
+
+	free(network);
+}
+*/
 
 /*
  * heuristic used here are calculated by using the manhatten + diagonal distance on the (x, y)
@@ -233,3 +243,138 @@ path_network_t *path_generate_world_network(world_t *world) {
 
 	return network;
 }
+
+path_asnode_t *path_asnode_create(v3i pos, path_asnode_t *prev, v3i goal_pos) {
+	path_asnode_t *asnode = (path_asnode_t *)malloc(sizeof(path_asnode_t));
+
+	asnode->pos = pos;
+
+	if (prev != NULL) {
+		asnode->prev = prev->pos;
+		asnode->g = prev->g + path_heuristic(asnode->prev, asnode->pos);
+	} else {
+		asnode->prev = pos;
+		asnode->g = 0;
+	}
+
+	asnode->h = path_heuristic(pos, goal_pos);
+	asnode->f = asnode->g + asnode->h;
+	asnode->set = PATH_ASTAR_OPEN;
+	
+	return asnode;
+}
+
+int path_compare_asnodes(const void *a, const void *b) {
+	return ((path_asnode_t *)a)->f - ((path_asnode_t *)b)->f;
+}
+
+unsigned path_hash_asnode(const void *node_ptr, size_t size_key) {
+	return hash_v3i(&((path_asnode_t *)node_ptr)->pos, sizeof(v3i));
+}
+
+list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
+	if (*(int *)hashmap_get(network->ids, &start_pos, sizeof start_pos)
+	 != *(int *)hashmap_get(network->ids, &goal_pos, sizeof goal_pos)) {
+		return NULL;
+	}
+
+	heap_t *openset;
+	hashmap_t *navigated;
+	path_asnode_t *current, *neighbor;
+	path_node_t *cur_node, *nbor_node;
+	void **neighbors;
+	int i;
+	double potential_g;
+
+	// TODO dynamically allocate initial heap based on distance?
+	openset = heap_create(4, path_compare_asnodes);
+	navigated = hashmap_create(64, true, path_hash_asnode);
+
+	current = path_asnode_create(start_pos, NULL, goal_pos);
+	heap_insert(openset, current);
+	hashmap_set(navigated, &current->pos, sizeof current->pos, current);
+
+	while (openset->size > 0) {
+		current = heap_pop(openset);
+
+		if (!v3i_compare(current->pos, goal_pos)) {
+			printf("found path:\n");
+			
+			path_asnode_t *trav = current;
+
+			while (trav != NULL) {
+				printf("%i, %i\n", current->pos.x, current->pos.y);
+				trav = (path_asnode_t *)hashmap_get(navigated, &current->prev, sizeof current->prev);
+			}
+
+			// TODO free shit
+			return NULL; // TODO return reconstructed path
+		}
+
+		cur_node = (path_node_t *)hashmap_get(network->nodes, &current->pos, sizeof current->pos);
+		neighbors = hashmap_values(cur_node->connects);
+
+		for (i = 0; i < cur_node->connects->size; i++) {
+			nbor_node = ((path_connect_t *)neighbors[i])->node;
+			neighbor = (path_asnode_t *)hashmap_get(navigated, &nbor_node->pos, sizeof nbor_node->pos);
+
+			if (neighbor == NULL) {
+				neighbor = path_asnode_create(nbor_node->pos, current, goal_pos);
+				hashmap_set(navigated, &neighbor->pos, sizeof neighbor->pos, neighbor);
+				heap_insert(openset, neighbor);
+			} else {
+				potential_g = current->g + path_heuristic(neighbor->pos, current->pos);
+
+				if (neighbor->set == PATH_ASTAR_CLOSED)
+					if (potential_g >= neighbor->g)
+						continue;
+
+				if (neighbor->set != PATH_ASTAR_OPEN || potential_g < neighbor->g) {
+					neighbor->prev = current->pos;
+					neighbor->g = current->g + path_heuristic(neighbor->pos, neighbor->prev);
+					neighbor->f = neighbor->g + neighbor->f;
+
+					if (neighbor->set != PATH_ASTAR_OPEN) {
+						neighbor->set = PATH_ASTAR_OPEN;
+						heap_insert(openset, neighbor);
+					}
+				}
+			}
+		}
+		free(neighbors);
+	}
+
+	return NULL;
+}
+/* 
+function A*(start,goal)
+	closedset := the empty set    // The set of nodes already evaluated.
+	openset := {start}    // The set of tentative nodes to be evaluated, initially containing the start node
+	came_from := the empty map    // The map of navigated nodes.
+
+	g_score[start] := 0    // Cost from start along best known path.
+	// Estimated total cost from start to goal through y.
+	f_score[start] := g_score[start] + heuristic_cost_estimate(start, goal)
+
+	while openset is not empty
+		current := the node in openset having the lowest f_score[] value
+		if current = goal
+			return reconstruct_path(came_from, goal)
+
+		remove current from openset
+		add current to closedset
+		for each neighbor in neighbor_nodes(current)
+			tentative_g_score := g_score[current] + dist_between(current,neighbor)
+			if neighbor in closedset
+				if tentative_g_score >= g_score[neighbor]
+					continue
+
+			if neighbor not in openset or tentative_g_score < g_score[neighbor] 
+				came_from[neighbor] := current
+				g_score[neighbor] := tentative_g_score
+				f_score[neighbor] := g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+				if neighbor not in openset
+					add neighbor to openset
+
+	return failure
+*/

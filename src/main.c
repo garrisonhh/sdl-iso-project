@@ -51,12 +51,19 @@ void quit_all() {
 	SDL_Quit();
 }
 
+#include "pathing.h"
+
 int main(int argc, char *argv[]) {
 	init();
 
 	// world
 	world_t *world = world_create(1);
 	world_generate(world);
+
+	v3i start = {0, 0, 1};
+	v3i end = {10, 10, 1};
+
+	path_find(world->path_net, start, end);	
 
 	// time
 	unsigned int last_time = SDL_GetTicks(), this_time;

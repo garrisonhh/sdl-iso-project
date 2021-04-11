@@ -270,26 +270,19 @@ void generate_tree(world_t *world, v3i loc) {
 }
 
 void world_generate(world_t *world) {
-	if (0) { // debug world
+	if (1) { // debug world
 		size_t dirt = block_gen_get_id("dirt");
-		size_t grass = block_gen_get_id("grass");
+		//size_t grass = block_gen_get_id("grass");
 		v3i loc;
 
 		FOR_XYZ(loc.x, loc.y, loc.z, world->block_size, world->block_size, 1) {
 			block_set(world, loc, dirt);
 		}
 
-		loc = (v3i){3, 3, 1};
-		for (; loc.z <= 3; loc.z++) {
-			loc.y--;
-			for (loc.x = 3; loc.x < 6; loc.x++) {
-				block_set(world, loc, block_gen_get_id("ramp"));
-			}
-		}
+		//loc = (v3i){3, 6, 1};
+		//block_set(world, loc, grass);
 
-		loc = (v3i){3, 6, 1};
-		block_set(world, loc, grass);
-
+		world->path_net = path_generate_world_network(world);
 		return;
 	}
 

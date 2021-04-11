@@ -81,7 +81,7 @@ void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time
 	v3d resolved_dir, intersect;
 	bbox_t block_bbox;
 	block_collidable_t *block_coll;
-	block_coll_type coll_type;
+	block_coll_e coll_type;
 
 	scaled_ray = entity->ray;
 	scaled_ray.dir = v3d_scale(scaled_ray.dir, time);
