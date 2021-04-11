@@ -6,6 +6,11 @@
 			"type": "sprite"
 		},
 		{
+			"name": "pear man",
+			"path": "pear_man",
+			"type": "sprite"
+		},
+		{
 			"name": "void",
 			"type": "voxel"
 		},
