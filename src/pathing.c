@@ -159,7 +159,7 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 			}
 		}
 
-		printf("group %i; size %lu; nodes left %lu.\n", id, network->nodes->size, nodes->size);
+		printf("group %i, size %lu; %lu nodes remaining.\n", id, network->nodes->size, nodes->size);
 		++id;
 	}
 
@@ -268,27 +268,32 @@ int path_compare_asnodes(const void *a, const void *b) {
 	return ((path_asnode_t *)a)->f - ((path_asnode_t *)b)->f;
 }
 
-unsigned path_hash_asnode(const void *node_ptr, size_t size_key) {
-	return hash_v3i(&((path_asnode_t *)node_ptr)->pos, sizeof(v3i));
-}
-
+// returns linked list of v3i
 list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
-	if (*(int *)hashmap_get(network->ids, &start_pos, sizeof start_pos)
-	 != *(int *)hashmap_get(network->ids, &goal_pos, sizeof goal_pos)) {
-		return NULL;
-	}
+	// check v3i's are both in the network, and in the same group
+	int *startid, *goalid;
 
+	startid = (int *)hashmap_get(network->ids, &start_pos, sizeof start_pos);
+	goalid = (int *)hashmap_get(network->ids, &goal_pos, sizeof goal_pos);
+
+	if (startid != NULL && goalid != NULL && startid == goalid)
+		return NULL;
+
+	// A* algo
 	heap_t *openset;
 	hashmap_t *navigated;
+	list_t *path;
 	path_asnode_t *current, *neighbor;
 	path_node_t *cur_node, *nbor_node;
 	void **neighbors;
-	int i;
 	double potential_g;
+	int i;
 
-	// TODO dynamically allocate initial heap based on distance?
+	path = NULL;
+
+	// TODO decide initial heap allocation based on distance?
 	openset = heap_create(4, path_compare_asnodes);
-	navigated = hashmap_create(64, true, path_hash_asnode);
+	navigated = hashmap_create(64, true, hash_v3i);
 
 	current = path_asnode_create(start_pos, NULL, goal_pos);
 	heap_insert(openset, current);
@@ -297,23 +302,30 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 	while (openset->size > 0) {
 		current = heap_pop(openset);
 
+		// goal found, reconstruct path and return
 		if (!v3i_compare(current->pos, goal_pos)) {
-			printf("found path:\n");
-			
 			path_asnode_t *trav = current;
+			v3i *cur_pos;
 
-			while (trav != NULL) {
-				printf("%i, %i\n", current->pos.x, current->pos.y);
-				trav = (path_asnode_t *)hashmap_get(navigated, &current->prev, sizeof current->prev);
+			path = list_create();
+
+			while (v3i_compare(trav->pos, start_pos)) {
+				cur_pos = (v3i *)malloc(sizeof(v3i));
+				*cur_pos = trav->pos;
+
+				list_push(path, cur_pos);
+				trav = (path_asnode_t *)hashmap_get(navigated, &trav->prev, sizeof trav->prev);
 			}
 
-			// TODO free shit
-			return NULL; // TODO return reconstructed path
+			break;
 		}
 
+		current->set = PATH_ASTAR_CLOSED;
 		cur_node = (path_node_t *)hashmap_get(network->nodes, &current->pos, sizeof current->pos);
+
 		neighbors = hashmap_values(cur_node->connects);
 
+		// check node neighbors
 		for (i = 0; i < cur_node->connects->size; i++) {
 			nbor_node = ((path_connect_t *)neighbors[i])->node;
 			neighbor = (path_asnode_t *)hashmap_get(navigated, &nbor_node->pos, sizeof nbor_node->pos);
@@ -332,7 +344,7 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 				if (neighbor->set != PATH_ASTAR_OPEN || potential_g < neighbor->g) {
 					neighbor->prev = current->pos;
 					neighbor->g = current->g + path_heuristic(neighbor->pos, neighbor->prev);
-					neighbor->f = neighbor->g + neighbor->f;
+					neighbor->f = neighbor->g + neighbor->h;
 
 					if (neighbor->set != PATH_ASTAR_OPEN) {
 						neighbor->set = PATH_ASTAR_OPEN;
@@ -341,10 +353,14 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 				}
 			}
 		}
+
 		free(neighbors);
 	}
 
-	return NULL;
+	hashmap_destroy(navigated, true);
+	heap_destroy(openset, false);
+
+	return path;
 }
 /* 
 function A*(start,goal)

@@ -51,7 +51,7 @@ void quit_all() {
 	SDL_Quit();
 }
 
-#include "pathing.h"
+#include "pathing.h" // TODO REMOVE
 
 int main(int argc, char *argv[]) {
 	init();
@@ -60,10 +60,23 @@ int main(int argc, char *argv[]) {
 	world_t *world = world_create(1);
 	world_generate(world);
 
+	/* pathing test
 	v3i start = {0, 0, 1};
-	v3i end = {10, 10, 1};
+	v3i end = {31, 31, 1};
 
-	path_find(world->path_net, start, end);	
+	timeit_start();
+	list_t *path = path_find(world->path_net, start, end);	
+	timeit_end("path found in");
+
+	v3i *cur;
+	
+	while (path->size > 0) {
+		cur = list_pop(path);
+		v3i_print(NULL, *cur);
+	}
+
+	exit(0);
+	*/
 
 	// time
 	unsigned int last_time = SDL_GetTicks(), this_time;

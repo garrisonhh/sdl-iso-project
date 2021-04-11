@@ -282,7 +282,10 @@ void world_generate(world_t *world) {
 		//loc = (v3i){3, 6, 1};
 		//block_set(world, loc, grass);
 
+		timeit_start();
 		world->path_net = path_generate_world_network(world);
+		timeit_end("path network created in");
+
 		return;
 	}
 
