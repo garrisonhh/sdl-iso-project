@@ -29,5 +29,7 @@
 #define FOR_CUBE(x, y, z, minv, maxv) for (z = minv; z < maxv; z++) for (y = minv; y < maxv; y++) for (x = minv; x < maxv; x++)
 
 bool d_close(double a, double b);
+void timeit_start(void);
+void timeit_end(const char *message);
 
 #endif
