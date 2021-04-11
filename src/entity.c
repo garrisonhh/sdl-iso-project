@@ -7,6 +7,7 @@
 #include "block.h"
 #include "block_gen.h"
 #include "data_structures/array.h"
+#include "data_structures/list.h"
 #include "utils.h"
 
 entity_t *entity_create(texture_t *sprite, v3d pos, v3d size) {
@@ -16,12 +17,16 @@ entity_t *entity_create(texture_t *sprite, v3d pos, v3d size) {
 	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
 	entity->size = size;
 	entity->center = v3d_scale(entity->size, 0.5);
+
 	entity->on_ground = false;
+	entity->path = list_create();
 
 	return entity;
 }
 
 void entity_destroy(entity_t *entity) {
+	list_destroy(entity->path, true);
+
 	free(entity);
 }
 
@@ -144,14 +149,71 @@ void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time
 	entity->ray.pos = v3d_add(entity->ray.pos, scaled_ray.dir);
 }
 
+void entity_add_path(entity_t *entity, list_t *path) {
+	list_merge(entity->path, path);
+	list_destroy(path, false);
+}
+
+// TODO make these part of entity_t struct
+// leaving them here just to get a working version
+#define ENTITY_XY_SPEED 6.0
+#define ENTITY_JUMP 9.0
+#define DIST_TOLERANCE 0.01
+
+void entity_follow_path(entity_t *entity, double time) {
+	if (entity->path->size == 0)
+		return;
+
+	v3d next, diff, dir;
+	double dist;
+
+	next = v3d_from_v3i(*(v3i *)list_peek(entity->path));
+	next.x += .5;
+	next.y += .5;
+	next.z += entity->center.z;
+
+	diff = v3d_sub(next, entity->ray.pos);
+	dist = v3d_magnitude(diff);
+
+	dir = diff;
+	dir.z = 0;
+	dir = v3d_scale(v3d_normalize(dir), ENTITY_XY_SPEED);
+	dir.z = entity->ray.dir.z;
+	
+	// TODO some sort of jump() function
+	if (diff.z > 0) {
+		if (entity->on_ground)
+			dir.z += ENTITY_JUMP;
+	}
+
+	entity->ray.dir = dir;
+
+	// remove path v3i when close enough
+	if (dist < time * v3d_magnitude(entity->ray.dir)) {
+		v3i *popping = list_pop(entity->path);
+		v3i_print("popping", *popping);
+		free(popping);
+
+		//free(list_pop(entity->path));
+
+		if (entity->path->size == 0)
+			printf("PATH DONE!\n");
+	}
+}
+
 void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 	double time;
 	array_t *block_colls;
 
 	time = ms / 1000;
-	time = MIN(time, 0.1); // makes valgrind debugging smoother
-	entity->ray.dir.z += GRAVITY * time;
+	time = MIN(time, 0.1); // prevent lag bugs
+
+	// think (modify state)
+	entity_follow_path(entity, time);
+
+	// act (apply changes)
 	entity->on_ground = false;
+	entity->ray.dir.z += GRAVITY * time;
 
 	block_colls = entity_surrounding_block_colls(entity, world);
 	entity_move_and_collide(entity, block_colls, time);

@@ -1,6 +1,7 @@
 #ifndef PATHING_H
 #define PATHING_H
 
+#include <stdbool.h>
 #include "world.h"
 #include "vector.h"
 #include "data_structures/hashmap.h"
@@ -42,6 +43,7 @@ struct path_asnode_t {
 };
 typedef struct path_asnode_t path_asnode_t;
 
+bool path_block_pathable(world_t *, v3i);
 path_network_t *path_generate_world_network(world_t *);
 list_t *path_find(path_network_t *, v3i start_pos, v3i goal_pos);
 

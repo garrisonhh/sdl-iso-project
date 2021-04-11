@@ -197,6 +197,12 @@ void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 	chunk_check_destroy(world, chunk_index);
 }
 
+// TODO place on ground
+void world_spawn_entity(world_t *world, entity_t *entity) {
+	block_bucket_add(world, v3i_from_v3d(entity->ray.pos), entity);
+	array_add(world->entities, entity);
+}
+
 // sizes are a power of 2
 world_t *world_create(unsigned size_power) {
 	world_t *world = (world_t *)malloc(sizeof(world_t));
@@ -214,8 +220,7 @@ world_t *world_create(unsigned size_power) {
 	world->player = player_create();
 	world->entities = array_create(2);
 
-	block_bucket_add(world, v3i_from_v3d(world->player->ray.pos), world->player); 
-	array_add(world->entities, world->player);
+	world_spawn_entity(world, world->player);
 
 	return world;
 }
@@ -270,7 +275,7 @@ void generate_tree(world_t *world, v3i loc) {
 }
 
 void world_generate(world_t *world) {
-	if (1) { // debug world
+	if (0) { // debug world
 		size_t dirt = block_gen_get_id("dirt");
 		//size_t grass = block_gen_get_id("grass");
 		v3i loc;

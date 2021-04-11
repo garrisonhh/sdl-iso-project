@@ -276,7 +276,7 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 	startid = (int *)hashmap_get(network->ids, &start_pos, sizeof start_pos);
 	goalid = (int *)hashmap_get(network->ids, &goal_pos, sizeof goal_pos);
 
-	if (startid != NULL && goalid != NULL && startid == goalid)
+	if (startid == NULL || goalid == NULL || startid != goalid)
 		return NULL;
 
 	// A* algo
