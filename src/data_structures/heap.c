@@ -79,7 +79,6 @@ void heap_insert(heap_t *heap, void *item) {
 
 	if (++heap->size == heap->max_size) {
 		heap->max_size = (heap->max_size << 1) | 1;
-		printf("%lu\n", heap->max_size);
 		heap->items = (void **)realloc(heap->items, sizeof(void *) * heap->max_size);
 	}
 }
@@ -118,18 +117,4 @@ void *heap_replace(heap_t *heap, void *item) {
 	heap_sift_down(heap);
 
 	return top;
-}
-
-void heap_print(heap_t *heap) {
-	size_t j = 1;
-
-	for (size_t i = 0; i < heap->size; i++) {
-		if (i == j) {
-			printf("\n");
-			j = (j << 1) | 1;
-		}
-
-		printf("%2d ", *(int *)heap->items[i]);
-	}
-	printf("\n");
 }
