@@ -49,16 +49,22 @@ void list_push(list_t *list, void *item) {
 }
 
 void *list_pop(list_t *list) {
+	if (list->root == NULL) {
+		printf("attempted to pop from empty list.\n");
+		exit(1);
+	}
+
 	list_node_t *old_root;
 	void *item;
 
 	old_root = list->root;
-	list->root = old_root->next;
 	item = old_root->item;
+	list->root = old_root->next;
 
 	free(old_root);
 
-	--list->size;
+	if (--list->size == 0)
+		list->tip = NULL;
 
 	return item;
 }
