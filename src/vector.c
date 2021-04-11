@@ -144,6 +144,10 @@ v3d v3d_scale(v3d v, double scalar) {
 	};
 }
 
+v3d v3d_normalize(v3d v) {
+	return v3d_scale(v, 1 / v3d_magnitude(v));
+}
+
 double v3d_magnitude(v3d v) {
 	return sqrt(v3d_dot(v, v));
 }
