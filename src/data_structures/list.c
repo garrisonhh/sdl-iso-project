@@ -109,3 +109,7 @@ void *list_get(list_t *list, size_t index) {
 // list_remove
 // list_delete
 
+void list_merge(list_t *list, list_t *other) {
+	while (other->size > 0)
+		list_append(list, list_pop(other));
+}
