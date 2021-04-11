@@ -152,6 +152,12 @@ double v3d_magnitude(v3d v) {
 	return sqrt(v3d_dot(v, v));
 }
 
+double v3d_dist(v3d a, v3d b) {
+	v3d diff = v3d_sub(a, b);
+
+	return sqrt(v3d_dot(diff, diff));
+}
+
 double v3d_dot(v3d a, v3d b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }

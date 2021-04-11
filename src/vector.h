@@ -46,6 +46,7 @@ v3d v3d_mul(v3d, v3d);
 v3d v3d_scale(v3d, double);
 v3d v3d_normalize(v3d);
 double v3d_magnitude(v3d);
+double v3d_dist(v3d, v3d);
 double v3d_dot(v3d, v3d);
 void v3d_print(const char *message, v3d v);
 
