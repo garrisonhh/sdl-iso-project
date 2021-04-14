@@ -51,54 +51,12 @@ void quit_all() {
 	SDL_Quit();
 }
 
-#include "pathing.h" // TODO REMOVE
-#include "entity.h"
-
 int main(int argc, char *argv[]) {
 	init();
 
 	// world
 	world_t *world = world_create(1);
 	world_generate(world);
-
-	// pathing test
-	v3i start = {world->block_size - 1, world->block_size - 1, 1};
-	v3i end = {0, 0, 1};
-
-	while (block_get(world, start) != NULL)
-		start.z++;
-
-	while (block_get(world, end) != NULL)
-		end.z++;
-
-	timeit_start();
-	list_t *path = path_find(world->path_net, start, end);	
-	timeit_end("pathfinding done in");
-
-	/*
-	if (path == NULL) {
-		printf("no path found.\n");
-	} else {
-		v3i *cur;
-		
-		while (path->size > 0) {
-			cur = list_pop(path);
-			v3i_print(NULL, *cur);
-		}
-	}
-	*/
-
-	// exit(0);
-	
-	v3d pos = {31.5, 31.5, 16}, size = world->player->size;
-	entity_t *pear_man = entity_create(texture_ptr_from_key("pear man"), pos, size);
-
-	if (path == NULL)
-		printf("no path\n");
-	else
-		entity_add_path(pear_man, path);
-
-	world_spawn_entity(world, pear_man);
 
 	// time
 	unsigned int last_time = SDL_GetTicks(), this_time;

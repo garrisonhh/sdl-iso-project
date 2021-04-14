@@ -151,7 +151,6 @@ void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time
 
 void entity_add_path(entity_t *entity, list_t *path) {
 	list_merge(entity->path, path);
-	list_destroy(path, false);
 }
 
 // TODO make these part of entity_t struct

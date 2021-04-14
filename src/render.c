@@ -11,6 +11,7 @@
 #include "raycast.h"
 #include "data_structures/array.h"
 #include "data_structures/hashmap.h"
+#include "data_structures/list.h"
 #include "camera.h"
 #include "render_primitives.h"
 #include "utils.h"
@@ -22,8 +23,8 @@
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 const v3d PLAYER_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
 
-SDL_Renderer *renderer = NULL;
-SDL_Texture *foreground = NULL, *background = NULL;
+SDL_Renderer *renderer;
+SDL_Texture *foreground, *background;
 
 void render_init(SDL_Window *window) {
 	renderer = SDL_CreateRenderer(window, -1,
@@ -50,7 +51,7 @@ void render_init(SDL_Window *window) {
 								   SCREEN_WIDTH,
 								   SCREEN_HEIGHT);
 	SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
-	SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(background, SDL_BLENDMODE_BLEND);
 
 	camera_init();
 }
@@ -116,6 +117,19 @@ void render_entity(entity_t *entity) {
 	render_sprite(entity->sprite->tex.sprite, screen_pos);
 }
 
+uint8_t render_find_void_mask(v3i loc, v3i max_block, int player_z, uint8_t block_expose_mask) {
+	uint8_t void_mask = 0x0;
+
+	for (int i = 0; i < 3; i++) {
+		void_mask <<= 1;
+		void_mask |= (v3i_get(&loc, i) == v3i_get(&max_block, i) - 1 ? 0x1 : 0x0);
+	}
+
+	void_mask |= (loc.z == player_z && !(block_expose_mask & 0x1) ? 0x1 : 0x0);
+
+	return void_mask;
+}
+
 void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
 	texture_type tex_type = block->texture->type;
 
@@ -146,19 +160,20 @@ void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
 
 void render_world(world_t *world) {
 	int x, y, z, i;
-	uint8_t void_mask;
 	unsigned int chunk_index, block_index;
-	bool in_foreground, player_blocked;
+	uint8_t void_mask;
+	bool render_to_fg, player_blocked;
 	ray_t cam_ray;
 	chunk_t *chunk;
 	block_t *block;
-	array_t *bucket;
+	list_t *bucket;
+	list_node_t *bucket_trav;
 	v3i block_loc, player_loc;
 	v3i min_block, max_block;
 	array_t *shadows[world->block_size];
 
 	// player_loc + raycasting for foregrounding vars
-	in_foreground = false;
+	render_to_fg = false;
 	player_loc = v3i_from_v3d(world->player->ray.pos);
 
 	cam_ray = (ray_t){
@@ -194,21 +209,9 @@ void render_world(world_t *world) {
 				render_iso_circle(*(circle_t *)shadows[z]->items[i]);
 
 		// change to foreground when ready
-		if (player_blocked && !in_foreground && z > player_loc.z) {
-			// render transparent textures on z layer above foreground to background
-			for (y = min_block.y; y < max_block.y; y++) {
-				for (x = min_block.x; x < max_block.x; x++) {
-					block_loc = (v3i){x, y, z};
-
-					if ((block = block_get(world, block_loc)) != NULL
-					  && block->texture->transparent) {
-						render_block(world, block, block_loc, void_mask);
-					}
-				}
-			}
-
+		if (player_blocked && !render_to_fg && z > player_loc.z) {
 			SDL_SetRenderTarget(renderer, foreground);
-			in_foreground = true;
+			render_to_fg = true;
 		}
 
 		// render blocks and buckets
@@ -219,30 +222,26 @@ void render_world(world_t *world) {
 
 				if ((chunk = world->chunks[chunk_index]) != NULL) {
 					if ((block = chunk->blocks[block_index]) != NULL) {
-						if (block->texture->type == TEX_VOXEL) {
-							void_mask = 0x0;
-
-							for (i = 0; i < 3; i++) {
-								void_mask <<= 1;
-								void_mask |= (v3i_get(&block_loc, i) == v3i_get(&max_block, i) - 1 ? 0x1 : 0x0);
-							}
-
-							void_mask |= (block_loc.z == player_loc.z && !(block->expose_mask & 0x1) ? 0x1 : 0x0);
-						}
-
+						void_mask = render_find_void_mask(block_loc, max_block,
+														  player_loc.z, block->expose_mask);
 						render_block(world, block, block_loc, void_mask);
 					}
 
-					if ((bucket = chunk->buckets[block_index]) != NULL)
-						for (i = 0; i < bucket->size; i++)
-							render_entity(bucket->items[i]);
+					if ((bucket = chunk->buckets[block_index]) != NULL) {
+						bucket_trav = bucket->root;
+
+						while (bucket_trav != NULL) {
+							render_entity((entity_t *)bucket_trav->item);
+							bucket_trav = bucket_trav->next;
+						}
+					}
 				}
 			}
 		}
 	}	
 
 	// render target surfaces to window
-	if (in_foreground) { // target will be foreground if true
+	if (render_to_fg) {
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
 		render_iso_circle(camera.view_circle);
