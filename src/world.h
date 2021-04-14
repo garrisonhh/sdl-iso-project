@@ -6,6 +6,7 @@
 #include "vector.h"
 #include "entity.h"
 #include "data_structures/array.h"
+#include "data_structures/list.h"
 #include "block.h"
 
 #define CHUNK_SIZE 4096 // 0x000 -> 0xFFF
@@ -13,7 +14,7 @@
 
 struct chunk_t {
 	block_t *blocks[CHUNK_SIZE];
-	array_t *buckets[CHUNK_SIZE]; // TODO make this an array of linked lists, not dynamic arrays
+	list_t *buckets[CHUNK_SIZE];
 
 	// num_blocks tracked in block_set();
 	// num_entities tracked using block bucket funcs

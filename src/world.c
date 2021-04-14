@@ -33,7 +33,7 @@ void chunk_destroy(chunk_t *chunk) {
 		if (chunk->blocks[i] != NULL)
 			block_destroy(chunk->blocks[i]);
 		if (chunk->buckets[i] != NULL)
-			array_destroy(chunk->buckets[i], false);
+			list_destroy(chunk->buckets[i], false);
 	}
 
 	free(chunk);
@@ -170,9 +170,9 @@ void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	}
 
 	if (chunk->buckets[block_index] == NULL)
-		chunk->buckets[block_index] = array_create(2);
+		chunk->buckets[block_index] = list_create();
 	
-	array_add(chunk->buckets[block_index], entity);
+	list_push(chunk->buckets[block_index], entity);
 	chunk->num_entities++;
 }
 
@@ -186,11 +186,11 @@ void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 
 	chunk_t *chunk = world->chunks[chunk_index]; // will never be null
 
-	array_remove(chunk->buckets[block_index], entity);
+	list_remove(chunk->buckets[block_index], entity);
 	chunk->num_entities--;
 	
 	if (chunk->buckets[block_index]->size == 0) {
-		array_destroy(chunk->buckets[block_index], false);
+		list_destroy(chunk->buckets[block_index], false);
 		chunk->buckets[block_index] = NULL;
 	}
 

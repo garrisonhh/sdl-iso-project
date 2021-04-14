@@ -3,8 +3,6 @@
 
 #include <stdlib.h>
 
-// TODO write wiki entry
-
 struct list_node_t {
 	void *item;
 	struct list_node_t *next;
@@ -27,6 +25,8 @@ void list_append(list_t *, void *item);
 
 void *list_get(list_t *, size_t index);
 
+// directly compares pointers
+void *list_remove(list_t *, void *item);
 void list_merge(list_t *, list_t *other);
 
 #endif

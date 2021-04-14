@@ -106,8 +106,36 @@ void *list_get(list_t *list, size_t index) {
 }
 
 // list_set
-// list_remove
 // list_delete
+
+void *list_remove(list_t *list, void *item) {
+	list_node_t *trav, *last;
+
+	last = NULL;
+	trav = list->root;
+	
+	while (trav != NULL && trav->item != item) {
+		last = trav;
+		trav = trav->next;
+	}
+
+	if (trav != NULL) {
+		void *item;
+
+		if (trav == list->root)
+			list->root = trav->next;
+		else
+			last->next = trav->next;
+
+		item = trav->item;
+		free(trav);
+		--list->size;
+
+		return item;
+	}
+
+	return NULL;
+}
 
 void list_merge(list_t *list, list_t *other) {
 	if (list->size) {
