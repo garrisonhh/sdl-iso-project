@@ -30,9 +30,10 @@ void path_node_destroy(path_node_t *node) {
 }
 
 /*
+// this leaks the alloc'd id int ptrs, so letting the OS clean it up for me atm
 void path_network_destroy(path_network_t *network) {
 	hashmap_destroy(network->nodes, true);
-	hashmap_destroy(network->ids, false); // TODO this leaks the ids
+	hashmap_destroy(network->ids, false); 
 
 	free(network);
 }
@@ -79,7 +80,6 @@ void path_node_connect(path_node_t *a, path_node_t *b) {
 	}
 }
 
-// TODO blocks precompute these
 // TODO custom block path definitions/weights
 
 bool path_block_empty(world_t *world, v3i loc) {
@@ -116,21 +116,20 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 	network->ids = hashmap_create(nodes->max_size, true, hash_v3i);
 
 	while (nodes->size > 0) {
-		// get starting node
 		i = 0;
 		trav = nodes->buckets[i];
 
 		while (trav == NULL) 
 			trav = nodes->buckets[++i];
 
-		// find all nodes connected to starting node, remove them from original nodes list
-		// and add them to the network
 		node = trav->value;
 
 		// how to free this properly..?
 		id_val = (int *)malloc(sizeof(int));
 		*id_val = id;
 
+		// find all nodes connected to the starting node, remove them from original nodes list
+		// and add them to the network with a unique id tied to the group
 		hashmap_remove(nodes, &node->pos, sizeof node->pos);
 		hashmap_set(network->nodes, &node->pos, sizeof node->pos, node);
 		hashmap_set(network->ids, &node->pos, sizeof node->pos, id_val);
@@ -159,7 +158,7 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 			}
 		}
 
-		printf("group %i, size %lu; %lu nodes remaining.\n", id, network->nodes->size, nodes->size);
+		printf("group %i; %lu nodes remaining.\n", id, nodes->size);
 		++id;
 	}
 
@@ -168,8 +167,6 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 	return network;
 }
 
-// TODO skip chunks with zero blocks in them?
-// optimizing this is a weak todo, this function is not performance-critical by any means
 path_network_t *path_generate_world_network(world_t *world) {
 	hashmap_t *all_nodes;
 	path_node_t *current, *neighbor;
@@ -291,7 +288,7 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 
 	path = NULL;
 
-	// TODO decide initial heap allocation based on distance?
+	// TODO decide initial allocation based on distance to minimize memcpy calls
 	openset = heap_create(4, path_compare_asnodes);
 	navigated = hashmap_create(64, true, hash_v3i);
 
@@ -362,35 +359,4 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 
 	return path;
 }
-/* 
-function A*(start,goal)
-	closedset := the empty set    // The set of nodes already evaluated.
-	openset := {start}    // The set of tentative nodes to be evaluated, initially containing the start node
-	came_from := the empty map    // The map of navigated nodes.
 
-	g_score[start] := 0    // Cost from start along best known path.
-	// Estimated total cost from start to goal through y.
-	f_score[start] := g_score[start] + heuristic_cost_estimate(start, goal)
-
-	while openset is not empty
-		current := the node in openset having the lowest f_score[] value
-		if current = goal
-			return reconstruct_path(came_from, goal)
-
-		remove current from openset
-		add current to closedset
-		for each neighbor in neighbor_nodes(current)
-			tentative_g_score := g_score[current] + dist_between(current,neighbor)
-			if neighbor in closedset
-				if tentative_g_score >= g_score[neighbor]
-					continue
-
-			if neighbor not in openset or tentative_g_score < g_score[neighbor] 
-				came_from[neighbor] := current
-				g_score[neighbor] := tentative_g_score
-				f_score[neighbor] := g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
-				if neighbor not in openset
-					add neighbor to openset
-
-	return failure
-*/

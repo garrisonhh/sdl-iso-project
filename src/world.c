@@ -197,7 +197,6 @@ void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 	chunk_check_destroy(world, chunk_index);
 }
 
-// TODO place on ground
 void world_spawn_entity(world_t *world, entity_t *entity) {
 	block_bucket_add(world, v3i_from_v3d(entity->ray.pos), entity);
 	array_add(world->entities, entity);

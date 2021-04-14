@@ -172,7 +172,7 @@ void render_world(world_t *world) {
 	v3i min_block, max_block;
 	array_t *shadows[world->block_size];
 
-	// player_loc + raycasting for foregrounding vars
+	// player_loc + raycasting for foregrounding
 	render_to_fg = false;
 	player_loc = v3i_from_v3d(world->player->ray.pos);
 
@@ -182,7 +182,7 @@ void render_world(world_t *world) {
 	};
 	cam_ray.pos.z += world->player->size.z / 2;
 	player_blocked = raycast_to_block(world, cam_ray, NULL, NULL);
-	
+
 	// block range
 	for (i = 0; i < 3; i++) {
 		v3i_set(&min_block, i, MAX(0, v3i_get(&player_loc, i) - camera.render_dist));
@@ -198,9 +198,9 @@ void render_world(world_t *world) {
 	SDL_SetRenderTarget(renderer, background);
 	SDL_RenderClear(renderer);
 
-	// gen shadows
-	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
+	// shadow setup
 	render_generate_shadows(world, &shadows);
+	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
 
 	for (z = min_block.z; z < max_block.z; z++) {
 		// render shadows
