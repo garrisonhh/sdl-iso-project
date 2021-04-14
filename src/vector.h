@@ -22,6 +22,7 @@ struct v3d {
 };
 typedef struct v3d v3d;
 
+v2i v2i_from_v2d(v2d);
 v2i v2i_add(v2i, v2i);
 v2i v2i_sub(v2i, v2i);
 

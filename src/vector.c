@@ -5,6 +5,13 @@
 #include "vector.h"
 #include "render.h"
 
+v2i v2i_from_v2d(v2d v) {
+	return (v2i){
+		(int)v.x,
+		(int)v.y
+	};
+}
+
 v2i v2i_add(v2i a, v2i b) {
 	return (v2i){
 		a.x + b.x,
