@@ -79,11 +79,11 @@ void list_append(list_t *list, void *item) {
 	node->item = item;
 	node->next = NULL;
 
-	if (list->root == NULL) {
-		list->root = node;
+	if (list->size) {
+		list->tip->next = node;
 		list->tip = node;
 	} else {
-		list->tip->next = node;
+		list->root = node;
 		list->tip = node;
 	}
 
@@ -110,8 +110,15 @@ void *list_get(list_t *list, size_t index) {
 // list_delete
 
 void list_merge(list_t *list, list_t *other) {
-	list->tip->next = other->root;
-	list->tip = other->tip;
+	if (list->size) {
+		list->tip->next = other->root;
+		list->tip = other->tip;
+	} else {
+		list->root = other->root;
+		list->tip = other->tip;
+	}
+
+	list->size += other->size;
 
 	other->root = NULL;
 	other->tip = NULL;
