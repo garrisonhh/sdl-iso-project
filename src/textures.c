@@ -18,11 +18,6 @@ voxel_tex_t *VOID_VOXEL_TEXTURE;
 
 SDL_Rect sdl_tex_rect;
 SDL_Rect voxel_tex_rects[3];
-Uint8 voxel_tex_shades[] = { // flat shading values (out of 255) for each side t-l-r
-	255,
-	223,
-	191
-};
 
 // workaround for C's weird global constant rules
 void textures_init() {
@@ -271,7 +266,6 @@ voxel_tex_t* load_voxel_texture(char *path) {
 // masks use only the last 3 bits; right-left-top order (corresponding to XYZ)
 // void_mask determines sides which will be displayed as void (fully black)
 void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, uint8_t expose_mask, uint8_t void_mask) {
-	uint8_t shade;
 	bool exposed, voided;
 	SDL_Rect draw_rect;
 	voxel_tex_t *cur_texture;
@@ -284,15 +278,6 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, uint8_t expose_ma
 			draw_rect.y += pos.y;
 
 			cur_texture = (void_mask >> i) & 1 ? VOID_VOXEL_TEXTURE : voxel_texture;
-
-			if (exposed) {
-				shade = voxel_tex_shades[i];
-
-				if (i == 0)
-					SDL_SetTextureColorMod(cur_texture->top, shade, shade, shade);
-				else
-					SDL_SetTextureColorMod(cur_texture->side, shade, shade, shade);
-			}
 
 			switch (i) {
 				case 0:

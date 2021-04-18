@@ -32,11 +32,15 @@ struct block_collidable_t {
 typedef struct block_collidable_t block_collidable_t;
 
 struct block_t {
-	size_t id;
+	//size_t id;
 
 	texture_t *texture;
+	// TODO a separate texture data struct to prevent unnecessary data storage?
 	uint8_t expose_mask; // last 3 bits are X Y Z
 	uint8_t connect_mask; // last 6 bits are +X -X +Y -Y +Z -Z
+	// first 4 bits: top edges, starting with +X and then rotate clockwise
+	// last 4 bits: corner edges, starting with +X, +Y and then rotate clockwise
+	uint8_t outline_mask;
 	
 	block_coll_data_t *coll_data;
 };

@@ -75,29 +75,29 @@ void chunk_check_destroy(world_t *world, unsigned chunk_index) {
 	}
 }
 
-bool block_transparent(block_t *block) {
-	return block->texture->transparent;
+bool block_see_through(block_t *block) {
+	return block == NULL || block->texture->transparent;
 }
 
 void block_update_masks(world_t *world, v3i loc) {
-	//unsigned chunk_index, block_index;
-	//chunk_t *chunk;
 	block_t *block, *other_block;
 	v3i other_loc;
-	bool exposed, connected;
+	bool exposed, connected, outlined;
 
 	block = block_get(world, loc);
-	exposed = block == NULL || block_transparent(block);
+	exposed = block_see_through(block);
 	connected = block != NULL && block->texture->type == TEX_CONNECTED;
+	outlined = block != NULL && block->texture->type == TEX_VOXEL;
 
 	for (int i = 0; i < 3; i++) {
+		// exposing and connecting
 		other_loc = loc;
 		v3i_set(&other_loc, i, v3i_get(&other_loc, i) - 1);
 
 		other_block = block_get(world, other_loc);
 
 		if (other_block != NULL) {
-			if (!block_transparent(other_block)) {
+			if (other_block->texture->transparent) {
 				if (exposed)
 					other_block->expose_mask |= 0x04 >> i; // 0b00100
 				else
@@ -115,6 +115,39 @@ void block_update_masks(world_t *world, v3i loc) {
 					block->connect_mask &= 0xFEF >> (i << 1);
 				}
 			}
+
+		}
+
+	}
+
+	// outlining
+	if (outlined) {
+		int i, swap;
+		v3i top_offset, corner_offset, edge_loc;
+		bool block_flush, block_above;
+
+		top_offset = (v3i){1, 0, 0};
+		corner_offset = (v3i){1, 1, 0};
+
+		for (i = 0; i < 4; i++) {
+			// top
+			edge_loc = v3i_add(loc, top_offset);
+			block_flush = block_see_through(block_get(world, edge_loc));
+			edge_loc.z++;
+			block_above = block_see_through(block_get(world, edge_loc));
+
+			if (block_above || !block_flush)
+				block->outline_mask |= 0x1 << (i + 4);
+			else
+				block->outline_mask &= ~(0x1 << (i + 4));
+
+			// corner
+
+			// rotate
+			SWAP(top_offset.x, top_offset.y, swap);
+			top_offset.x = -top_offset.x;
+			SWAP(corner_offset.x, corner_offset.y, swap);
+			corner_offset.x = -corner_offset.x;
 		}
 	}
 }
@@ -149,7 +182,7 @@ void block_set(world_t *world, v3i loc, size_t block_id) {
 		chunk->num_blocks++;
 
 	chunk->blocks[block_index] = block_create(block_id);
-	//check_chunk_destroy(chunk_index); // uncomment if this method doesn't get used to remove blocks.
+	//check_chunk_destroy(chunk_index); // uncomment if this function is used to remove blocks.
 
 	block_update_masks(world, loc);
 }
@@ -276,15 +309,22 @@ void generate_tree(world_t *world, v3i loc) {
 void world_generate(world_t *world) {
 	if (0) { // debug world
 		size_t dirt = block_gen_get_id("dirt");
-		//size_t grass = block_gen_get_id("grass");
 		v3i loc;
 
-		FOR_XYZ(loc.x, loc.y, loc.z, world->block_size, world->block_size, 1) {
-			block_set(world, loc, dirt);
+		loc = (v3i){0, 0, 0};
+
+		for (loc.x = 1; loc.x <= 1; ++loc.x) {
+			for (loc.y = 1; loc.y <= 1; ++loc.y) { 
+				block_set(world, loc, dirt);
+			}
 		}
 
-		//loc = (v3i){3, 6, 1};
-		//block_set(world, loc, grass);
+		for (loc.x = 1; loc.x <= 1; ++loc.x) {
+			for (loc.y = 1; loc.y <= 1; ++loc.y) { 
+				v3i_print("block", loc);
+				print_bits("mask", block_get(world, loc)->outline_mask, 12);
+			}
+		}
 
 		timeit_start();
 		world->path_net = path_generate_world_network(world);

@@ -7,7 +7,7 @@ entity_t *player_create() {
 	entity_t *player;
 	v3d pos, size;
 
-	pos = (v3d){25.0, 25.0, 15.0};
+	pos = (v3d){5.0, 5.0, 15.0};
 	size = (v3d){0.5, 0.5, 1.0};
 	player = entity_create(texture_ptr_from_key("banana man"), pos, size);
 

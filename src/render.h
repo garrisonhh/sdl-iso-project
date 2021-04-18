@@ -10,12 +10,6 @@
 #define VOXEL_WIDTH 32
 #define VOXEL_HEIGHT 34
 
-struct circle_t {
-	v2i loc;
-	int radius;
-};
-typedef struct circle_t circle_t;
-
 extern const int VOXEL_Z_HEIGHT;
 extern SDL_Renderer *renderer;
 

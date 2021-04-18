@@ -12,15 +12,14 @@ block_t *block_create(size_t block_id) {
 	block_t *block, *model;
 
 	block = (block_t *)malloc(sizeof(block_t));
-	block->id = block_id;
-	model = block_gen_get(block->id);
+	//block->id = block_id;
+	model = block_gen_get(block_id);
 
-	// texture
 	block->texture = model->texture;
 	block->expose_mask = 0x7;
 	block->connect_mask = 0x0;
+	block->outline_mask = 0x0;
 
-	// collision
 	block->coll_data = model->coll_data;
 
 	return block;

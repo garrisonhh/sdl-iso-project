@@ -22,6 +22,24 @@
 
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 const v3d PLAYER_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
+const v2i OUTLINE_TOP_EDGES[][2] = {
+	{
+		(v2i){0, (VOXEL_WIDTH >> 1) - 1},
+		(v2i){VOXEL_WIDTH >> 1, (VOXEL_WIDTH >> 2) - 1},
+	},
+	{
+		(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2)},
+		(v2i){0, (VOXEL_WIDTH >> 1)},
+	},
+	{
+		(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2) - 1},
+		(v2i){0, 0},
+	},
+	{
+		(v2i){0, 0},
+		(v2i){VOXEL_WIDTH >> 1, (VOXEL_WIDTH >> 2) - 1},
+	},
+};
 
 SDL_Renderer *renderer;
 SDL_Texture *foreground, *background;
@@ -130,6 +148,32 @@ uint8_t render_find_void_mask(v3i loc, v3i max_block, int player_z, uint8_t bloc
 	return void_mask;
 }
 
+void render_block_outline(v3i loc, uint8_t outline_mask) {
+	int i;
+	v2i block_pos;
+	v2i corner1, corner2;
+
+	block_pos = project_v3i((++loc.z, loc), true);
+
+	for (i = 0; i <= 1; i++) {
+		if ((outline_mask >> (i + 4)) & 1) {
+			corner1 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][0]);
+			corner2 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][1]);
+			render_aligned_line(corner1, corner2);
+		}
+	}
+
+	// TODO render bordering outline for blocks (1, 0, -1) and (0, 1, -1) over this block
+
+	/*
+	for (i = 0; i < 3; i++) {
+		if ((outline_mask >> i) & 1) {
+
+		}
+	}
+	*/
+}
+
 void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
 	texture_type tex_type = block->texture->type;
 
@@ -138,6 +182,9 @@ void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
 			render_voxel_texture(block->texture->tex.voxel,
 								 project_v3i(loc, true),
 								 block->expose_mask, void_mask);
+
+			if (block->outline_mask)
+				render_block_outline(loc, block->outline_mask);
 		}
 	} else if (block->expose_mask) {
 		// the amount of times I had to type "tex" or "texture" here is hilarious lol
@@ -200,10 +247,11 @@ void render_world(world_t *world) {
 
 	// shadow setup
 	render_generate_shadows(world, &shadows);
-	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
 
 	for (z = min_block.z; z < max_block.z; z++) {
 		// render shadows
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
+
 		if (shadows[z] != NULL)
 			for (i = 0; i < shadows[z]->size; i++)
 				render_iso_circle(*(circle_t *)shadows[z]->items[i]);
@@ -215,6 +263,8 @@ void render_world(world_t *world) {
 		}
 
 		// render blocks and buckets
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF); // block outlines
+		
 		for (y = min_block.y; y < max_block.y; y++) {
 			for (x = min_block.x; x < max_block.x; x++) {
 				block_loc = (v3i){x, y, z};

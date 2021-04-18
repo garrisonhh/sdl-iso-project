@@ -1,8 +1,10 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include "SDL2/SDL.h"
 #include "world.h"
 #include "render.h"
+#include "render_primitives.h"
 
 struct camera_t {
 	int scale, render_dist;

@@ -182,3 +182,24 @@ void render_iso_circle(circle_t circle) {
 		}
 	}
 }
+
+void render_aligned_line(v2i start, v2i end) {
+	int x, y;
+	int dx, dy;
+	bool inc_y;
+
+	y = start.y;
+	dx = (end.x - start.x >= 0 ? 1 : -1);
+	dy = (end.y - start.y >= 0 ? 1 : -1);
+	inc_y = false;
+
+	for (x = start.x; x != end.x; x += dx) {	
+		SDL_RenderDrawPoint(renderer, x, y);
+
+		if (inc_y)
+			y += dy;
+
+		inc_y = !inc_y;
+	}
+}
+
