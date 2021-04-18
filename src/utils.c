@@ -44,3 +44,13 @@ void timeit_end(const char *message) {
 
 	LAST_TIMEIT = time_now;
 }
+
+void print_bits(const char *message, unsigned n, size_t bits) {
+	if (message != NULL)
+		printf("%s:\t", message);
+
+	for (int i = bits - 1; i >= 0; --i)
+		printf("%u", (n >> i) & 1);
+
+	printf("\n");
+}

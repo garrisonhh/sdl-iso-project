@@ -31,5 +31,6 @@
 bool d_close(double a, double b);
 void timeit_start(void);
 void timeit_end(const char *message);
+void print_bits(const char *message, unsigned n, size_t bits);
 
 #endif
