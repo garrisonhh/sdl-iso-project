@@ -40,6 +40,11 @@ const v2i OUTLINE_TOP_EDGES[][2] = {
 		(v2i){VOXEL_WIDTH >> 1, (VOXEL_WIDTH >> 2) - 1},
 	},
 };
+const v2i OUTLINE_CORNERS[] = {
+	(v2i){(VOXEL_WIDTH >> 1) - 1, (VOXEL_WIDTH >> 2) + 1},
+	(v2i){0, VOXEL_WIDTH >> 1},
+	(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2) + 1},
+};
 
 SDL_Renderer *renderer;
 SDL_Texture *foreground, *background;
@@ -151,27 +156,30 @@ uint8_t render_find_void_mask(v3i loc, v3i max_block, int player_z, uint8_t bloc
 void render_block_outline(v3i loc, uint8_t outline_mask) {
 	int i;
 	v2i block_pos;
-	v2i corner1, corner2;
+	v2i pos1, pos2;
 
 	block_pos = project_v3i((++loc.z, loc), true);
 
-	for (i = 0; i <= 1; i++) {
-		if ((outline_mask >> (i + 4)) & 1) {
-			corner1 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][0]);
-			corner2 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][1]);
-			render_aligned_line(corner1, corner2);
+	for (i = 0; i < 4; i++) {
+		if ((outline_mask >> i) & 1) {
+			pos1 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][0]);
+			pos2 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][1]);
+			render_aligned_line(pos1, pos2);
 		}
 	}
 
 	// TODO render bordering outline for blocks (1, 0, -1) and (0, 1, -1) over this block
 
-	/*
+	// corner 4 is behind block. only implemented for potential future use
 	for (i = 0; i < 3; i++) {
-		if ((outline_mask >> i) & 1) {
+		if ((outline_mask >> (i + 4)) & 1) {
+			pos2 = pos1 = v2i_add(block_pos, OUTLINE_CORNERS[i]);
+			pos2.y += VOXEL_Z_HEIGHT - 1;
 
+			// TODO try a handmade line drawer for this...
+			SDL_RenderDrawLine(renderer, pos1.x, pos1.y, pos2.x, pos2.y);
 		}
 	}
-	*/
 }
 
 void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
@@ -263,7 +271,7 @@ void render_world(world_t *world) {
 		}
 
 		// render blocks and buckets
-		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF); // block outlines
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x3F); // block outlines
 		
 		for (y = min_block.y; y < max_block.y; y++) {
 			for (x = min_block.x; x < max_block.x; x++) {

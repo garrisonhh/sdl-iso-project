@@ -79,6 +79,11 @@ bool block_see_through(block_t *block) {
 	return block == NULL || block->texture->transparent;
 }
 
+/*
+ * TODO rewrite. this function has become so complex because I thought it would
+ * be smart to update blocks affected by a block in the same steps. this was chill
+ * until it wasn't, redo to be simpler
+ */
 void block_update_masks(world_t *world, v3i loc) {
 	block_t *block, *other_block;
 	v3i other_loc;
@@ -105,9 +110,9 @@ void block_update_masks(world_t *world, v3i loc) {
 			}
 
 			if (connected) {
-				// 0x20 == 0b00100000
-				// 0x10 == 0b00010000
-				// 0xEF == 0b11101111
+				// 0x20  == 0b000000100000
+				// 0x10  == 0b000000010000
+				// 0xFEF == 0b111111101111
 				if (other_block->texture == block->texture) {
 					other_block->connect_mask |= 0x20 >> (i << 1);
 					block->connect_mask |= 0x10 >> (i << 1);
@@ -115,33 +120,55 @@ void block_update_masks(world_t *world, v3i loc) {
 					block->connect_mask &= 0xFEF >> (i << 1);
 				}
 			}
-
 		}
-
 	}
 
 	// outlining
 	if (outlined) {
-		int i, swap;
-		v3i top_offset, corner_offset, edge_loc;
-		bool block_flush, block_above;
+		int i, j, swap;
+		v3i top_offset, edge_loc;
+		v3i corner_offset, corner_test;
+		bool block_flush, block_above, outline_corner;
+		block_t *flush;
 
+		// TODO swap from rotating to using nested for like all the other masks, rotation is making
+		// this unnecessarily hard
 		top_offset = (v3i){1, 0, 0};
-		corner_offset = (v3i){1, 1, 0};
+		corner_offset = (v3i){1, -1, 0};
 
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i <= 4; i++) {
 			// top
 			edge_loc = v3i_add(loc, top_offset);
-			block_flush = block_see_through(block_get(world, edge_loc));
+			flush = block_get(world, edge_loc);
+			block_flush = !block_see_through(flush);
 			edge_loc.z++;
-			block_above = block_see_through(block_get(world, edge_loc));
+			block_above = !block_see_through(block_get(world, edge_loc));
 
-			if (block_above || !block_flush)
+			if (block_above || !block_flush) {
+				block->outline_mask |= 0x1 << i;
+			} else {
+				block->outline_mask &= ~(0x1 << i);
+
+				if (block_flush) {
+					flush->outline_mask &= ~(0x1 << ((i + 2) % 4));
+				}
+			}
+
+			// corner
+			outline_corner = true;
+
+			for (j = 0; j <= 1; j++) {
+				corner_test = loc;
+				v3i_set(&corner_test, j, v3i_get(&corner_test, j) + v3i_get(&corner_offset, j));
+
+				if (!block_see_through((other_block = block_get(world, corner_test))))
+					outline_corner = false;
+			}
+
+			if (outline_corner)
 				block->outline_mask |= 0x1 << (i + 4);
 			else
 				block->outline_mask &= ~(0x1 << (i + 4));
-
-			// corner
 
 			// rotate
 			SWAP(top_offset.x, top_offset.y, swap);
@@ -313,17 +340,14 @@ void world_generate(world_t *world) {
 
 		loc = (v3i){0, 0, 0};
 
-		for (loc.x = 1; loc.x <= 1; ++loc.x) {
-			for (loc.y = 1; loc.y <= 1; ++loc.y) { 
-				block_set(world, loc, dirt);
-			}
+		FOR_CUBE(loc.x, loc.y, loc.z, 0, 3) {
+			block_set(world, loc, dirt);
 		}
 
-		for (loc.x = 1; loc.x <= 1; ++loc.x) {
-			for (loc.y = 1; loc.y <= 1; ++loc.y) { 
-				v3i_print("block", loc);
-				print_bits("mask", block_get(world, loc)->outline_mask, 12);
-			}
+
+		FOR_CUBE(loc.x, loc.y, loc.z, 0, 3) {
+			v3i_print("block", loc);
+			print_bits("mask", block_get(world, loc)->outline_mask, 12);
 		}
 
 		timeit_start();
@@ -333,7 +357,6 @@ void world_generate(world_t *world) {
 		return;
 	}
 
-	unsigned x, y, z;
 	int noise_val;
 	v2d noise_pos;
 	v2i dims = {world->size >> 1, world->size >> 1};
@@ -348,19 +371,17 @@ void world_generate(world_t *world) {
 	srand(time(0));
 	noise_init(dims);
 
-	FOR_XY(x, y, world->block_size, world->block_size) {
-		loc = (v3i){x, y, 0};
-		noise_pos = (v2d){(double)x / 32.0, (double)y / 32.0};
+	FOR_XY(loc.x, loc.y, world->block_size, world->block_size) {
+		noise_pos = (v2d){(double)loc.x / 32.0, (double)loc.y / 32.0};
 		noise_val = (int)(pow((1.0 + noise_at(noise_pos)) / 2, 3.0) * (double)(MIN(world->block_size, 64)));
 
-		for (z = 0; z < noise_val; z++) {
-			loc.z = z;
+		for (loc.z = 0; loc.z < noise_val; loc.z++)
 			block_set(world, loc, dirt);
-		}
 		
 		block_set(world, loc, grass);
 
-		loc.z += 1;
+		++loc.z;
+
 		switch (rand() % 20) {
 			case 0:
 				block_set(world, loc, bush);
