@@ -1,15 +1,17 @@
 OBJS = src/*.c src/*/*.c
-COMPILER_FLAGS = -Wall -g
+COMPILER_FLAGS_DEBUG = -Wall -g
+COMPILER_FLAGS_BUILD = -O3
 LINKER_FLAGS = -lm -lSDL2 -lSDL2_image -ljson-c
 TARGET = iso
 
-compile:
-	gcc $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(TARGET) $(OBJS)
+debug:
+	gcc $(COMPILER_FLAGS_DEBUG) $(LINKER_FLAGS) -o $(TARGET) $(OBJS)
 
-run:
-	./$(TARGET)
+build:
+	gcc $(COMPILER_FLAGS_BUILD) $(LINKER_FLAGS) -o $(TARGET) $(OBJS)
 
 clean:
 	rm -f $(TARGET)
 
-test: compile run
+test: debug
+	./$(TARGET)
