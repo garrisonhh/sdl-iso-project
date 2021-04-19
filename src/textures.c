@@ -30,22 +30,22 @@ void textures_init() {
 
 	SDL_Rect voxel_tex_rects_tmp[3] = {
 		{
-			-(VOXEL_WIDTH >> 1),
-			-VOXEL_Z_HEIGHT,
-			VOXEL_WIDTH,
-			VOXEL_WIDTH >> 1
-		},
-		{
-			-(VOXEL_WIDTH >> 1),
-			-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
-			VOXEL_WIDTH >> 1,
-			VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
-		},
-		{
 			0,
 			-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
 			VOXEL_WIDTH >> 1,
 			VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
+		},
+		{
+			-(VOXEL_WIDTH >> 1),
+			-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
+			VOXEL_WIDTH >> 1,
+			VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
+		},
+		{
+			-(VOXEL_WIDTH >> 1),
+			-VOXEL_Z_HEIGHT,
+			VOXEL_WIDTH,
+			VOXEL_WIDTH >> 1
 		},
 	};
 
@@ -224,7 +224,10 @@ void render_sdl_texture(SDL_Texture *texture, v2i pos) {
 	draw_rect.x += pos.x;
 	draw_rect.y += pos.y;
 
-	SDL_RenderCopy(renderer, texture, NULL, &draw_rect);
+	// TODO REMOVE this is a temporary hack before I implement multitextures
+	SDL_Rect tex_rect = {0, 0, VOXEL_WIDTH, VOXEL_HEIGHT};
+
+	SDL_RenderCopy(renderer, texture, &tex_rect, &draw_rect);
 }
 
 sprite_t *load_sprite(char *path) {
@@ -266,29 +269,27 @@ voxel_tex_t* load_voxel_texture(char *path) {
 // masks use only the last 3 bits; right-left-top order (corresponding to XYZ)
 // void_mask determines sides which will be displayed as void (fully black)
 void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, uint8_t expose_mask, uint8_t void_mask) {
-	bool exposed, voided;
 	SDL_Rect draw_rect;
 	voxel_tex_t *cur_texture;
 
-	for (int i = 2; i >= 0; i--) {
-		if ((exposed = (expose_mask >> i) & 0x1)
-		 || (voided = (void_mask >> i) & 0x1)) {
+	for (int i = 0; i < 3; ++i) {
+		if ((expose_mask >> i) & 1 || (void_mask >> i) & 1) {//(expose_mask | void_mask >> i) & 1) {
 			draw_rect = voxel_tex_rects[i];
 			draw_rect.x += pos.x;
 			draw_rect.y += pos.y;
 
-			cur_texture = (void_mask >> i) & 1 ? VOID_VOXEL_TEXTURE : voxel_texture;
+			cur_texture = ((void_mask >> i) & 1 ? VOID_VOXEL_TEXTURE : voxel_texture);
 
 			switch (i) {
 				case 0:
-					SDL_RenderCopy(renderer, cur_texture->top, NULL, &draw_rect);
+					SDL_RenderCopyEx(renderer, cur_texture->side, NULL, &draw_rect,
+							         0, NULL, SDL_FLIP_HORIZONTAL);
 					break;
 				case 1:
 					SDL_RenderCopy(renderer, cur_texture->side, NULL, &draw_rect);
 					break;
 				case 2:
-					SDL_RenderCopyEx(renderer, cur_texture->side, NULL, &draw_rect,
-							         0, NULL, SDL_FLIP_HORIZONTAL);
+					SDL_RenderCopy(renderer, cur_texture->top, NULL, &draw_rect);
 					break;
 			}
 		}

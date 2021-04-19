@@ -28,12 +28,12 @@ const v2i OUTLINE_TOP_EDGES[][2] = {
 		(v2i){VOXEL_WIDTH >> 1, (VOXEL_WIDTH >> 2) - 1},
 	},
 	{
-		(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2)},
-		(v2i){0, (VOXEL_WIDTH >> 1)},
-	},
-	{
 		(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2) - 1},
 		(v2i){0, 0},
+	},
+	{
+		(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2)},
+		(v2i){0, (VOXEL_WIDTH >> 1)},
 	},
 	{
 		(v2i){0, 0},
@@ -41,9 +41,8 @@ const v2i OUTLINE_TOP_EDGES[][2] = {
 	},
 };
 const v2i OUTLINE_CORNERS[] = {
-	(v2i){(VOXEL_WIDTH >> 1) - 1, (VOXEL_WIDTH >> 2) + 1},
-	(v2i){0, VOXEL_WIDTH >> 1},
-	(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2) + 1},
+	(v2i){(VOXEL_WIDTH >> 1) - 1, (VOXEL_WIDTH >> 2)},
+	(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2)},
 };
 
 SDL_Renderer *renderer;
@@ -140,49 +139,65 @@ void render_entity(entity_t *entity) {
 	render_sprite(entity->sprite->tex.sprite, screen_pos);
 }
 
-uint8_t render_find_void_mask(v3i loc, v3i max_block, int player_z, uint8_t block_expose_mask) {
-	uint8_t void_mask = 0x0;
+unsigned render_find_void_mask(v3i loc, v3i max_block, int player_z, unsigned block_expose_mask) {
+	int i;
+	unsigned void_mask;
 
-	for (int i = 0; i < 3; i++) {
-		void_mask <<= 1;
-		void_mask |= (v3i_get(&loc, i) == v3i_get(&max_block, i) - 1 ? 0x1 : 0x0);
-	}
+	void_mask = 0x0;
 
-	void_mask |= (loc.z == player_z && !(block_expose_mask & 0x1) ? 0x1 : 0x0);
+	// world borders
+	for (i = 0; i < 3; ++i)
+		if (v3i_get(&loc, i) == v3i_get(&max_block, i) - 1)
+			void_mask |= 0x1 << i;
+
+	// foreground/background "fog of war"
+	if (loc.z == player_z && !(block_expose_mask & 0x7))
+		void_mask |= 0x7;
 
 	return void_mask;
 }
 
-void render_block_outline(v3i loc, uint8_t outline_mask) {
-	int i;
+void render_block_outline(v3i loc, unsigned outline_mask, unsigned expose_mask) {
+	int i, j;
 	v2i block_pos;
 	v2i pos1, pos2;
 
-	block_pos = project_v3i((++loc.z, loc), true);
+	// bottom edges
+	block_pos = project_v3i(loc, true);
 
-	for (i = 0; i < 4; i++) {
-		if ((outline_mask >> i) & 1) {
+	for (i = 0; i <= 2; i += 2) {
+		if ((outline_mask >> i) & 1 && (expose_mask >> i) & 1) {
 			pos1 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][0]);
 			pos2 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][1]);
 			render_aligned_line(pos1, pos2);
 		}
 	}
 
-	// TODO render bordering outline for blocks (1, 0, -1) and (0, 1, -1) over this block
+	// top edges
+	block_pos.y -= VOXEL_Z_HEIGHT;
 
-	// corner 4 is behind block. only implemented for potential future use
-	for (i = 0; i < 3; i++) {
-		if ((outline_mask >> (i + 4)) & 1) {
-			pos2 = pos1 = v2i_add(block_pos, OUTLINE_CORNERS[i]);
-			pos2.y += VOXEL_Z_HEIGHT - 1;
+	if (expose_mask >> 2) {
+		for (i = 0; i < 4; ++i) {
+			if ((outline_mask >> i) & 1) {
+				pos1 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][0]);
+				pos2 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][1]);
+				render_aligned_line(pos1, pos2);
+			}
+		}
+	}
 
-			// TODO try a handmade line drawer for this...
-			SDL_RenderDrawLine(renderer, pos1.x, pos1.y, pos2.x, pos2.y);
+	// corners
+	for (i = 0; i <= 1; ++i) {
+		if ((outline_mask >> (i + 4)) & 1 && (expose_mask >> i) & 1) {
+			pos1 = v2i_add(block_pos, OUTLINE_CORNERS[i]);
+
+			for (j = 1; j < VOXEL_Z_HEIGHT; ++j)
+				SDL_RenderDrawPoint(renderer, pos1.x, pos1.y + j);
 		}
 	}
 }
 
-void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
+void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 	texture_type tex_type = block->texture->type;
 
 	if (tex_type == TEX_VOXEL) {
@@ -192,7 +207,7 @@ void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
 								 block->expose_mask, void_mask);
 
 			if (block->outline_mask)
-				render_block_outline(loc, block->outline_mask);
+				render_block_outline(loc, block->outline_mask, block->expose_mask);
 		}
 	} else if (block->expose_mask) {
 		// the amount of times I had to type "tex" or "texture" here is hilarious lol
@@ -215,8 +230,8 @@ void render_block(world_t *world, block_t *block, v3i loc, uint8_t void_mask) {
 
 void render_world(world_t *world) {
 	int x, y, z, i;
-	unsigned int chunk_index, block_index;
-	uint8_t void_mask;
+	unsigned chunk_index, block_index;
+	unsigned void_mask;
 	bool render_to_fg, player_blocked;
 	ray_t cam_ray;
 	chunk_t *chunk;
