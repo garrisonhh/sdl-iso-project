@@ -158,7 +158,6 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 			}
 		}
 
-		printf("group %i; %lu nodes remaining.\n", id, nodes->size);
 		++id;
 	}
 
@@ -230,13 +229,9 @@ path_network_t *path_generate_world_network(world_t *world) {
 		}
 	}
 
-	printf("finished node generation, %lu nodes created.\n", all_nodes->size);
-
 	network = path_network_from_nodes(all_nodes);
 
 	hashmap_destroy(all_nodes, false);
-
-	printf("finished network generation, %i groups found.\n", network->groups);
 
 	return network;
 }
