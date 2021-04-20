@@ -29,6 +29,7 @@ void timeit_end(const char *message) {
 
 	char us[7];
 
+	us[6] = 0;
 	sprintf(us, "%6li", time_diff.tv_usec);
 	
 	for (int i = 0; i < 6; i++)
@@ -40,7 +41,7 @@ void timeit_end(const char *message) {
 	if (message != NULL)
 		printf(" %s", message);
 
-	printf(":\t%li.%ss\n", time_diff.tv_sec, us);
+	printf(":\t%ld.%ss\n", time_diff.tv_sec, us);
 
 	LAST_TIMEIT = time_now;
 }

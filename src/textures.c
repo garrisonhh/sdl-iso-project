@@ -16,12 +16,12 @@ hashmap_t *texture_table;
 
 voxel_tex_t *VOID_VOXEL_TEXTURE;
 
-SDL_Rect sdl_tex_rect;
-SDL_Rect voxel_tex_rects[3];
+SDL_Rect SDL_TEX_RECT;
+SDL_Rect VOXEL_TEX_RECTS[3];
 
 // workaround for C's weird global constant rules
 void textures_init() {
-	sdl_tex_rect = (SDL_Rect){
+	SDL_TEX_RECT = (SDL_Rect){
 		-(VOXEL_WIDTH >> 1),
 		-VOXEL_Z_HEIGHT,
 		VOXEL_WIDTH,
@@ -49,7 +49,7 @@ void textures_init() {
 		},
 	};
 
-	memcpy(voxel_tex_rects, voxel_tex_rects_tmp, sizeof voxel_tex_rects_tmp);
+	memcpy(VOXEL_TEX_RECTS, voxel_tex_rects_tmp, sizeof voxel_tex_rects_tmp);
 }
 
 void textures_load(json_object *file_obj) {
@@ -61,7 +61,7 @@ void textures_load(json_object *file_obj) {
 	json_object *tex_arr_obj, *current_tex, *obj;
 
 	hashmap_t *tex_type_table;
-	texture_type *tex_type_ptr;
+	texture_type_e *tex_type_ptr;
 	num_tex_types = 4;
 	char *tex_type_strings[] = {
 		"texture",
@@ -77,8 +77,8 @@ void textures_load(json_object *file_obj) {
 	texture_table = hashmap_create(num_textures * 1.3 + 1, true, hash_string);
 
 	for (i = 0; i < num_tex_types; i++) {
-		tex_type_ptr = (texture_type *)malloc(sizeof(texture_type));
-		*tex_type_ptr = (texture_type)i;
+		tex_type_ptr = (texture_type_e *)malloc(sizeof(texture_type_e));
+		*tex_type_ptr = (texture_type_e)i;
 		hashmap_set(tex_type_table, tex_type_strings[i], strlen(tex_type_strings[i]), tex_type_ptr);
 	}
 
@@ -220,7 +220,7 @@ SDL_Texture *load_sdl_texture(char *path) {
 }
 
 void render_sdl_texture(SDL_Texture *texture, v2i pos) {
-	SDL_Rect draw_rect = sdl_tex_rect;
+	SDL_Rect draw_rect = SDL_TEX_RECT;
 	draw_rect.x += pos.x;
 	draw_rect.y += pos.y;
 
@@ -268,13 +268,13 @@ voxel_tex_t* load_voxel_texture(char *path) {
 
 // masks use only the last 3 bits; right-left-top order (corresponding to XYZ)
 // void_mask determines sides which will be displayed as void (fully black)
-void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, uint8_t expose_mask, uint8_t void_mask) {
+void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, unsigned expose_mask, unsigned void_mask) {
 	SDL_Rect draw_rect;
 	voxel_tex_t *cur_texture;
 
 	for (int i = 0; i < 3; ++i) {
 		if ((expose_mask >> i) & 1 || (void_mask >> i) & 1) {//(expose_mask | void_mask >> i) & 1) {
-			draw_rect = voxel_tex_rects[i];
+			draw_rect = VOXEL_TEX_RECTS[i];
 			draw_rect.x += pos.x;
 			draw_rect.y += pos.y;
 
@@ -324,8 +324,8 @@ connected_tex_t *load_connected_texture(char *path) {
 	return connected_tex;
 }
 
-void render_connected_texture(connected_tex_t *connected_tex, v2i pos, uint8_t connected_mask) {
-	SDL_Rect draw_rect = sdl_tex_rect;
+void render_connected_texture(connected_tex_t *connected_tex, v2i pos, unsigned connected_mask) {
+	SDL_Rect draw_rect = SDL_TEX_RECT;
 	SDL_Texture *textures[6] = {
 		connected_tex->bottom, connected_tex->top,
 		connected_tex->back, connected_tex->front,

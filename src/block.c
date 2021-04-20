@@ -12,7 +12,6 @@ block_t *block_create(size_t block_id) {
 	block_t *block, *model;
 
 	block = (block_t *)malloc(sizeof(block_t));
-	//block->id = block_id;
 	model = block_gen_get(block_id);
 
 	block->texture = model->texture;

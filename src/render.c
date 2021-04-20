@@ -198,7 +198,7 @@ void render_block_outline(v3i loc, unsigned outline_mask, unsigned expose_mask) 
 }
 
 void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
-	texture_type tex_type = block->texture->type;
+	texture_type_e tex_type = block->texture->type;
 
 	if (tex_type == TEX_VOXEL) {
 		if (block->expose_mask || void_mask) {
@@ -229,7 +229,7 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 }
 
 void render_world(world_t *world) {
-	int x, y, z, i;
+	int i;
 	unsigned chunk_index, block_index;
 	unsigned void_mask;
 	bool render_to_fg, player_blocked;
@@ -238,7 +238,7 @@ void render_world(world_t *world) {
 	block_t *block;
 	list_t *bucket;
 	list_node_t *bucket_trav;
-	v3i block_loc, player_loc;
+	v3i loc, player_loc;
 	v3i min_block, max_block;
 	array_t *shadows[world->block_size];
 
@@ -271,16 +271,16 @@ void render_world(world_t *world) {
 	// shadow setup
 	render_generate_shadows(world, &shadows);
 
-	for (z = min_block.z; z < max_block.z; z++) {
+	for (loc.z = min_block.z; loc.z < max_block.z; loc.z++) {
 		// render shadows
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
 
-		if (shadows[z] != NULL)
-			for (i = 0; i < shadows[z]->size; i++)
-				render_iso_circle(*(circle_t *)shadows[z]->items[i]);
+		if (shadows[loc.z] != NULL)
+			for (i = 0; i < shadows[loc.z]->size; i++)
+				render_iso_circle(*(circle_t *)shadows[loc.z]->items[i]);
 
 		// change to foreground when ready
-		if (player_blocked && !render_to_fg && z > player_loc.z) {
+		if (player_blocked && !render_to_fg && loc.z > player_loc.z) {
 			SDL_SetRenderTarget(renderer, foreground);
 			render_to_fg = true;
 		}
@@ -288,16 +288,15 @@ void render_world(world_t *world) {
 		// render blocks and buckets
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x3F); // block outlines
 		
-		for (y = min_block.y; y < max_block.y; y++) {
-			for (x = min_block.x; x < max_block.x; x++) {
-				block_loc = (v3i){x, y, z};
-				chunk_block_indices(world, block_loc, &chunk_index, &block_index);
+		for (loc.y = min_block.y; loc.y < max_block.y; loc.y++) {
+			for (loc.x = min_block.x; loc.x < max_block.x; loc.x++) {
+				chunk_block_indices(world, loc, &chunk_index, &block_index);
 
 				if ((chunk = world->chunks[chunk_index]) != NULL) {
 					if ((block = chunk->blocks[block_index]) != NULL) {
-						void_mask = render_find_void_mask(block_loc, max_block,
+						void_mask = render_find_void_mask(loc, max_block,
 														  player_loc.z, block->expose_mask);
-						render_block(world, block, block_loc, void_mask);
+						render_block(world, block, loc, void_mask);
 					}
 
 					if ((bucket = chunk->buckets[block_index]) != NULL) {
@@ -326,7 +325,7 @@ void render_world(world_t *world) {
 	SDL_RenderCopy(renderer, foreground, &camera.viewport, NULL);
 
 	// destroy shadows
-	for (z = 0; z < world->block_size; z++)
-		if (shadows[z] != NULL)
-			array_destroy(shadows[z], true);
+	for (loc.z = 0; loc.z < world->block_size; loc.z++)
+		if (shadows[loc.z] != NULL)
+			array_destroy(shadows[loc.z], true);
 }

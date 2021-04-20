@@ -7,14 +7,15 @@
 
 // numbers are used for json loading, if you change them make sure to
 // check the textures_load function
-enum texture_type {
+enum texture_type_e {
 	TEX_TEXTURE = 0,
 	TEX_SPRITE = 1,
 	TEX_VOXEL = 2,
-	TEX_CONNECTED = 3, // TODO connected tags (blocks connect to blocks with the right tag)
+	TEX_CONNECTED = 3,
 };
-typedef enum texture_type texture_type;   
+typedef enum texture_type_e texture_type_e;   
 
+// texture types
 struct sprite_t {
 	SDL_Texture *texture;
 	v2i pos, size;
@@ -32,7 +33,7 @@ struct connected_tex_t {
 typedef struct connected_tex_t connected_tex_t;
 
 struct texture_t {
-	texture_type type;
+	texture_type_e type;
 	union texture_pointers {
 		SDL_Texture *texture;
 		sprite_t *sprite;
@@ -42,6 +43,12 @@ struct texture_t {
 	bool transparent;
 };
 typedef struct texture_t texture_t;
+
+// texture data types
+struct tex_data_t {
+
+};
+typedef struct tex_data_t tex_data_t;
 
 void textures_init(void);
 void textures_load(json_object *);
@@ -55,8 +62,8 @@ connected_tex_t *load_connected_texture(char *);
 
 void render_sdl_texture(SDL_Texture *, v2i);
 void render_sprite(sprite_t *sprite, v2i pos);
-void render_voxel_texture(voxel_tex_t *, v2i, uint8_t, uint8_t);
-void render_connected_texture(connected_tex_t *, v2i, uint8_t);
+void render_voxel_texture(voxel_tex_t *, v2i, unsigned, unsigned);
+void render_connected_texture(connected_tex_t *, v2i, unsigned);
 
 #endif
 
