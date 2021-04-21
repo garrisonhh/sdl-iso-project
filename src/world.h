@@ -7,6 +7,7 @@
 #include "entity.h"
 #include "data_structures/array.h"
 #include "data_structures/list.h"
+#include "data_structures/hashmap.h"
 #include "block.h"
 
 #define CHUNK_SIZE 4096 // 0x000 -> 0xFFF
@@ -24,6 +25,10 @@ typedef struct chunk_t chunk_t;
 
 struct world_t {
 	chunk_t **chunks;
+
+	// **set** of v3i positions to update in next tick
+	hashmap_t *updates;
+
 	array_t *entities;
 	struct entity_t *player;
 

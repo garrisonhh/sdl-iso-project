@@ -12,8 +12,11 @@
 #include "textures.h"
 #include "utils.h"
 #include "data_structures/array.h"
+#include "data_structures/hashmap.h"
+#include "data_structures/hash_functions.h"
 #include "pathing.h"
 
+int UPDATED_BLOCK = 0; // used to point to for world->updates TODO hacky, remove and implement set_t
 const v3i OUTLINE_EDGE_OFFSETS[4] = {
 	(v3i){ 1,  0, 0},
 	(v3i){-1,  0, 0},
@@ -179,12 +182,17 @@ void block_set_no_update(world_t *world, v3i loc, size_t block_id) {
 }
 
 void block_set(world_t *world, v3i loc, size_t block_id) {
-	v3i offset;
+	v3i offset, block_pos;
 
 	block_set_no_update(world, loc, block_id);
 
-	FOR_CUBE(offset.x, offset.y, offset.z, -1, 2)
-		block_update_masks(world, v3i_add(loc, offset));
+	FOR_CUBE(offset.x, offset.y, offset.z, -1, 2) {
+		//block_update_masks(world, v3i_add(loc, offset));
+		block_pos = v3i_add(loc, offset);
+
+		// update_masks already checks for NULL blocks, so no need to check here
+		hashmap_set(world->updates, &block_pos, sizeof block_pos, &UPDATED_BLOCK);
+	}
 }
 
 void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
@@ -242,12 +250,15 @@ world_t *world_create(unsigned size_power) {
 	world->size_power = size_power;
 	world->size = 1 << world->size_power;
 	world->block_size = world->size << 4;
+
 	world->chunk_mask = world->size - 1;
 	world->num_chunks = 1 << (world->size_power * 3);
 	world->chunks = (chunk_t **)malloc(sizeof(chunk_t *) * world->num_chunks);
 
 	for (int i = 0; i < world->num_chunks; i++)
 	 	world->chunks[i] = NULL; //world->chunks[i] = chunk_create();
+
+	world->updates = hashmap_create(4, true, hash_v3i);
 
 	world->player = player_create();
 	world->entities = array_create(2);
@@ -376,18 +387,19 @@ void world_generate(world_t *world) {
 
 	timeit_end("block masks updated");
 
-	// 
 	timeit_start();
 	world->path_net = path_generate_world_network(world);
 	timeit_end("path network created");
 }
 
 void world_tick(world_t *world, int ms) {
-	// should bucket wrangling happen in entity.c?
+	// TODO should bucket wrangling happen in entity.c?
+	// entities
 	entity_t *entity;
 	v3i last_loc, this_loc;
+	size_t i;
 
-	for (size_t i = 0; i < world->entities->size; i++) {
+	for (i = 0; i < world->entities->size; i++) {
 		entity = world->entities->items[i];
 
 		last_loc = v3i_from_v3d(entity->ray.pos);
@@ -400,5 +412,19 @@ void world_tick(world_t *world, int ms) {
 			block_bucket_remove(world, last_loc, entity);
 			block_bucket_add(world, this_loc, entity);
 		}
+	}
+
+	// block updates
+	if (world->updates->size) {
+		v3i **updates = (v3i **)hashmap_keys(world->updates);
+
+		for (i = 0; i < world->updates->size; i++)
+			block_update_masks(world, *updates[i]);
+
+		free(updates);
+
+		// TODO remove all instead of this hack?
+		hashmap_destroy(world->updates, false);
+		world->updates = hashmap_create(4, world->updates->rehashes, world->updates->hash_func);
 	}
 }
