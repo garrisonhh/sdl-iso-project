@@ -122,6 +122,7 @@ void *hashmap_remove(hashmap_t *hmap, void *key, size_t size_key) {
 
 		hmap->size--;
 
+		// TODO store initial size so that this doesn't get called immediately on first removal in some cases
 		if (hmap->rehashes && hmap->size < (hmap->max_size >> 2))
 			hashmap_rehash(hmap, false);
 	}
@@ -169,7 +170,6 @@ hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
 	return hash;
 }
 
-// useful for iteration
 void **hashmap_values(hashmap_t *hmap) {
 	void **values;
 	hashbucket_t *trav;
@@ -190,3 +190,24 @@ void **hashmap_values(hashmap_t *hmap) {
 	return values;
 }
 
+// TODO actual set implementation
+// TODO update docs
+void **hashmap_keys(hashmap_t *hmap) {
+	void **keys;
+	hashbucket_t *trav;
+	size_t i, cur_keys;
+
+	keys = (void **)calloc(hmap->size, sizeof(void *));
+	cur_keys = 0;
+
+	for (i = 0; i < hmap->max_size; i++) {
+		trav = hmap->buckets[i];
+
+		while (trav != NULL) {
+			keys[cur_keys++] = trav->key;
+			trav = trav->overflow;
+		}
+	}
+
+	return keys;
+}

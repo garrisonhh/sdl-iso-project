@@ -29,6 +29,7 @@ void *hashmap_get(hashmap_t *, void *key, size_t size_key);
 hash_t hashmap_set(hashmap_t *, void *key, size_t size_key, void *value);
 void *hashmap_remove(hashmap_t *, void *key, size_t size_key);
 void **hashmap_values(hashmap_t *);
+void **hashmap_keys(hashmap_t *);
 
 #endif
 
