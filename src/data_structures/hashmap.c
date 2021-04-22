@@ -191,7 +191,6 @@ void **hashmap_values(hashmap_t *hmap) {
 }
 
 // TODO actual set implementation
-// TODO update docs
 void **hashmap_keys(hashmap_t *hmap) {
 	void **keys;
 	hashbucket_t *trav;

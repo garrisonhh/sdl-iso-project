@@ -9,7 +9,6 @@
 
 struct world_t; // forward declaration to avoid header hell
 
-// TODO different entity types; e.g. 'creature', 'inanimate', etc.?
 struct entity_t {
 	texture_t *sprite;
 	ray_t ray;

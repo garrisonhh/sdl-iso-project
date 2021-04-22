@@ -30,13 +30,6 @@ void entity_destroy(entity_t *entity) {
 	free(entity);
 }
 
-/*
- * TODO entities larger than 1x1
- * TODO support speeds of more than 1 block per frame
- * both can be solved by making a box around the entity of size entity.size, and then combining
- * that with the shape of the scaled_ray, and then checking any blocks which might collide with
- * that box.
- */
 array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 	int x, y, z;
 	v3i entity_loc, current_loc;
@@ -109,15 +102,11 @@ void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time
 			block_plane.pos = v3d_add(block_plane.pos, v3d_from_v3i(block_coll->loc));
 			block_plane.pos = v3d_add(block_plane.pos, v3d_mul(entity->center, v3d_from_v3i(polarity_of_v3d(block_plane.dir))));
 
-
 			intersecting = ray_intersects_plane(scaled_ray, block_plane, &intersect, &resolved_dir, &behind);
 
 			if (behind) {
 				if (intersecting && inside_bbox(block_bbox, intersect)) { // ray collides with plane inside the box
 					scaled_ray.dir = resolved_dir;
-
-					// v3d_print("resolving to", resolved_dir);
-					//v3d_print("(plane) scaled_ray.dir", scaled_ray.dir);
 
 					// TODO friction?/reduce values based on difference from normal
 					if (block_coll->coll_data->plane->dir.z > 0) {
@@ -133,11 +122,6 @@ void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time
 
 		if (check_bbox && (bbox_coll_axis = ray_intersects_bbox(scaled_ray, block_bbox, NULL, &resolved_dir)) >= 0) {
 			scaled_ray.dir = resolved_dir;
-
-			if (coll_type == BLOCK_COLL_CHOPPED_BOX) {
-				// v3d_print("resolving to", resolved_dir);
-				//v3d_print("(bbox)  scaled_ray.dir", scaled_ray.dir);
-			}
 
 			v3d_set(&entity->ray.dir, bbox_coll_axis, 0);
 
@@ -180,10 +164,9 @@ void entity_follow_path(entity_t *entity, double time) {
 	dir.z = entity->ray.dir.z;
 	
 	// TODO some sort of jump() function
-	if (diff.z > 0) {
+	if (diff.z > 0)
 		if (entity->on_ground)
 			dir.z += ENTITY_JUMP;
-	}
 
 	entity->ray.dir = dir;
 
@@ -192,8 +175,6 @@ void entity_follow_path(entity_t *entity, double time) {
 		v3i *popping = list_pop(entity->path);
 		v3i_print("popping", *popping);
 		free(popping);
-
-		//free(list_pop(entity->path));
 
 		if (entity->path->size == 0)
 			printf("PATH DONE!\n");
@@ -205,7 +186,7 @@ void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 	array_t *block_colls;
 
 	time = ms / 1000;
-	time = MIN(time, 0.1); // prevent lag bugs
+	time = MIN(time, 0.1); // super slow ticks, broken physics
 
 	// think (modify state)
 	entity_follow_path(entity, time);
