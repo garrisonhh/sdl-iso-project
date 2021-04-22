@@ -12,11 +12,9 @@
 #include "textures.h"
 #include "utils.h"
 #include "data_structures/array.h"
-#include "data_structures/hashmap.h"
-#include "data_structures/hash_functions.h"
+#include "data_structures/list.h"
 #include "pathing.h"
 
-int UPDATED_BLOCK = 0; // used to point to for world->updates TODO hacky, remove and implement set_t
 const v3i OUTLINE_EDGE_OFFSETS[4] = {
 	(v3i){ 1,  0, 0},
 	(v3i){-1,  0, 0},
@@ -159,7 +157,15 @@ block_t *block_get(world_t *world, v3i loc) {
 	return chunk->blocks[block_index];
 }
 
-// only use externally when manually updating block masks (like for world generation)
+void world_push_update(world_t *world, v3i loc) {
+	v3i *update = (v3i *)malloc(sizeof loc);
+
+	*update = loc;
+
+	list_push(world->updates, update);
+}
+
+// only for internal use
 void block_set_no_update(world_t *world, v3i loc, size_t block_id) {
 	unsigned chunk_index, block_index;
 	
@@ -182,16 +188,12 @@ void block_set_no_update(world_t *world, v3i loc, size_t block_id) {
 }
 
 void block_set(world_t *world, v3i loc, size_t block_id) {
-	v3i offset, block_pos;
+	v3i offset;
 
 	block_set_no_update(world, loc, block_id);
 
 	FOR_CUBE(offset.x, offset.y, offset.z, -1, 2) {
-		//block_update_masks(world, v3i_add(loc, offset));
-		block_pos = v3i_add(loc, offset);
-
-		// update_masks already checks for NULL blocks, so no need to check here
-		hashmap_set(world->updates, &block_pos, sizeof block_pos, &UPDATED_BLOCK);
+		world_push_update(world, v3i_add(loc, offset));
 	}
 }
 
@@ -258,7 +260,7 @@ world_t *world_create(unsigned size_power) {
 	for (int i = 0; i < world->num_chunks; i++)
 	 	world->chunks[i] = NULL; //world->chunks[i] = chunk_create();
 
-	world->updates = hashmap_create(4, true, hash_v3i);
+	world->updates = list_create();
 
 	world->player = player_create();
 	world->entities = array_create(2);
@@ -393,8 +395,7 @@ void world_generate(world_t *world) {
 }
 
 void world_tick(world_t *world, int ms) {
-	// TODO should bucket wrangling happen in entity.c?
-	// entities
+	// update entities and check for bucket swaps
 	entity_t *entity;
 	v3i last_loc, this_loc;
 	size_t i;
@@ -403,9 +404,7 @@ void world_tick(world_t *world, int ms) {
 		entity = world->entities->items[i];
 
 		last_loc = v3i_from_v3d(entity->ray.pos);
-
 		entity_tick(entity, world, ms);
-
 		this_loc = v3i_from_v3d(entity->ray.pos);
 
 		if (v3i_compare(last_loc, this_loc)) {
@@ -415,16 +414,13 @@ void world_tick(world_t *world, int ms) {
 	}
 
 	// block updates
-	if (world->updates->size) {
-		v3i **updates = (v3i **)hashmap_keys(world->updates);
+	v3i *update;
 
-		for (i = 0; i < world->updates->size; i++)
-			block_update_masks(world, *updates[i]);
+	while (world->updates->size) {
+		update = (v3i *)list_pop(world->updates);	
 
-		free(updates);
+		block_update_masks(world, *update);
 
-		// TODO remove all instead of this hack?
-		hashmap_destroy(world->updates, false);
-		world->updates = hashmap_create(4, world->updates->rehashes, world->updates->hash_func);
+		free(update);
 	}
 }

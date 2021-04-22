@@ -26,8 +26,7 @@ typedef struct chunk_t chunk_t;
 struct world_t {
 	chunk_t **chunks;
 
-	// **set** of v3i positions to update in next tick
-	hashmap_t *updates;
+	list_t *updates; // queue of v3is
 
 	array_t *entities;
 	struct entity_t *player;
