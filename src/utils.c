@@ -27,9 +27,15 @@ void timeit_end(const char *message) {
 	time_diff.tv_sec = time_now.tv_sec - LAST_TIMEIT.tv_sec;
 	time_diff.tv_usec = time_now.tv_usec - LAST_TIMEIT.tv_usec;
 
+	if (time_diff.tv_usec < 0) {
+		--time_diff.tv_sec;
+		time_diff.tv_usec += 1000000;
+	}
+
 	char us[7];
 
 	us[6] = 0;
+
 	sprintf(us, "%6li", time_diff.tv_usec);
 	
 	for (int i = 0; i < 6; i++)
