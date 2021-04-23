@@ -25,6 +25,8 @@ typedef struct v3d v3d;
 v2i v2i_from_v2d(v2d);
 v2i v2i_add(v2i, v2i);
 v2i v2i_sub(v2i, v2i);
+v2i v2i_mul(v2i, v2i);
+v2i v2i_div(v2i, v2i);
 
 double v2d_dot(v2d, v2d);
 

@@ -26,6 +26,20 @@ v2i v2i_sub(v2i a, v2i b) {
 	};
 }
 
+v2i v2i_mul(v2i a, v2i b) {
+	return (v2i){
+		a.x * b.x,
+		a.y * b.y
+	};
+}
+
+v2i v2i_div(v2i a, v2i b) {
+	return (v2i){
+		a.x / b.x,
+		a.y / b.y
+	};
+}
+
 double v2d_dot(v2d a, v2d b) {
 	return a.x * b.x + a.y * b.y;
 }
