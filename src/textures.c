@@ -52,6 +52,80 @@ void textures_init() {
 	memcpy(VOXEL_TEX_RECTS, voxel_tex_rects_tmp, sizeof voxel_tex_rects_tmp);
 }
 
+SDL_Texture *load_sdl_texture(char *path) {
+	SDL_Texture *texture = NULL;
+	SDL_Surface *loaded_surface = IMG_Load(path);
+
+	if (loaded_surface == NULL) {
+		printf("unable to load image %s:\n%s\n", path, IMG_GetError());
+		exit(1);
+	}
+
+	texture = SDL_CreateTextureFromSurface(renderer, loaded_surface);
+	
+	if (texture == NULL) {
+		printf("unable to create texture from %s:\n%s\n", path, SDL_GetError());
+		exit(1);
+	}
+
+	SDL_FreeSurface(loaded_surface);
+	return texture;
+}
+
+sprite_t *load_sprite(char *path) {
+	sprite_t *sprite = (sprite_t *)malloc(sizeof(sprite_t));
+
+	sprite->texture = load_sdl_texture(path);
+	SDL_QueryTexture(sprite->texture, NULL, NULL, &sprite->size.x, &sprite->size.y);
+	sprite->pos = (v2i){-(sprite->size.x >> 1), -sprite->size.y};
+
+	return sprite;
+}
+
+// loads [path]_top.png and [path]_side.png
+voxel_tex_t* load_voxel_texture(char *path) {
+	char top_path[100], side_path[100];
+
+	strcpy(top_path, path);
+	strcpy(side_path, path);
+	strcat(top_path, "_top.png");
+	strcat(side_path, "_side.png");
+
+	voxel_tex_t* voxel_tex = (voxel_tex_t *)malloc(sizeof(voxel_tex_t));
+	voxel_tex->top = load_sdl_texture(top_path);
+	voxel_tex->side = load_sdl_texture(side_path);
+
+	return voxel_tex;
+}
+
+connected_tex_t *load_connected_texture(char *path) {
+	char base_path[100];
+	char top_path[100], bottom_path[100];
+	char front_path[100], back_path[100];
+
+	strcpy(base_path, path);
+	strcpy(top_path, path);
+	strcpy(bottom_path, path);
+	strcpy(front_path, path);
+	strcpy(back_path, path);
+
+	strcat(base_path, "_base.png");
+	strcat(top_path, "_top.png");
+	strcat(bottom_path, "_bottom.png");
+	strcat(front_path, "_front.png");
+	strcat(back_path, "_back.png");
+
+	connected_tex_t *connected_tex = (connected_tex_t *)malloc(sizeof(connected_tex_t));
+
+	connected_tex->base = load_sdl_texture(base_path);
+	connected_tex->top = load_sdl_texture(top_path);
+	connected_tex->bottom = load_sdl_texture(bottom_path);
+	connected_tex->front = load_sdl_texture(front_path);
+	connected_tex->back = load_sdl_texture(back_path);
+
+	return connected_tex;
+}
+
 void textures_load(json_object *file_obj) {
 	const char *name;
 	char path[100];
@@ -62,12 +136,14 @@ void textures_load(json_object *file_obj) {
 
 	hashmap_t *tex_type_table;
 	texture_type_e *tex_type_ptr;
-	num_tex_types = 4;
+
+	num_tex_types = 5;
 	char *tex_type_strings[] = {
 		"texture",
 		"sprite",
 		"voxel",
-		"connected"
+		"connected",
+		"sheet",
 	};
 
 	tex_type_table = hashmap_create(num_tex_types * 1.3 + 1, true, hash_string);
@@ -139,6 +215,30 @@ void textures_load(json_object *file_obj) {
 			case TEX_CONNECTED:
 				textures[i]->tex.connected = load_connected_texture(path);
 				break;
+			case TEX_SHEET:
+				strcat(path, ".png");
+				textures[i]->tex.sheet = (sheet_tex_t *)malloc(sizeof(sheet_tex_t));
+				textures[i]->tex.sheet->texture = load_sdl_texture(path);
+				break;
+		}
+
+		// sheet texture cell and sheet sizes
+		if (textures[i]->type == TEX_SHEET) {
+			v2i sheet_size;
+
+			if ((obj = json_object_object_get(current_tex, "cell size")) == NULL) {
+				printf("texture sheet does not provide \"cell size\".\n");
+				exit(1);
+			}
+
+			if (json_object_array_length(obj) != 2) {
+				printf("cell size for sheet \"%s\" is not in format [w, h].\n", name);
+				exit(1);
+			}
+
+			SDL_QueryTexture(textures[i]->tex.sheet->texture, NULL, NULL, &sheet_size.x, &sheet_size.y);
+			textures[i]->tex.sheet->size.x = sheet_size.x / VOXEL_WIDTH;
+			textures[i]->tex.sheet->size.y = sheet_size.y / VOXEL_HEIGHT;
 		}
 
 		// add to indexing hash table
@@ -174,6 +274,10 @@ void textures_destroy() {
 				SDL_DestroyTexture(textures[i]->tex.connected->front);
 				SDL_DestroyTexture(textures[i]->tex.connected->back);
 				free(textures[i]->tex.connected);
+				break;
+			case TEX_SHEET:
+				SDL_DestroyTexture(textures[i]->tex.sheet->texture);
+				free(textures[i]->tex.sheet);
 				break;
 		}
 
@@ -211,6 +315,9 @@ block_tex_state_t block_tex_state_from(texture_type_e tex_type) {
 		case TEX_CONNECTED:
 			tex_state.state.connected.connected_mask = 0x0;
 			break;
+		case TEX_SHEET:
+			tex_state.state.sheet.cell = (v2i){0, 0};
+			break;
 		default:
 			break;
 	}
@@ -218,45 +325,12 @@ block_tex_state_t block_tex_state_from(texture_type_e tex_type) {
 	return tex_state;
 }
 
-SDL_Texture *load_sdl_texture(char *path) {
-	SDL_Texture *texture = NULL;
-	SDL_Surface *loaded_surface = IMG_Load(path);
-
-	if (loaded_surface == NULL) {
-		printf("unable to load image %s:\n%s\n", path, IMG_GetError());
-		exit(1);
-	}
-
-	texture = SDL_CreateTextureFromSurface(renderer, loaded_surface);
-	
-	if (texture == NULL) {
-		printf("unable to create texture from %s:\n%s\n", path, SDL_GetError());
-		exit(1);
-	}
-
-	SDL_FreeSurface(loaded_surface);
-	return texture;
-}
-
 void render_sdl_texture(SDL_Texture *texture, v2i pos) {
 	SDL_Rect draw_rect = SDL_TEX_RECT;
 	draw_rect.x += pos.x;
 	draw_rect.y += pos.y;
 
-	// TODO REMOVE this is a temporary hack before I implement multitextures
-	SDL_Rect tex_rect = {0, 0, VOXEL_WIDTH, VOXEL_HEIGHT};
-
-	SDL_RenderCopy(renderer, texture, &tex_rect, &draw_rect);
-}
-
-sprite_t *load_sprite(char *path) {
-	sprite_t *sprite = (sprite_t *)malloc(sizeof(sprite_t));
-
-	sprite->texture = load_sdl_texture(path);
-	SDL_QueryTexture(sprite->texture, NULL, NULL, &sprite->size.x, &sprite->size.y);
-	sprite->pos = (v2i){-(sprite->size.x >> 1), -sprite->size.y};
-
-	return sprite;
+	SDL_RenderCopy(renderer, texture, NULL, &draw_rect);
 }
 
 void render_sprite(sprite_t *sprite, v2i pos) {
@@ -269,23 +343,7 @@ void render_sprite(sprite_t *sprite, v2i pos) {
 	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
 }
 
-// loads [path]_top.png and [path]_side.png
-voxel_tex_t* load_voxel_texture(char *path) {
-	char top_path[100], side_path[100];
-
-	strcpy(top_path, path);
-	strcpy(side_path, path);
-	strcat(top_path, "_top.png");
-	strcat(side_path, "_side.png");
-
-	voxel_tex_t* voxel_tex = (voxel_tex_t *)malloc(sizeof(voxel_tex_t));
-	voxel_tex->top = load_sdl_texture(top_path);
-	voxel_tex->side = load_sdl_texture(side_path);
-
-	return voxel_tex;
-}
-
-// masks use only the last 3 bits; right-left-top order (corresponding to XYZ)
+// these masks use only the last 3 bits, ZYX (to match indexing (v3i){x, y, z})
 // void_mask determines sides which will be displayed as void (fully black)
 void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, unsigned expose_mask, unsigned void_mask) {
 	SDL_Rect draw_rect;
@@ -315,34 +373,6 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, unsigned expose_m
 	}
 }
 
-connected_tex_t *load_connected_texture(char *path) {
-	char base_path[100];
-	char top_path[100], bottom_path[100];
-	char front_path[100], back_path[100];
-
-	strcpy(base_path, path);
-	strcpy(top_path, path);
-	strcpy(bottom_path, path);
-	strcpy(front_path, path);
-	strcpy(back_path, path);
-
-	strcat(base_path, "_base.png");
-	strcat(top_path, "_top.png");
-	strcat(bottom_path, "_bottom.png");
-	strcat(front_path, "_front.png");
-	strcat(back_path, "_back.png");
-
-	connected_tex_t *connected_tex = (connected_tex_t *)malloc(sizeof(connected_tex_t));
-
-	connected_tex->base = load_sdl_texture(base_path);
-	connected_tex->top = load_sdl_texture(top_path);
-	connected_tex->bottom = load_sdl_texture(bottom_path);
-	connected_tex->front = load_sdl_texture(front_path);
-	connected_tex->back = load_sdl_texture(back_path);
-
-	return connected_tex;
-}
-
 void render_connected_texture(connected_tex_t *connected_tex, v2i pos, unsigned connected_mask) {
 	SDL_Rect draw_rect = SDL_TEX_RECT;
 	SDL_Texture *textures[6] = {
@@ -368,4 +398,21 @@ void render_connected_texture(connected_tex_t *connected_tex, v2i pos, unsigned 
 			}
 		}
 	}
+}
+
+void render_sheet_texture(sheet_tex_t *sheet_tex, v2i pos, v2i cell) {
+	SDL_Rect draw_rect, cell_rect;
+
+	draw_rect = SDL_TEX_RECT;
+	draw_rect.x += pos.x;
+	draw_rect.y += pos.y;
+
+	cell_rect = (SDL_Rect){
+		cell.x * VOXEL_WIDTH,
+		cell.y * VOXEL_HEIGHT,
+		VOXEL_WIDTH,
+		VOXEL_HEIGHT
+	};
+
+	SDL_RenderCopy(renderer, sheet_tex->texture, &cell_rect, &draw_rect);
 }

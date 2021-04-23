@@ -40,8 +40,9 @@
 		{
 			"name": "tall grass",
 			"path": "tall_grass",
-			"type": "texture",
-			"transparent": true
+			"type": "sheet",
+			"transparent": true,
+			"cell size": [32, 34]
 		},
 		{
 			"name": "ramp",

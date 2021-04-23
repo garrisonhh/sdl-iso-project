@@ -223,6 +223,10 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 										 block->tex_state.state.connected.connected_mask);
 
 				break;
+			case TEX_SHEET:
+				render_sheet_texture(block->texture->tex.sheet,
+									 project_v3i(loc, true),
+									 block->tex_state.state.sheet.cell);
 			default:
 				break;
 		}

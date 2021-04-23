@@ -12,6 +12,7 @@ enum texture_type_e {
 	TEX_SPRITE = 1,
 	TEX_VOXEL = 2,
 	TEX_CONNECTED = 3,
+	TEX_SHEET = 4,
 };
 typedef enum texture_type_e texture_type_e;   
 
@@ -32,6 +33,13 @@ struct connected_tex_t {
 };
 typedef struct connected_tex_t connected_tex_t;
 
+// TODO separate sheet rows can have different lengths?
+struct sheet_tex_t {
+	SDL_Texture *texture;
+	v2i size;
+};
+typedef struct sheet_tex_t sheet_tex_t;
+
 struct texture_t {
 	texture_type_e type;
 	union texture_pointers {
@@ -39,6 +47,7 @@ struct texture_t {
 		sprite_t *sprite;
 		voxel_tex_t *voxel;
 		connected_tex_t *connected;
+		sheet_tex_t *sheet;
 	} tex;
 	bool transparent;
 };
@@ -55,6 +64,9 @@ struct block_tex_state_t {
 		struct {
 			unsigned connected_mask: 6;
 		} connected;
+		struct {
+			v2i cell;
+		} sheet;
 	} state;
 };
 typedef struct block_tex_state_t block_tex_state_t;
@@ -65,15 +77,11 @@ void textures_destroy(void);
 texture_t *texture_ptr_from_key(char *);
 block_tex_state_t block_tex_state_from(texture_type_e tex_type);
 
-SDL_Texture *load_sdl_texture(char *path);
-sprite_t *load_sprite(char *);
-voxel_tex_t *load_voxel_texture(char *);
-connected_tex_t *load_connected_texture(char *);
-
 void render_sdl_texture(SDL_Texture *, v2i);
-void render_sprite(sprite_t *sprite, v2i pos);
-void render_voxel_texture(voxel_tex_t *, v2i, unsigned, unsigned);
-void render_connected_texture(connected_tex_t *, v2i, unsigned);
+void render_sprite(sprite_t *sprite, v2i);
+void render_voxel_texture(voxel_tex_t *, v2i, unsigned expose_mask, unsigned void_mask);
+void render_connected_texture(connected_tex_t *, v2i, unsigned connected_mask);
+void render_sheet_texture(sheet_tex_t *, v2i, v2i cell);
 
 #endif
 
