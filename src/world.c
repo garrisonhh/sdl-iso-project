@@ -323,19 +323,16 @@ void world_generate(world_t *world) {
 	timeit_start();
 
 	if (0) { // debug world
-		size_t dirt = block_gen_get_id("dirt");
+		size_t ramp = block_gen_get_id("ramp");
 		v3i loc;
 
 		loc = (v3i){0, 0, 0};
 
-		FOR_CUBE(loc.x, loc.y, loc.z, 0, 3) {
-			block_set_no_update(world, loc, dirt);
-		}
-
-
-		FOR_CUBE(loc.x, loc.y, loc.z, 0, 3) {
-			v3i_print("block", loc);
-			print_bits("mask", block_get(world, loc)->outline_mask, 12);
+		for (loc.x = 3; loc.x >= 0; --loc.x) {
+			for (loc.y = 3; loc.y >= 0; --loc.y) {
+				loc.z = 3 - loc.y;
+				block_set_no_update(world, loc, ramp);
+			}
 		}
 
 	} else {

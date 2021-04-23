@@ -71,66 +71,93 @@ array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 	return block_colls;
 }
 
-// TODO this is absolutely unreadable and extremely messy. figure out how to split it up.
+// returns resolved entity movement ray
+ray_t entity_collide_bbox(entity_t *entity, ray_t movement, bbox_t block_bbox) {
+	int collision_axis;
+	v3d resolved_dir;
+
+	collision_axis = ray_intersects_bbox(movement, block_bbox, NULL, &resolved_dir);
+
+	if (collision_axis >= 0) {
+		v3d_set(&entity->ray.dir, collision_axis, 0);
+
+		if (collision_axis == 2 && (movement.dir.z <= 0 || d_close(movement.dir.z, 0)) )
+			entity->on_ground = true;
+
+		movement.dir = resolved_dir;
+	}
+
+	return movement;
+}
+
+// returns resolved entity movement ray
+// TODO chopped box collision is still wonky at best, while it is super cool. think about whether
+// it actually makes sense in the scope of the project, it is consuming more time than I want it
+// to and generally poses a lot of technical challenges in a lot of areas.
+ray_t entity_collide_chopped_bbox(entity_t *entity, ray_t movement, bbox_t block_bbox, block_collidable_t *block_coll) {
+	ray_t plane;
+	v3d intersect, resolved_dir;
+	bool behind_plane, intersects_plane;
+
+	plane = *block_coll->coll_data->plane;
+	plane.pos = v3d_add(plane.pos, v3d_from_v3i(block_coll->loc));
+	plane.pos = v3d_add(plane.pos, v3d_mul(entity->center, v3d_from_v3i(polarity_of_v3d(plane.dir))));
+
+	intersects_plane = ray_intersects_plane(movement, plane, &intersect, &resolved_dir, &behind_plane);
+
+	if (behind_plane) {
+		if (intersects_plane && inside_bbox(block_bbox, intersect)) { // ray collides with plane inside the box
+			if (plane.dir.z > 0 && !d_close(plane.dir.z, 0)) { // plane is facing upwards (it can be stood upon)
+				entity->on_ground = true;
+
+				if (resolved_dir.z <= 0 || d_close(resolved_dir.z, 0)) {
+					entity->ray.dir.z = 0;
+					resolved_dir.z = 0;
+				}
+			}
+
+			movement.dir = resolved_dir;
+		} else { // ray may collide with box but not on the face of the plane
+			movement = entity_collide_bbox(entity, movement, block_bbox);
+		}
+	}
+
+	return movement;
+}
+
 void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time) {
-	int bbox_coll_axis;
-	bool intersecting, behind, check_bbox;
-	ray_t scaled_ray, block_plane;
-	v3d resolved_dir, intersect;
+	ray_t movement;
 	bbox_t block_bbox;
 	block_collidable_t *block_coll;
-	block_coll_e coll_type;
 
-	scaled_ray = entity->ray;
-	scaled_ray.dir = v3d_scale(scaled_ray.dir, time);
+	movement = entity->ray;
+	movement.dir = v3d_scale(movement.dir, time);
 
 	block_coll_array_sort(block_colls, entity->ray.dir);
 
 	for (size_t i = 0; i < block_colls->size; i++) {
 		block_coll = (block_collidable_t *)block_colls->items[i];
-		coll_type = block_coll->coll_data->coll_type;
 
+		// add entity size to block bbox size
 		block_bbox = *block_coll->coll_data->bbox;
 		block_bbox.pos = v3d_add(block_bbox.pos, v3d_from_v3i(block_coll->loc));
 		block_bbox.pos = v3d_sub(block_bbox.pos, entity->center);
 		block_bbox.size = v3d_add(block_bbox.size, entity->size);
 
-		check_bbox = false;
-
-		if (coll_type == BLOCK_COLL_CHOPPED_BOX) {
-			block_plane = *block_coll->coll_data->plane;
-			block_plane.pos = v3d_add(block_plane.pos, v3d_from_v3i(block_coll->loc));
-			block_plane.pos = v3d_add(block_plane.pos, v3d_mul(entity->center, v3d_from_v3i(polarity_of_v3d(block_plane.dir))));
-
-			intersecting = ray_intersects_plane(scaled_ray, block_plane, &intersect, &resolved_dir, &behind);
-
-			if (behind) {
-				if (intersecting && inside_bbox(block_bbox, intersect)) { // ray collides with plane inside the box
-					scaled_ray.dir = resolved_dir;
-
-					// TODO friction?/reduce values based on difference from normal
-					if (block_coll->coll_data->plane->dir.z > 0) {
-						entity->ray.dir.z = 0;
-					}
-				} else { // ray may collide with box but not on the face of the plane
-					check_bbox = true;
-				}
-			}
-		} else {
-			check_bbox = true;
-		}
-
-		if (check_bbox && (bbox_coll_axis = ray_intersects_bbox(scaled_ray, block_bbox, NULL, &resolved_dir)) >= 0) {
-			scaled_ray.dir = resolved_dir;
-
-			v3d_set(&entity->ray.dir, bbox_coll_axis, 0);
-
-			if (bbox_coll_axis == 2)
-				entity->on_ground = true;
+		switch (block_coll->coll_data->coll_type) {
+			case (BLOCK_COLL_CHOPPED_BOX):
+				movement = entity_collide_chopped_bbox(entity, movement, block_bbox, block_coll);
+				break;
+			case (BLOCK_COLL_CUSTOM_BOX):
+			case (BLOCK_COLL_DEFAULT_BOX):
+				movement = entity_collide_bbox(entity, movement, block_bbox);
+				break;
+			case (BLOCK_COLL_NONE):
+				break;
 		}
 	}
 
-	entity->ray.pos = v3d_add(entity->ray.pos, scaled_ray.dir);
+	entity->ray.pos = v3d_add(entity->ray.pos, movement.dir);
 }
 
 void entity_add_path(entity_t *entity, list_t *path) {
@@ -186,14 +213,16 @@ void entity_tick(entity_t *entity, struct world_t *world, double ms) {
 	array_t *block_colls;
 
 	time = ms / 1000;
-	time = MIN(time, 0.1); // super slow ticks, broken physics
+	time = MIN(time, 0.1); // super slow ticks equals broken physics
 
 	// think (modify state)
 	entity_follow_path(entity, time);
 
 	// act (apply changes)
+	if (!entity->on_ground)
+		entity->ray.dir.z += GRAVITY * time;
+
 	entity->on_ground = false;
-	entity->ray.dir.z += GRAVITY * time;
 
 	block_colls = entity_surrounding_block_colls(entity, world);
 	entity_move_and_collide(entity, block_colls, time);
