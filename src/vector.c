@@ -92,6 +92,14 @@ v3i polarity_of_v3d(v3d v) {
 	return polarity;
 }
 
+double v3i_magnitude(v3i v) {
+	return sqrt(v3i_dot(v, v));
+}
+
+double v3i_dot(v3i a, v3i b) {
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
 void v3i_print(const char *message, v3i v) {
 	if (message != NULL)
 		printf("%s:\t", message);

@@ -30,17 +30,19 @@ double v2d_dot(v2d, v2d);
 
 v3i v3i_from_v3d(v3d);
 int v3i_get(v3i *, int);
-void v3i_set(v3i *, int, int);
+void v3i_set(v3i *, int, int value);
 v3i v3i_add(v3i, v3i);
 v3i v3i_sub(v3i, v3i);
 v3i v3i_scale(v3i, double);
 int v3i_compare(v3i, v3i);
 v3i polarity_of_v3d(v3d);
+double v3i_magnitude(v3i);
+double v3i_dot(v3i, v3i);
 void v3i_print(const char *message, v3i v);
 
 v3d v3d_from_v3i(v3i);
 double v3d_get(v3d *, int);
-void v3d_set(v3d *, int, double);
+void v3d_set(v3d *, int, double value);
 v3d v3d_add(v3d, v3d);
 v3d v3d_sub(v3d, v3d);
 v3d v3d_mul(v3d, v3d);
