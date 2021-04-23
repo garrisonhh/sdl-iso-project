@@ -80,8 +80,6 @@ void path_node_connect(path_node_t *a, path_node_t *b) {
 	}
 }
 
-// TODO custom block path definitions/weights
-
 bool path_block_empty(world_t *world, v3i loc) {
 	block_t *block = block_get(world, loc);
 	
@@ -279,13 +277,19 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 	path_node_t *cur_node, *nbor_node;
 	void **neighbors;
 	double potential_g;
-	int i;
+	int i, estimated_nodes, estimated_heap_depth;
 
 	path = NULL;
 
-	// TODO decide initial allocation based on distance to minimize memcpy calls
-	openset = heap_create(4, path_compare_asnodes);
-	navigated = hashmap_create(64, true, hash_v3i);
+	// estimate size of heap and nodes to prevent as many memcpy and realloc calls as possible
+	estimated_nodes = v3i_magnitude(v3i_sub(start_pos, goal_pos));
+	estimated_heap_depth = 1;
+
+	while (estimated_nodes >> estimated_heap_depth)
+		++estimated_heap_depth;
+
+	openset = heap_create(estimated_heap_depth, path_compare_asnodes);
+	navigated = hashmap_create(estimated_nodes, true, hash_v3i);
 
 	current = path_asnode_create(start_pos, NULL, goal_pos);
 	heap_insert(openset, current);
