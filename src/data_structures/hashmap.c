@@ -7,7 +7,7 @@
 hashmap_t *hashmap_create(size_t initial_size, bool rehashes, hash_t (*hash_func)(const void *, size_t)) {
 	hashmap_t *hmap = (hashmap_t *)malloc(sizeof(hashmap_t));
 
-	hmap->max_size = initial_size;
+	hmap->min_size = hmap->max_size = initial_size;
 	hmap->size = 0;
 	hmap->buckets = (hashbucket_t **)malloc(sizeof(hashbucket_t *) * hmap->max_size);
 	hmap->hash_func = hash_func;
@@ -122,8 +122,7 @@ void *hashmap_remove(hashmap_t *hmap, void *key, size_t size_key) {
 
 		hmap->size--;
 
-		// TODO store initial size so that this doesn't get called immediately on first removal in some cases
-		if (hmap->rehashes && hmap->size < (hmap->max_size >> 2))
+		if (hmap->rehashes && hmap->size < (hmap->max_size >> 2) && hmap->size > hmap->min_size)
 			hashmap_rehash(hmap, false);
 	}
 
@@ -190,7 +189,6 @@ void **hashmap_values(hashmap_t *hmap) {
 	return values;
 }
 
-// TODO actual set implementation
 void **hashmap_keys(hashmap_t *hmap) {
 	void **keys;
 	hashbucket_t *trav;

@@ -16,7 +16,7 @@ typedef struct hashbucket_t hashbucket_t;
 
 struct hashmap_t {
 	hashbucket_t **buckets;
-	size_t max_size, size;
+	size_t max_size, size, min_size;
 	hash_t (*hash_func)(const void *, size_t);
 	bool rehashes; // when false, hashmap_set() will never rehash
 };
