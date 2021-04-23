@@ -44,16 +44,26 @@ struct texture_t {
 };
 typedef struct texture_t texture_t;
 
-// texture data types
-struct tex_data_t {
+// texture state
+struct block_tex_state_t {
+	unsigned expose_mask: 3;
 
+	union {
+		struct {
+			unsigned outline_mask: 8;
+		} voxel;
+		struct {
+			unsigned connected_mask: 6;
+		} connected;
+	} state;
 };
-typedef struct tex_data_t tex_data_t;
+typedef struct block_tex_state_t block_tex_state_t;
 
 void textures_init(void);
 void textures_load(json_object *);
 void textures_destroy(void);
 texture_t *texture_ptr_from_key(char *);
+block_tex_state_t block_tex_state_from(texture_type_e tex_type);
 
 SDL_Texture *load_sdl_texture(char *path);
 sprite_t *load_sprite(char *);

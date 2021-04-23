@@ -199,6 +199,25 @@ texture_t *texture_ptr_from_key(char *key) {
 	return textures[*value];
 }
 
+block_tex_state_t block_tex_state_from(texture_type_e tex_type) {
+	block_tex_state_t tex_state;
+
+	tex_state.expose_mask = 0x7;
+
+	switch (tex_type) {
+		case TEX_VOXEL:
+			tex_state.state.voxel.outline_mask = 0x0;
+			break;
+		case TEX_CONNECTED:
+			tex_state.state.connected.connected_mask = 0x0;
+			break;
+		default:
+			break;
+	}
+
+	return tex_state;
+}
+
 SDL_Texture *load_sdl_texture(char *path) {
 	SDL_Texture *texture = NULL;
 	SDL_Surface *loaded_surface = IMG_Load(path);

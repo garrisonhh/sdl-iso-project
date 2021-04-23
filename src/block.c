@@ -5,6 +5,7 @@
 #include "vector.h"
 #include "collision.h"
 #include "data_structures/array.h"
+#include "textures.h"
 
 v3i COLL_SORT_POLARITY = {1, 1, 1};
 
@@ -15,9 +16,7 @@ block_t *block_create(size_t block_id) {
 	model = block_gen_get(block_id);
 
 	block->texture = model->texture;
-	block->expose_mask = 0x7;
-	block->connect_mask = 0x0;
-	block->outline_mask = 0x0;
+	block->tex_state = block_tex_state_from(block->texture->type);
 
 	block->coll_data = model->coll_data;
 

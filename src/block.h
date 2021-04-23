@@ -33,16 +33,9 @@ typedef struct block_collidable_t block_collidable_t;
 
 struct block_t {
 	texture_t *texture;
+	block_tex_state_t tex_state;
+
 	block_coll_data_t *coll_data;
-
-	// TODO a separate texture data struct to prevent unnecessary data storage?
-	unsigned expose_mask: 3; // last 3 bits are X Y Z
-	unsigned connect_mask: 6; // last 6 bits are +X -X +Y -Y +Z -Z
-
-	// bits 0-3: top edges +X, -X, +Y, -Y
-	// bits 4-5: corner edges (+X -Y), (-X, +Y)
-	// bits 6-7: bottom edges +X, +Y
-	unsigned outline_mask: 8;
 };
 typedef struct block_t block_t;
 
