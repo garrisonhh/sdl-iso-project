@@ -22,6 +22,7 @@
 
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 const v3d PLAYER_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
+
 const v2i OUTLINE_TOP_EDGES[][2] = {
 	{
 		(v2i){0, (VOXEL_WIDTH >> 1) - 1},
@@ -160,16 +161,15 @@ unsigned render_find_void_mask(v3i loc, v3i max_block, int player_z, unsigned bl
 void render_block_outline(v3i loc, unsigned outline_mask, unsigned expose_mask) {
 	int i, j;
 	v2i block_pos;
-	v2i pos1, pos2;
+	v2i pos;
 
 	// bottom edges
 	block_pos = project_v3i(loc, true);
 
-	for (i = 0; i <= 2; i += 2) {
-		if ((outline_mask >> i) & 1 && (expose_mask >> i) & 1) {
-			pos1 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][0]);
-			pos2 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][1]);
-			render_aligned_line(pos1, pos2);
+	for (i = 0; i <= 1; ++i) {
+		if ((outline_mask >> (i + 6)) & 1 && (expose_mask >> i) & 1) {
+			render_aligned_line(v2i_add(block_pos, OUTLINE_TOP_EDGES[i << 1][0]),
+								v2i_add(block_pos, OUTLINE_TOP_EDGES[i << 1][1]));
 		}
 	}
 
@@ -179,9 +179,8 @@ void render_block_outline(v3i loc, unsigned outline_mask, unsigned expose_mask) 
 	if (expose_mask >> 2) {
 		for (i = 0; i < 4; ++i) {
 			if ((outline_mask >> i) & 1) {
-				pos1 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][0]);
-				pos2 = v2i_add(block_pos, OUTLINE_TOP_EDGES[i][1]);
-				render_aligned_line(pos1, pos2);
+				render_aligned_line(v2i_add(block_pos, OUTLINE_TOP_EDGES[i][0]),
+									v2i_add(block_pos, OUTLINE_TOP_EDGES[i][1]));
 			}
 		}
 	}
@@ -189,10 +188,10 @@ void render_block_outline(v3i loc, unsigned outline_mask, unsigned expose_mask) 
 	// corners
 	for (i = 0; i <= 1; ++i) {
 		if ((outline_mask >> (i + 4)) & 1 && (expose_mask >> i) & 1) {
-			pos1 = v2i_add(block_pos, OUTLINE_CORNERS[i]);
+			pos = v2i_add(block_pos, OUTLINE_CORNERS[i]);
 
-			for (j = 1; j < VOXEL_Z_HEIGHT; ++j)
-				SDL_RenderDrawPoint(renderer, pos1.x, pos1.y + j);
+			for (j = 1; j <= VOXEL_Z_HEIGHT - ((outline_mask >> (i + 6)) & 1); ++j)
+				SDL_RenderDrawPoint(renderer, pos.x, pos.y + j);
 		}
 	}
 }

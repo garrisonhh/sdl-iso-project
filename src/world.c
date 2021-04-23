@@ -123,7 +123,7 @@ void block_update_masks(world_t *world, v3i loc) {
 
 			mask = 0x0;
 
-			// check each of the edges based on the edge offset
+			// check each of the top edges based on the edge offset
 			for (i = 0; i < 4; ++i)
 				if (block_see_through(block_get(world, v3i_add(loc, OUTLINE_EDGE_OFFSETS[i]))))
 					mask |= 0x1 << i;
@@ -139,6 +139,16 @@ void block_update_masks(world_t *world, v3i loc) {
 				}
 				
 				SWAP(neighbor.x, neighbor.y, swap);
+				SWAP(diagonal.x, diagonal.y, swap);
+			}
+			
+			// check bottom edges
+			diagonal = (v3i){1, 0, -1};
+
+			for (i = 0; i <= 1; ++i) {
+				if (!block_see_through(block_get(world, v3i_add(loc, diagonal))))
+					mask |= 0x1 << (i + 6);
+				
 				SWAP(diagonal.x, diagonal.y, swap);
 			}
 			

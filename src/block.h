@@ -40,8 +40,9 @@ struct block_t {
 	unsigned connect_mask: 6; // last 6 bits are +X -X +Y -Y +Z -Z
 
 	// bits 0-3: top edges +X, -X, +Y, -Y
-	// TODO bits 4-5: corner edges (+X -Y), (-X, +Y)
-	unsigned outline_mask: 6;
+	// bits 4-5: corner edges (+X -Y), (-X, +Y)
+	// bits 6-7: bottom edges +X, +Y
+	unsigned outline_mask: 8;
 };
 typedef struct block_t block_t;
 
