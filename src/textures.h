@@ -58,15 +58,9 @@ struct block_tex_state_t {
 	unsigned expose_mask: 3;
 
 	union {
-		struct {
-			unsigned outline_mask: 8;
-		} voxel;
-		struct {
-			unsigned connected_mask: 6;
-		} connected;
-		struct {
-			v2i cell;
-		} sheet;
+		unsigned outline_mask: 8;
+		unsigned connected_mask: 6;
+		v2i sheet_cell;
 	} state;
 };
 typedef struct block_tex_state_t block_tex_state_t;

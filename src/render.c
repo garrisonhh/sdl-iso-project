@@ -207,7 +207,7 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 								 project_v3i(loc, true),
 								 block->tex_state.expose_mask, void_mask);
 
-			if ((outline_mask = block->tex_state.state.voxel.outline_mask))
+			if ((outline_mask = block->tex_state.state.outline_mask))
 				render_block_outline(loc, outline_mask, block->tex_state.expose_mask);
 		}
 	} else if (block->tex_state.expose_mask) {
@@ -220,13 +220,13 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 			case TEX_CONNECTED:
 				render_connected_texture(block->texture->tex.connected,
 										 project_v3i(loc, true),
-										 block->tex_state.state.connected.connected_mask);
+										 block->tex_state.state.connected_mask);
 
 				break;
 			case TEX_SHEET:
 				render_sheet_texture(block->texture->tex.sheet,
 									 project_v3i(loc, true),
-									 block->tex_state.state.sheet.cell);
+									 block->tex_state.state.sheet_cell);
 			default:
 				break;
 		}

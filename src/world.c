@@ -152,7 +152,7 @@ void block_update_masks(world_t *world, v3i loc) {
 				SWAP(diagonal.x, diagonal.y, swap);
 			}
 			
-			block->tex_state.state.voxel.outline_mask = mask;
+			block->tex_state.state.outline_mask = mask;
 		}
 	}
 }

@@ -310,13 +310,13 @@ block_tex_state_t block_tex_state_from(texture_type_e tex_type) {
 
 	switch (tex_type) {
 		case TEX_VOXEL:
-			tex_state.state.voxel.outline_mask = 0x0;
+			tex_state.state.outline_mask = 0x0;
 			break;
 		case TEX_CONNECTED:
-			tex_state.state.connected.connected_mask = 0x0;
+			tex_state.state.connected_mask = 0x0;
 			break;
 		case TEX_SHEET:
-			tex_state.state.sheet.cell = (v2i){0, 0};
+			tex_state.state.sheet_cell = (v2i){0, 0};
 			break;
 		default:
 			break;
