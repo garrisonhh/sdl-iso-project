@@ -1,13 +1,7 @@
 {
 	"textures": [
 		{
-			"name": "banana man",
-			"path": "banana_man",
-			"type": "sprite"
-		},
-		{
-			"name": "pear man",
-			"path": "pear_man",
+			"name": "gary",
 			"type": "sprite"
 		},
 		{
@@ -43,19 +37,9 @@
 			"type": "sheet",
 			"transparent": true,
 			"cell size": [32, 34]
-		},
-		{
-			"name": "ramp",
-			"type": "texture",
-			"transparent": true
-		},
-		{
-			"name": "pipe",
-			"path": "pipe/pipe",
-			"type": "connected",
-			"transparent": true
 		}
 	],
+
 	"blocks": [
 		{
 			"name": "dirt"
@@ -81,12 +65,6 @@
 		},
 		{
 			"name": "leaves"
-		},
-		{
-			"name": "ramp",
-			"collision": "chopped",
-			"plane": [0.5, 0.5, 0.5,
-					  0.0, 1.0, 1.0]
 		}
 	]
 }
