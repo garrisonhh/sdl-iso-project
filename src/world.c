@@ -281,11 +281,18 @@ world_t *world_create(unsigned size_power) {
 }
 
 void world_destroy(world_t *world) {
-	for (int i = 0; i < world->num_chunks; i++)
+	size_t i;
+
+	for (i = 0; i < world->num_chunks; ++i)
 		if (world->chunks[i] != NULL)
 			chunk_destroy(world->chunks[i]);
 	
-	array_destroy(world->entities, true); // includes player
+	for (i = 0; i < world->entities->size; ++i)
+		entity_destroy(world->entities->items[i]);
+
+	list_destroy(world->updates, true);
+	array_destroy(world->entities, false);
+	path_network_destroy(world->path_net);
 
 	free(world->chunks);
 	free(world);

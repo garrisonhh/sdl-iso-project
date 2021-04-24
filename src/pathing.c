@@ -29,15 +29,20 @@ void path_node_destroy(path_node_t *node) {
 	free(node);
 }
 
-/*
-// this leaks the alloc'd id int ptrs, so letting the OS clean it up for me atm
 void path_network_destroy(path_network_t *network) {
-	hashmap_destroy(network->nodes, true);
+	path_node_t **nodes = (path_node_t **)hashmap_values(network->nodes);
+
+	for (size_t i = 0; i < network->nodes->size; ++i)
+		path_node_destroy(nodes[i]);
+
+	free(nodes);
+
+	hashmap_destroy(network->nodes, false);
 	hashmap_destroy(network->ids, false); 
+	array_destroy(network->id_targets, true);
 
 	free(network);
 }
-*/
 
 /*
  * heuristic used here are calculated by using the manhatten + diagonal distance on the (x, y)
@@ -112,6 +117,7 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 	network = (path_network_t *)malloc(sizeof(path_network_t));
 	network->nodes = hashmap_create(nodes->max_size, true, hash_v3i);
 	network->ids = hashmap_create(nodes->max_size, true, hash_v3i);
+	network->id_targets = array_create(2);
 
 	while (nodes->size > 0) {
 		i = 0;
@@ -125,6 +131,7 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 		// how to free this properly..?
 		id_val = (int *)malloc(sizeof(int));
 		*id_val = id;
+		array_add(network->id_targets, id_val);
 
 		// find all nodes connected to the starting node, remove them from original nodes list
 		// and add them to the network with a unique id tied to the group
@@ -159,7 +166,7 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 		++id;
 	}
 
-	network->groups = id;
+	list_destroy(active, true);
 
 	return network;
 }
@@ -358,4 +365,6 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 
 	return path;
 }
+
+
 

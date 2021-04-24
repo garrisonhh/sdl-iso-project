@@ -6,6 +6,7 @@
 #include "vector.h"
 #include "data_structures/hashmap.h"
 #include "data_structures/list.h"
+#include "data_structures/array.h"
 
 // path network types
 struct path_node_t {
@@ -25,7 +26,8 @@ struct path_network_t {
 	// nodes is {v3i : path_node_t *}
 	// ids is {v3i : group id}
 	hashmap_t *nodes, *ids;
-	int groups;
+	// the integers ids points to
+	array_t *id_targets;
 };
 typedef struct path_network_t path_network_t;
 
@@ -45,6 +47,7 @@ typedef struct path_asnode_t path_asnode_t;
 
 bool path_block_pathable(world_t *, v3i);
 path_network_t *path_generate_world_network(world_t *);
+void path_network_destroy(path_network_t *);
 list_t *path_find(path_network_t *, v3i start_pos, v3i goal_pos);
 
 #endif
