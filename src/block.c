@@ -20,6 +20,12 @@ block_t *block_create(size_t block_id) {
 
 	block->coll_data = model->coll_data;
 
+	// TODO REMOVE
+	if (block->texture->type == TEX_SHEET) {
+		v2i size = block->texture->tex.sheet->size;
+		block->tex_state.state.sheet_cell = (v2i){rand() % size.x, rand() % size.y};
+	}
+
 	return block;
 }
 

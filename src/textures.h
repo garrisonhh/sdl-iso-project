@@ -33,7 +33,6 @@ struct connected_tex_t {
 };
 typedef struct connected_tex_t connected_tex_t;
 
-// TODO separate sheet rows can have different lengths?
 struct sheet_tex_t {
 	SDL_Texture *texture;
 	v2i size;
