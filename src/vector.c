@@ -53,20 +53,27 @@ v3i v3i_from_v3d(v3d v) {
 }
 
 int v3i_get(v3i *v, int index) {
-	if (index == 0)
-		return v->x;
-	else if (index == 1)
-		return v->y;
-	return v->z;
+	switch (index) {
+		case 0:
+			return v->x;
+		case 1:
+			return v->y;
+		case 2:
+			return v->z;
+		default:
+			exit(1);
+	}
 }
 
 void v3i_set(v3i *v, int index, int value) {
-	if (index == 0)
-		v->x = value;
-	else if (index == 1)
-		v->y = value;
-	else
-		v->z = value;
+	switch (index) {
+		case 0:
+			v->x = value;
+		case 1:
+			v->y = value;
+		case 2:
+			v->z = value;
+	}
 }
 
 v3i v3i_add(v3i a, v3i b) {
@@ -125,20 +132,27 @@ v3d v3d_from_v3i(v3i v) {
 }
 
 double v3d_get(v3d *v, int index) {
-	if (index == 0)
-		return v->x;
-	else if (index == 1)
-		return v->y;
-	return v->z;
+	switch (index) {
+		case 0:
+			return v->x;
+		case 1:
+			return v->y;
+		case 2:
+			return v->z;
+		default:
+			exit(1);
+	}
 }
 
 void v3d_set(v3d *v, int index, double value) {
-	if (index == 0)
-		v->x = value;
-	else if (index == 1)
-		v->y = value;
-	else
-		v->z = value;
+	switch (index) {
+		case 0:
+			v->x = value;
+		case 1:
+			v->y = value;
+		case 2:
+			v->z = value;
+	}
 }
 
 v3d v3d_add(v3d a, v3d b) {
