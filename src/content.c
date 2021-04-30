@@ -11,7 +11,6 @@
 void content_init() {
 	json_object *file_obj = json_object_from_file("assets/content.json");
 	
-	textures_init();
 	textures_load(file_obj);
 	
 	while (json_object_put(file_obj) != 1)

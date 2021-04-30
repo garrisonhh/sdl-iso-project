@@ -64,17 +64,12 @@ struct block_tex_state_t {
 };
 typedef struct block_tex_state_t block_tex_state_t;
 
-void textures_init(void);
+extern voxel_tex_t *VOID_VOXEL_TEXTURE;
+
 void textures_load(json_object *);
 void textures_destroy(void);
 texture_t *texture_ptr_from_key(char *);
 block_tex_state_t block_tex_state_from(texture_type_e tex_type);
-
-void render_sdl_texture(SDL_Texture *, v2i);
-void render_sprite(sprite_t *sprite, v2i);
-void render_voxel_texture(voxel_tex_t *, v2i, unsigned expose_mask, unsigned void_mask);
-void render_connected_texture(connected_tex_t *, v2i, unsigned connected_mask);
-void render_sheet_texture(sheet_tex_t *, v2i, v2i cell);
 
 #endif
 

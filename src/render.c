@@ -14,6 +14,7 @@
 #include "data_structures/list.h"
 #include "camera.h"
 #include "render_primitives.h"
+#include "render_textures.h"
 #include "utils.h"
 #include "world.h"
 
@@ -77,6 +78,7 @@ void render_init(SDL_Window *window) {
 	SDL_SetTextureBlendMode(background, SDL_BLENDMODE_BLEND);
 
 	camera_init();
+	render_textures_init();
 }
 
 void render_destroy() {

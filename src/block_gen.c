@@ -33,7 +33,6 @@ void block_gen_load() {
 		"default",
 		"custom",
 		// chopped is not in current development scope
-		//"chopped"
 	};
 	block_coll_e *coll_type;
 	hashmap_t *coll_type_map = hashmap_create(num_coll_types * 2, false, hash_string);
