@@ -13,7 +13,6 @@ void content_init() {
 	
 	textures_init();
 	textures_load(file_obj);
-	block_gen_load(file_obj);
 	
 	while (json_object_put(file_obj) != 1)
 		free(file_obj);
@@ -22,7 +21,6 @@ void content_init() {
 // TODO rename and move to main
 void content_quit() {
 	textures_destroy();
-	block_gen_destroy();
 }
 
 json_object *content_load_file(const char *file_path) {
@@ -36,10 +34,15 @@ json_object *content_load_file(const char *file_path) {
 	return file_obj;
 }
 
-void content_close_file(json_object *obj) {	
-	// taken direct from the docs, this code is extremely mysterious lol
-	while (json_object_put(obj) != 1)
-		free(obj);
+void content_close_file(json_object *file_obj) {	
+	// this is an extremely mysterious function I do not understand
+	// wrapped it in content_close_file() for consistency and so I dont get confused in future
+	while (json_object_put(file_obj) != 1)
+		;
+}
+
+bool content_has_key(json_object *obj, const char *key) {
+	return json_object_object_get(obj, key) != NULL;
 }
 
 // the json-c "array_list" is basically the same thing as my implementation lol
@@ -51,7 +54,8 @@ array_t *content_array_from_obj(json_object *obj) {
 	json_arr = json_object_get_array(obj);
 	arr = array_create(json_arr->length);
 
-	arr->items = json_arr->array;
+	memcpy(arr->items, json_arr->array, sizeof(void *) * json_arr->length);
+
 	arr->size = json_arr->length;
 
 	return arr;

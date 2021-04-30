@@ -126,6 +126,7 @@ connected_tex_t *load_connected_texture(char *path) {
 	return connected_tex;
 }
 
+// TODO use new json interface
 void textures_load(json_object *file_obj) {
 	const char *name;
 	char path[100];

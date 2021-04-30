@@ -9,6 +9,11 @@
 void content_init(void);
 void content_quit(void);
 
+json_object *content_load_file(const char *file_path);
+void content_close_file(json_object *);
+
+bool content_has_key(json_object *obj, const char *key);
+
 bool content_get_bool(json_object *, const char *key);
 int content_get_int(json_object *, const char *key);
 double content_get_double(json_object *, const char *key);

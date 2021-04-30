@@ -1,153 +1,131 @@
 #include <json-c/json.h>
 #include <stdlib.h>
 #include "block.h"
+#include "content.h"
 #include "textures.h"
 #include "data_structures/hashmap.h"
 #include "data_structures/hash_functions.h"
 
 /*
  * this is similar but not identical to textures.c; textures can be reused
- * whenever but blocks cant, so this holds blocks to be copied instead of
+ * whenever but blocks can't, so this holds blocks to be copied instead of
  * used directly from the array
  */
 
-block_t **blocks = NULL;
-block_coll_data_t **block_coll_data;
-size_t num_blocks;
-hashmap_t *block_table;
+block_t **BLOCKS = NULL; // the models blocks are based on
+block_coll_data_t **BLOCK_COLL_DATA = NULL; // used solely to free pointers
+hashmap_t *BLOCK_MAP = NULL;
+size_t NUM_BLOCKS;
 
 bbox_t BLOCK_DEFAULT_BOX = {
 	(v3d){0, 0, 0},
 	(v3d){1, 1, 1}
 };
-block_coll_data_t WALL_COLL_DATA;
+block_coll_data_t WALL_COLL_DATA; // collision data for world borders
 
-void block_gen_load(json_object *file_obj) {
-	size_t i, num_coll_types;
-	size_t *arr_index;
-	json_object *block_arr_obj, *current_block, *obj;
-	char *obj_str;
-	int j;
+void block_gen_load() {
+	int i;
 
-	const char *name, *texture;
-	bbox_t *bbox;
-	ray_t *plane;
-
-	hashmap_t *coll_type_table;
-	block_coll_e *coll_type_ptr;
-	num_coll_types = 4;
+	// construct coll_type hashmap
+	const int num_coll_types = 3;
 	char *coll_type_strings[] = {
 		"none",
 		"default",
 		"custom",
-		"chopped"
+		// chopped is not in current development scope
+		//"chopped"
 	};
+	block_coll_e *coll_type;
+	hashmap_t *coll_type_map = hashmap_create(num_coll_types * 2, false, hash_string);
 
-	coll_type_table = hashmap_create(num_coll_types * 1.3 + 1, true, hash_string);
-	block_arr_obj = json_object_object_get(file_obj, "blocks");
-	num_blocks = json_object_array_length(block_arr_obj);
-	blocks = (block_t **)calloc(num_blocks, sizeof(block_t *));
-	block_coll_data = (block_coll_data_t **)calloc(num_blocks, sizeof(block_coll_data_t *));
-	block_table = hashmap_create(num_blocks * 1.3 + 1, true, hash_string);
+	for (i = 0; i < num_coll_types; ++i) {
+		coll_type = (block_coll_e *)malloc(sizeof(block_coll_e));
+		*coll_type = i;
 
-	for (i = 0; i < num_coll_types; i++) {
-		coll_type_ptr = (block_coll_e *)malloc(sizeof(block_coll_e));
-		*coll_type_ptr = (block_coll_e)i;
-		hashmap_set(coll_type_table, coll_type_strings[i], strlen(coll_type_strings[i]), coll_type_ptr);
+		hashmap_set(coll_type_map, coll_type_strings[i], strlen(coll_type_strings[i]), coll_type);
 	}
 
-	for (i = 0; i < num_blocks; i++) {
-		blocks[i] = (block_t *)malloc(sizeof(block_t));
-		block_coll_data[i] = (block_coll_data_t *)malloc(sizeof(block_coll_data_t));
-	
-		current_block = json_object_array_get_idx(block_arr_obj, i);
+	// json block list
+	json_object *file;
+	array_t *block_objects;
 
-		// name
-		obj = json_object_object_get(current_block, "name");
-		name = json_object_get_string(obj);
+	file = content_load_file("assets/blocks.json");
+	block_objects = content_get_array(file, "blocks");
+
+	// set up globals
+	NUM_BLOCKS = block_objects->size;
+	BLOCKS = (block_t **)malloc(sizeof(block_t *) * NUM_BLOCKS);
+	BLOCK_COLL_DATA = (block_coll_data_t **)malloc(sizeof(block_coll_data_t *) * NUM_BLOCKS);
+	BLOCK_MAP = hashmap_create(NUM_BLOCKS * 2, true, hash_string);
+
+	// load blocks
+	json_object *block_obj;
+	block_coll_data_t *coll_data;
+	const char *name, *texture, *coll_type_name;
+	size_t *block_id;
+
+	for (i = 0; i < NUM_BLOCKS; ++i) {
+		BLOCKS[i] = (block_t *)malloc(sizeof(block_t));
+
+		block_obj = block_objects->items[i];
+
+		name = content_get_string(block_obj, "name");
 
 		// texture
-		if ((obj = json_object_object_get(current_block, "texture")) != NULL)
-			texture = json_object_get_string(obj);
+		if (content_has_key(block_obj, "texture"))
+			texture = content_get_string(block_obj, "texture");
 		else
 			texture = name;
 
-		blocks[i]->texture = texture_ptr_from_key((char *)texture);
+		// coll data
+		coll_data = (block_coll_data_t *)malloc(sizeof(block_coll_data_t));
 
-		// coll type
-		if ((obj = json_object_object_get(current_block, "collision")) != NULL) {
-			obj_str = (char *)json_object_get_string(obj);
-			coll_type_ptr = (block_coll_e *)hashmap_get(coll_type_table, obj_str, strlen(obj_str));
-
-			if (coll_type_ptr == NULL) {
-				printf("unknown collision type for block \"%s\".\n", name);
-				exit(1);
-			}
-
-			block_coll_data[i]->coll_type = *coll_type_ptr;
+		if (content_has_key(block_obj, "collision")) {
+			coll_type_name = content_get_string(block_obj, "collision");
+			coll_data->coll_type = *(block_coll_e *)hashmap_get(coll_type_map,
+																(char *)coll_type_name,
+																strlen(coll_type_name));
 		} else {
-			block_coll_data[i]->coll_type = BLOCK_COLL_DEFAULT_BOX;
+			coll_data->coll_type = BLOCK_COLL_DEFAULT_BOX;
 		}
 
-		block_coll_data[i]->bbox = NULL;
-		block_coll_data[i]->plane = NULL;
+		coll_data->bbox = NULL;
+		coll_data->plane = NULL;
 
-		switch (block_coll_data[i]->coll_type) {
-			case BLOCK_COLL_CUSTOM_BOX:;
-				bbox = (bbox_t *)malloc(sizeof(bbox_t));
-
-				if ((obj = json_object_object_get(current_block, "bbox")) == NULL) {
-					printf("no bbox provided for custom box \"%s\".\n", name);
-					exit(1);
-				} else if (json_object_array_length(obj) != 6) {
-					printf("bbox provided for custom box of \"%s\" does not contain 6 values.\n", name);
-					exit(1);
-				}
-
-				for (j = 0; j < 3; j++) {
-					v3d_set(&bbox->pos, j, json_object_get_double(json_object_array_get_idx(obj, j)));
-					v3d_set(&bbox->size, j, json_object_get_double(json_object_array_get_idx(obj, j + 3)));
-				}
-
-				block_coll_data[i]->bbox = bbox;
-
-				break;
-			case BLOCK_COLL_CHOPPED_BOX:;
-				plane = (ray_t *)malloc(sizeof(ray_t));
-
-				if ((obj = json_object_object_get(current_block, "plane")) == NULL) {
-					printf("no plane provided for chopped box \"%s\".\n", name);
-					exit(1);
-				} else if (json_object_array_length(obj) != 6) {
-					printf("plane provided for chopped box of \"%s\" does not contain 6 values.\n", name);
-					exit(1);
-				}
-
-				for (j = 0; j < 3; j++) {
-					v3d_set(&plane->pos, j, json_object_get_double(json_object_array_get_idx(obj, j)));
-					v3d_set(&plane->dir, j, json_object_get_double(json_object_array_get_idx(obj, j + 3)));
-				}
-
-				block_coll_data[i]->plane = plane;
-
-				// falls through
-			case BLOCK_COLL_DEFAULT_BOX:
-				block_coll_data[i]->bbox = &BLOCK_DEFAULT_BOX;
-
-				break;
+		switch (coll_data->coll_type) {
 			case BLOCK_COLL_NONE:
 				break;
+			case BLOCK_COLL_DEFAULT_BOX:
+				coll_data->bbox = &BLOCK_DEFAULT_BOX;
+
+				break;
+			case BLOCK_COLL_CUSTOM_BOX:
+				coll_data->bbox = (bbox_t *)malloc(sizeof(bbox_t));
+				*coll_data->bbox = content_get_bbox(block_obj, "bbox");
+
+				break;
+			case BLOCK_COLL_CHOPPED_BOX:
+				exit(1);
+
+				break;
 		}
 
-		blocks[i]->coll_data = block_coll_data[i];
-		
-		// add to indexing hash table
-		arr_index = (size_t *)malloc(sizeof(size_t));
-		*arr_index = i;
-		hashmap_set(block_table, (char *)name, strlen(name), arr_index);
+		BLOCK_COLL_DATA[i] = coll_data;
+
+		// save model to array and hashmap
+		BLOCKS[i]->texture = texture_ptr_from_key((char *)texture);
+		BLOCKS[i]->tex_state = block_tex_state_from(BLOCKS[i]->texture->type);
+		BLOCKS[i]->coll_data = coll_data;
+
+		block_id = (size_t *)malloc(sizeof(size_t));
+		*block_id = i;
+		hashmap_set(BLOCK_MAP, (char *)name, strlen(name), block_id);
 	}
 
-	hashmap_destroy(coll_type_table, true);
+	// clean up and exit
+	array_destroy(block_objects, false);
+	hashmap_destroy(coll_type_map, true);
+	content_close_file(file);
 
 	WALL_COLL_DATA = (block_coll_data_t){
 		.coll_type = BLOCK_COLL_DEFAULT_BOX,
@@ -157,27 +135,27 @@ void block_gen_load(json_object *file_obj) {
 }
 
 void block_gen_destroy() {
-	for (size_t i = 0; i < num_blocks; i++) {
-		if (block_coll_data[i]->bbox != NULL && block_coll_data[i]->bbox != &BLOCK_DEFAULT_BOX)
-			free(block_coll_data[i]->bbox);
-		if (block_coll_data[i]->plane != NULL)
-			free(block_coll_data[i]->plane);
+	for (size_t i = 0; i < NUM_BLOCKS; i++) {
+		if (BLOCK_COLL_DATA[i]->bbox != NULL && BLOCK_COLL_DATA[i]->bbox != &BLOCK_DEFAULT_BOX)
+			free(BLOCK_COLL_DATA[i]->bbox);
+		if (BLOCK_COLL_DATA[i]->plane != NULL)
+			free(BLOCK_COLL_DATA[i]->plane);
 
-		free(block_coll_data[i]);
-		block_destroy(blocks[i]);
+		free(BLOCK_COLL_DATA[i]);
+		block_destroy(BLOCKS[i]);
 	}
 
-	free(blocks);
-	blocks = NULL;
-	hashmap_destroy(block_table, true);
-	block_table = NULL;
+	free(BLOCKS);
+	BLOCKS = NULL;
+	hashmap_destroy(BLOCK_MAP, true);
+	BLOCK_MAP = NULL;
 }
 
 size_t block_gen_get_id(char *key) {
 	size_t *value;
 
-	if ((value = (size_t *)hashmap_get(block_table, key, strlen(key))) == NULL) {
-		printf("key not found in block_table: %s\n", key);
+	if ((value = (size_t *)hashmap_get(BLOCK_MAP, key, strlen(key))) == NULL) {
+		printf("key not found in BLOCK_MAP: %s\n", key);
 		exit(1);
 	}
 
@@ -185,5 +163,5 @@ size_t block_gen_get_id(char *key) {
 }
 
 block_t *block_gen_get(size_t id) {
-	return blocks[id];
+	return BLOCKS[id];
 }

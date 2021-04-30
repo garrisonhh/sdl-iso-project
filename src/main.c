@@ -11,6 +11,8 @@
 #include "world.h"
 #include "player.h"
 #include "utils.h"
+#include "textures.h"
+#include "block_gen.h"
 
 SDL_Window *window = NULL;
 
@@ -38,10 +40,14 @@ void init() {
 	
 	render_init(window);	
 	content_init();
+
+	block_gen_load();
 }
 
 void quit_all() {
 	content_quit();
+	block_gen_destroy();
+
 	render_destroy();
 
 	SDL_DestroyWindow(window);
