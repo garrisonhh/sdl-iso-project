@@ -129,7 +129,6 @@ void render_filled_poly(v2i *points, size_t num_points) {
 }
 
 // bresenham's circle algo adapted from https://web.engr.oregonstate.edu/~sllu/bcircle.pdf
-// TODO find a real citation for this ^
 void render_iso_circle(circle_t circle) {
 	int x, y;
 	int dx, dy;

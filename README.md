@@ -9,7 +9,7 @@ algorithms adapted from (or at least very heavily inspired by) these sources
 - [entity collision](https://www.youtube.com/watch?v=8JJ-4JgR7Dg)
 - [voxel traversal](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.42.3443&rep=rep1&type=pdf)
 - [line-sphere intersection](https://gamedev.stackexchange.com/questions/27755/optimized-algorithm-for-line-sphere-intersection-in-glsl)
-- [fast circle drawing](https://web.engr.oregonstate.edu/~sllu/bcircle.pdf)
+- [fast circle drawing](https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.92.9663)
 
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a>
 
