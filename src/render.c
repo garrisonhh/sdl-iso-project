@@ -212,25 +212,27 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 			if ((outline_mask = block->tex_state.state.outline_mask))
 				render_block_outline(loc, outline_mask, block->tex_state.expose_mask);
 		}
-	} else if (block->tex_state.expose_mask) {
-		// the amount of times I had to type "tex" or "texture" here is hilarious lol
-		switch (tex_type) {
-			case TEX_TEXTURE:
-				render_sdl_texture(block->texture->tex.texture, project_v3i(loc, true));
+	} else {
+		if (block->tex_state.expose_mask) {
+			// the amount of times I had to type "tex" or "texture" here is hilarious lol
+			switch (tex_type) {
+				case TEX_TEXTURE:
+					render_sdl_texture(block->texture->tex.texture, project_v3i(loc, true));
 
-				break;
-			case TEX_CONNECTED:
-				render_connected_texture(block->texture->tex.connected,
+					break;
+				case TEX_CONNECTED:
+					render_connected_texture(block->texture->tex.connected,
+											 project_v3i(loc, true),
+											 block->tex_state.state.connected_mask);
+
+					break;
+				case TEX_SHEET:
+					render_sheet_texture(block->texture->tex.sheet,
 										 project_v3i(loc, true),
-										 block->tex_state.state.connected_mask);
-
-				break;
-			case TEX_SHEET:
-				render_sheet_texture(block->texture->tex.sheet,
-									 project_v3i(loc, true),
-									 block->tex_state.state.sheet_cell);
-			default:
-				break;
+										 block->tex_state.state.sheet_cell);
+				default:
+					break;
+			}
 		}
 	}
 }
@@ -301,9 +303,15 @@ void render_world(world_t *world) {
 
 				if ((chunk = world->chunks[chunk_index]) != NULL) {
 					if ((block = chunk->blocks[block_index]) != NULL) {
-						void_mask = render_find_void_mask(loc, max_block,
-														  player_loc.z, block->tex_state.expose_mask);
-						render_block(world, block, loc, void_mask);
+						if (block->texture->type == TEX_VOXEL) {
+							void_mask = render_find_void_mask(loc, max_block,
+															  player_loc.z, block->tex_state.expose_mask);
+							
+							if (block->tex_state.expose_mask || void_mask)
+								render_block(world, block, loc, void_mask);
+						} else if (block->tex_state.expose_mask) {
+							render_block(world, block, loc, 0);
+						}
 					}
 
 					if ((bucket = chunk->buckets[block_index]) != NULL) {
