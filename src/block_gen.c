@@ -96,16 +96,13 @@ void block_gen_load() {
 				break;
 			case BLOCK_COLL_DEFAULT_BOX:
 				coll_data->bbox = &BLOCK_DEFAULT_BOX;
-
 				break;
 			case BLOCK_COLL_CUSTOM_BOX:
 				coll_data->bbox = (bbox_t *)malloc(sizeof(bbox_t));
 				*coll_data->bbox = content_get_bbox(block_obj, "bbox");
-
 				break;
 			case BLOCK_COLL_CHOPPED_BOX:
 				exit(1);
-
 				break;
 		}
 

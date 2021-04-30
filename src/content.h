@@ -6,9 +6,6 @@
 #include "vector.h"
 #include "collision.h"
 
-void content_init(void);
-void content_quit(void);
-
 json_object *content_load_file(const char *file_path);
 void content_close_file(json_object *);
 

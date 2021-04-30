@@ -35,8 +35,7 @@
 			"name": "tall grass",
 			"path": "tall_grass",
 			"type": "sheet",
-			"transparent": true,
-			"cell size": [32, 34]
+			"transparent": true
 		}
 	]
 }

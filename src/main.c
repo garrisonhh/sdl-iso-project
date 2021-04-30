@@ -38,14 +38,14 @@ void init() {
 		exit(1);
 	}
 	
-	render_init(window);	
-	content_init();
+	render_init(window);
 
+	textures_load();
 	block_gen_load();
 }
 
 void quit_all() {
-	content_quit();
+	textures_destroy();
 	block_gen_destroy();
 
 	render_destroy();

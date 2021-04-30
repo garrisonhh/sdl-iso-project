@@ -7,21 +7,6 @@
 #include "vector.h"
 #include "collision.h"
 
-// TODO rename and move to main
-void content_init() {
-	json_object *file_obj = json_object_from_file("assets/content.json");
-	
-	textures_load(file_obj);
-	
-	while (json_object_put(file_obj) != 1)
-		free(file_obj);
-}
-
-// TODO rename and move to main
-void content_quit() {
-	textures_destroy();
-}
-
 json_object *content_load_file(const char *file_path) {
 	json_object *file_obj = json_object_from_file(file_path);
 

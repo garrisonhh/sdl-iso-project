@@ -66,7 +66,7 @@ typedef struct block_tex_state_t block_tex_state_t;
 
 extern voxel_tex_t *VOID_VOXEL_TEXTURE;
 
-void textures_load(json_object *);
+void textures_load(void);
 void textures_destroy(void);
 texture_t *texture_ptr_from_key(char *);
 block_tex_state_t block_tex_state_from(texture_type_e tex_type);
