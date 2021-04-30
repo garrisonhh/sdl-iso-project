@@ -260,7 +260,7 @@ void render_world(world_t *world) {
 		PLAYER_VIEW_DIR
 	};
 	cam_ray.pos.z += world->player->size.z / 2;
-	player_blocked = raycast_to_block(world, cam_ray, NULL, NULL);
+	player_blocked = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
 
 	// block range
 	for (i = 0; i < 3; i++) {
