@@ -13,7 +13,8 @@
 		},
 		{
 			"name": "tall grass",
-			"collision": "none"
+			"collision": "none",
+			"sheet cell": [1, 0]
 		},
 		{
 			"name": "log",

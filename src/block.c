@@ -10,21 +10,9 @@
 v3i COLL_SORT_POLARITY = {1, 1, 1};
 
 block_t *block_create(size_t block_id) {
-	block_t *block, *model;
+	block_t *block = (block_t *)malloc(sizeof(block_t));
 
-	block = (block_t *)malloc(sizeof(block_t));
-	model = block_gen_get(block_id);
-
-	block->texture = model->texture;
-	block->tex_state = block_tex_state_from(block->texture->type);
-
-	block->coll_data = model->coll_data;
-
-	// TODO REMOVE
-	if (block->texture->type == TEX_SHEET) {
-		v2i size = block->texture->tex.sheet->size;
-		block->tex_state.state.sheet_cell = (v2i){rand() % size.x, rand() % size.y};
-	}
+	*block = *block_gen_get(block_id);
 
 	return block;
 }
