@@ -225,7 +225,7 @@ void textures_load() {
 	hashmap_destroy(tex_type_map, true);
 	content_close_file(file_obj);
 
-	VOID_VOXEL_TEXTURE = texture_ptr_from_key("void")->tex.voxel;
+	VOID_VOXEL_TEXTURE = texture_from_key("void")->tex.voxel;
 }
 
 void textures_destroy() {
@@ -268,7 +268,7 @@ void textures_destroy() {
 	TEXTURE_MAP = NULL;
 }
 
-texture_t *texture_ptr_from_key(char *key) {
+texture_t *texture_from_key(char *key) {
 	size_t *value;
 
 	if ((value = (size_t *)hashmap_get(TEXTURE_MAP, key, strlen(key))) == NULL) {

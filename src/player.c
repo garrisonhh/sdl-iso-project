@@ -9,7 +9,7 @@ entity_t *player_create() {
 
 	pos = (v3d){5.0, 5.0, 15.0};
 	size = (v3d){0.8, 0.8, 1.0};
-	player = entity_create(texture_ptr_from_key("gary"), pos, size);
+	player = entity_create(texture_from_key("gary"), pos, size);
 
 	return player;
 }

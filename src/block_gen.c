@@ -76,7 +76,7 @@ void block_gen_load() {
 		else
 			texture = name;
 
-		BLOCKS[i]->texture = texture_ptr_from_key((char *)texture);
+		BLOCKS[i]->texture = texture_from_key((char *)texture);
 
 		// coll data
 		coll_data = (block_coll_data_t *)malloc(sizeof(block_coll_data_t));
