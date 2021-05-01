@@ -279,7 +279,7 @@ texture_t *texture_from_key(char *key) {
 	return TEXTURES[*value];
 }
 
-texture_state_t texture_state_from(texture_type_e tex_type) {
+texture_state_t texture_state_from_type(texture_type_e tex_type) {
 	texture_state_t tex_state;
 
 	tex_state.expose_mask = 0x7;

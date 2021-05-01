@@ -1,6 +1,7 @@
 #include <json-c/json.h>
 #include <stdlib.h>
 #include "block.h"
+#include "block_collision.h"
 #include "content.h"
 #include "textures.h"
 #include "data_structures/hashmap.h"
@@ -44,6 +45,21 @@ void block_gen_load() {
 		hashmap_set(coll_type_map, coll_type_strings[i], strlen(coll_type_strings[i]), coll_type);
 	}
 
+	// construct block_type hashmap
+	const int num_block_types = 1;
+	char *block_type_strings[] = {
+		"stateless",
+	};
+	block_type_e *block_type;
+	hashmap_t *block_type_map = hashmap_create(num_block_types * 2, false, hash_string);
+
+	for (i = 0; i < num_block_types; ++i) {
+		block_type = (block_type_e *)malloc(sizeof(block_coll_e));
+		*block_type = i;
+
+		hashmap_set(block_type_map, block_type_strings[i], strlen(block_type_strings[i]), block_type);
+	}
+
 	// json block list
 	json_object *file;
 	array_t *block_objects;
@@ -60,7 +76,8 @@ void block_gen_load() {
 	// load blocks
 	json_object *block_obj;
 	block_coll_data_t *coll_data;
-	const char *name, *texture, *coll_type_name;
+	const char *name, *texture;
+	const char *coll_type_name, *block_type_name;
 	size_t *block_id;
 
 	for (i = 0; i < NUM_BLOCKS; ++i) {
@@ -83,9 +100,8 @@ void block_gen_load() {
 
 		if (content_has_key(block_obj, "collision")) {
 			coll_type_name = content_get_string(block_obj, "collision");
-			coll_data->coll_type = *(block_coll_e *)hashmap_get(coll_type_map,
-																(char *)coll_type_name,
-																strlen(coll_type_name));
+			coll_type = hashmap_get(coll_type_map, (char *)coll_type_name, strlen(coll_type_name));
+			coll_data->coll_type = *coll_type;
 		} else {
 			coll_data->coll_type = BLOCK_COLL_DEFAULT_BOX;
 		}
@@ -111,8 +127,19 @@ void block_gen_load() {
 		BLOCKS[i]->coll_data = coll_data;
 		BLOCK_COLL_DATA[i] = coll_data;
 
+		// block type
+		if (content_has_key(block_obj, "type")) {
+			block_type_name = content_get_string(block_obj, "type");
+			block_type = hashmap_get(block_type_map, (char *)block_type_name, strlen(block_type_name));
+		} else {
+			block_type = BLOCK_STATELESS;
+		}
+
+		BLOCKS[i]->type = *block_type;
+		BLOCKS[i]->state = NULL;
+
 		// tex_state
-		BLOCKS[i]->tex_state = texture_state_from(BLOCKS[i]->texture->type);
+		BLOCKS[i]->tex_state = texture_state_from_type(BLOCKS[i]->texture->type);
 
 		if (BLOCKS[i]->texture->type == TEX_SHEET && content_has_key(block_obj, "sheet cell"))
 			BLOCKS[i]->tex_state.state.cell = content_get_v2i(block_obj, "sheet cell");
