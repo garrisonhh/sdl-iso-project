@@ -5,16 +5,18 @@
 #include "vector.h"
 #include "textures.h"
 #include "block_collision.h"
+#include "block_types/plant.h"
 
 enum block_type_e {
 	BLOCK_STATELESS = 0,
+	BLOCK_PLANT = 1,
 };
 typedef enum block_type_e block_type_e;
 
-struct block_state_t {
-	bool ticks: 1; // beware of bit chopping stuff ig
+union block_state_t {
+	plant_t plant;
 };
-typedef struct block_state_t block_state_t;
+typedef union block_state_t block_state_t;
 
 struct block_t {
 	texture_t *texture;
@@ -23,7 +25,7 @@ struct block_t {
 	block_coll_data_t *coll_data;
 
 	block_type_e type;
-	block_state_t *state;
+	block_state_t state;
 };
 typedef struct block_t block_t;
 
