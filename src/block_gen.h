@@ -4,6 +4,7 @@
 #include <json-c/json.h>
 #include <stdlib.h>
 #include "block.h"
+#include "block_collision.h"
 
 extern block_coll_data_t WALL_COLL_DATA;
 
