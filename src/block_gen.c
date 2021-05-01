@@ -24,6 +24,85 @@ bbox_t BLOCK_DEFAULT_BOX = {
 };
 block_coll_data_t WALL_COLL_DATA; // collision data for world borders
 
+void block_gen_load_block(json_object *block_obj, size_t index,
+						  hashmap_t *coll_type_map, hashmap_t *block_type_map) {
+	block_t *block;
+	block_coll_e *coll_type;
+	block_coll_data_t *coll_data;
+	block_type_e *block_type;
+	const char *name, *texture;
+	const char *coll_type_name, *block_type_name;
+	size_t *block_id;
+
+	block = (block_t *)malloc(sizeof(block_t));
+
+	name = content_get_string(block_obj, "name");
+
+	// texture
+	if (content_has_key(block_obj, "texture"))
+		texture = content_get_string(block_obj, "texture");
+	else
+		texture = name;
+
+	block->texture = texture_from_key((char *)texture);
+
+	// coll data
+	coll_data = (block_coll_data_t *)malloc(sizeof(block_coll_data_t));
+
+	if (content_has_key(block_obj, "collision")) {
+		coll_type_name = content_get_string(block_obj, "collision");
+		coll_type = hashmap_get(coll_type_map, (char *)coll_type_name, strlen(coll_type_name));
+		coll_data->coll_type = *coll_type;
+	} else {
+		coll_data->coll_type = BLOCK_COLL_DEFAULT_BOX;
+	}
+
+	coll_data->bbox = NULL;
+	coll_data->plane = NULL;
+
+	switch (coll_data->coll_type) {
+		case BLOCK_COLL_NONE:
+			break;
+		case BLOCK_COLL_DEFAULT_BOX:
+			coll_data->bbox = &BLOCK_DEFAULT_BOX;
+			break;
+		case BLOCK_COLL_CUSTOM_BOX:
+			coll_data->bbox = (bbox_t *)malloc(sizeof(bbox_t));
+			*coll_data->bbox = content_get_bbox(block_obj, "bbox");
+			break;
+		case BLOCK_COLL_CHOPPED_BOX:
+			exit(1);
+			break;
+	}
+
+	block->coll_data = coll_data;
+
+	// block type
+	if (content_has_key(block_obj, "type")) {
+		block_type_name = content_get_string(block_obj, "type");
+		block_type = hashmap_get(block_type_map, (char *)block_type_name, strlen(block_type_name));
+		block->type = *block_type;
+	} else {
+		block->type = BLOCK_STATELESS;
+	}
+
+	// TODO block state
+
+	// tex_state
+	block->tex_state = texture_state_from_type(block->texture->type);
+
+	if (block->texture->type == TEX_SHEET && content_has_key(block_obj, "sheet cell"))
+		block->tex_state.state.cell = content_get_v2i(block_obj, "sheet cell");
+
+	// save model
+	BLOCKS[index] = block;
+	BLOCK_COLL_DATA[index] = coll_data;
+
+	block_id = (size_t *)malloc(sizeof(size_t));
+	*block_id = index;
+	hashmap_set(BLOCK_MAP, (char *)name, strlen(name), block_id);
+}
+
 void block_gen_load() {
 	int i;
 
@@ -33,7 +112,7 @@ void block_gen_load() {
 		"none",
 		"default",
 		"custom",
-		// chopped is not in current development scope
+		// "chopped" is not in current development scope
 	};
 	block_coll_e *coll_type;
 	hashmap_t *coll_type_map = hashmap_create(num_coll_types * 2, false, hash_string);
@@ -46,9 +125,10 @@ void block_gen_load() {
 	}
 
 	// construct block_type hashmap
-	const int num_block_types = 1;
+	const int num_block_types = 2;
 	char *block_type_strings[] = {
 		"stateless",
+		"plant",
 	};
 	block_type_e *block_type;
 	hashmap_t *block_type_map = hashmap_create(num_block_types * 2, false, hash_string);
@@ -60,7 +140,7 @@ void block_gen_load() {
 		hashmap_set(block_type_map, block_type_strings[i], strlen(block_type_strings[i]), block_type);
 	}
 
-	// json block list
+	// access json block list
 	json_object *file;
 	array_t *block_objects;
 
@@ -74,81 +154,8 @@ void block_gen_load() {
 	BLOCK_MAP = hashmap_create(NUM_BLOCKS * 2, true, hash_string);
 
 	// load blocks
-	json_object *block_obj;
-	block_coll_data_t *coll_data;
-	const char *name, *texture;
-	const char *coll_type_name, *block_type_name;
-	size_t *block_id;
-
-	for (i = 0; i < NUM_BLOCKS; ++i) {
-		BLOCKS[i] = (block_t *)malloc(sizeof(block_t));
-
-		block_obj = block_objects->items[i];
-
-		name = content_get_string(block_obj, "name");
-
-		// texture
-		if (content_has_key(block_obj, "texture"))
-			texture = content_get_string(block_obj, "texture");
-		else
-			texture = name;
-
-		BLOCKS[i]->texture = texture_from_key((char *)texture);
-
-		// coll data
-		coll_data = (block_coll_data_t *)malloc(sizeof(block_coll_data_t));
-
-		if (content_has_key(block_obj, "collision")) {
-			coll_type_name = content_get_string(block_obj, "collision");
-			coll_type = hashmap_get(coll_type_map, (char *)coll_type_name, strlen(coll_type_name));
-			coll_data->coll_type = *coll_type;
-		} else {
-			coll_data->coll_type = BLOCK_COLL_DEFAULT_BOX;
-		}
-
-		coll_data->bbox = NULL;
-		coll_data->plane = NULL;
-
-		switch (coll_data->coll_type) {
-			case BLOCK_COLL_NONE:
-				break;
-			case BLOCK_COLL_DEFAULT_BOX:
-				coll_data->bbox = &BLOCK_DEFAULT_BOX;
-				break;
-			case BLOCK_COLL_CUSTOM_BOX:
-				coll_data->bbox = (bbox_t *)malloc(sizeof(bbox_t));
-				*coll_data->bbox = content_get_bbox(block_obj, "bbox");
-				break;
-			case BLOCK_COLL_CHOPPED_BOX:
-				exit(1);
-				break;
-		}
-
-		BLOCKS[i]->coll_data = coll_data;
-		BLOCK_COLL_DATA[i] = coll_data;
-
-		// block type
-		if (content_has_key(block_obj, "type")) {
-			block_type_name = content_get_string(block_obj, "type");
-			block_type = hashmap_get(block_type_map, (char *)block_type_name, strlen(block_type_name));
-			BLOCKS[i]->type = *block_type;
-		} else {
-			BLOCKS[i]->type = BLOCK_STATELESS;
-		}
-
-		BLOCKS[i]->state = NULL;
-
-		// tex_state
-		BLOCKS[i]->tex_state = texture_state_from_type(BLOCKS[i]->texture->type);
-
-		if (BLOCKS[i]->texture->type == TEX_SHEET && content_has_key(block_obj, "sheet cell"))
-			BLOCKS[i]->tex_state.state.cell = content_get_v2i(block_obj, "sheet cell");
-
-		// save model to hashmap
-		block_id = (size_t *)malloc(sizeof(size_t));
-		*block_id = i;
-		hashmap_set(BLOCK_MAP, (char *)name, strlen(name), block_id);
-	}
+	for (i = 0; i < block_objects->size; ++i)
+		block_gen_load_block(block_objects->items[i], i, coll_type_map, block_type_map);
 
 	// clean up and exit
 	array_destroy(block_objects, false);
