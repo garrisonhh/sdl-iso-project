@@ -279,8 +279,8 @@ texture_t *texture_from_key(char *key) {
 	return TEXTURES[*value];
 }
 
-block_tex_state_t block_tex_state_from(texture_type_e tex_type) {
-	block_tex_state_t tex_state;
+texture_state_t texture_state_from(texture_type_e tex_type) {
+	texture_state_t tex_state;
 
 	tex_state.expose_mask = 0x7;
 
@@ -292,7 +292,7 @@ block_tex_state_t block_tex_state_from(texture_type_e tex_type) {
 			tex_state.state.connected_mask = 0x0;
 			break;
 		case TEX_SHEET:
-			tex_state.state.sheet_cell = (v2i){0, 0};
+			tex_state.state.cell = (v2i){0, 0};
 			break;
 		default:
 			break;

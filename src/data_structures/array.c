@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include "array.h"
 
-// TODO array_foreach() or passing a destruction function to array_destroy
 array_t *array_create(size_t initial_size) {
 	array_t *array = (array_t *)malloc(sizeof(array_t));
 	

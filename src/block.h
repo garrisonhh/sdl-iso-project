@@ -33,7 +33,7 @@ typedef struct block_collidable_t block_collidable_t;
 
 struct block_t {
 	texture_t *texture;
-	block_tex_state_t tex_state;
+	texture_state_t tex_state;
 
 	block_coll_data_t *coll_data;
 };

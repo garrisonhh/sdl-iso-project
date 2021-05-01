@@ -112,10 +112,10 @@ void block_gen_load() {
 		BLOCK_COLL_DATA[i] = coll_data;
 
 		// tex_state
-		BLOCKS[i]->tex_state = block_tex_state_from(BLOCKS[i]->texture->type);
+		BLOCKS[i]->tex_state = texture_state_from(BLOCKS[i]->texture->type);
 
 		if (BLOCKS[i]->texture->type == TEX_SHEET && content_has_key(block_obj, "sheet cell"))
-			BLOCKS[i]->tex_state.state.sheet_cell = content_get_v2i(block_obj, "sheet cell");
+			BLOCKS[i]->tex_state.state.cell = content_get_v2i(block_obj, "sheet cell");
 
 		// save model to hashmap
 		block_id = (size_t *)malloc(sizeof(size_t));

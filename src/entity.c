@@ -91,9 +91,10 @@ ray_t entity_collide_bbox(entity_t *entity, ray_t movement, bbox_t block_bbox) {
 }
 
 // returns resolved entity movement ray
-// TODO chopped box collision is still wonky at best, while it is super cool. think about whether
-// it actually makes sense in the scope of the project, it is consuming more time than I want it
-// to and generally poses a lot of technical challenges in a lot of areas.
+// NOTE: chopped box collision is still wonky at best, while it is super cool. idk whether
+// it actually makes sense in the scope of alpha 1.0 at least, it is consuming more time than I want it
+// to and generally poses a lot of technical challenges in a lot of areas. future versions, sure lets
+// come back to the idea
 ray_t entity_collide_chopped_bbox(entity_t *entity, ray_t movement, bbox_t block_bbox, block_collidable_t *block_coll) {
 	ray_t plane;
 	v3d intersect, resolved_dir;

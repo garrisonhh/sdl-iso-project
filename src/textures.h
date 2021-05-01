@@ -53,23 +53,23 @@ struct texture_t {
 typedef struct texture_t texture_t;
 
 // texture state
-struct block_tex_state_t {
+struct texture_state_t {
 	unsigned expose_mask: 3;
 
 	union {
 		unsigned outline_mask: 8;
 		unsigned connected_mask: 6;
-		v2i sheet_cell;
+		v2i cell;
 	} state;
 };
-typedef struct block_tex_state_t block_tex_state_t;
+typedef struct texture_state_t texture_state_t;
 
 extern voxel_tex_t *VOID_VOXEL_TEXTURE;
 
 void textures_load(void);
 void textures_destroy(void);
 texture_t *texture_from_key(char *);
-block_tex_state_t block_tex_state_from(texture_type_e tex_type);
+texture_state_t texture_state_from(texture_type_e tex_type);
 
 #endif
 

@@ -229,7 +229,7 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 				case TEX_SHEET:
 					render_sheet_texture(block->texture->tex.sheet,
 										 project_v3i(loc, true),
-										 block->tex_state.state.sheet_cell);
+										 block->tex_state.state.cell);
 				default:
 					break;
 			}
