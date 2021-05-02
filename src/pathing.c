@@ -15,7 +15,7 @@
 const double SQRT_2 = sqrt(2);
 
 path_node_t *path_node_create(v3i pos) {
-	path_node_t *node = (path_node_t *)malloc(sizeof(path_node_t));
+	path_node_t *node = malloc(sizeof(path_node_t));
 
 	node->pos = pos;
 	node->connects = hashmap_create(12, 1, hash_v3i);
@@ -76,7 +76,7 @@ void path_node_connect(path_node_t *a, path_node_t *b) {
 	weight = path_heuristic(a->pos, b->pos);
 
 	for (i = 0; i <= 1; i++) {
-		connect = (path_connect_t *)malloc(sizeof(path_connect_t));
+		connect = malloc(sizeof(path_connect_t));
 
 		connect->weight = weight;
 		connect->node = nodes[!i];
@@ -114,7 +114,7 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 
 	active = list_create();
 
-	network = (path_network_t *)malloc(sizeof(path_network_t));
+	network = malloc(sizeof(path_network_t));
 	network->nodes = hashmap_create(nodes->max_size, true, hash_v3i);
 	network->ids = hashmap_create(nodes->max_size, true, hash_v3i);
 	network->id_targets = array_create(2);
@@ -129,7 +129,7 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 		node = trav->value;
 
 		// how to free this properly..?
-		id_val = (int *)malloc(sizeof(int));
+		id_val = malloc(sizeof(int));
 		*id_val = id;
 		array_add(network->id_targets, id_val);
 
@@ -242,7 +242,7 @@ path_network_t *path_generate_world_network(world_t *world) {
 }
 
 path_asnode_t *path_asnode_create(v3i pos, path_asnode_t *prev, v3i goal_pos) {
-	path_asnode_t *asnode = (path_asnode_t *)malloc(sizeof(path_asnode_t));
+	path_asnode_t *asnode = malloc(sizeof(path_asnode_t));
 
 	asnode->pos = pos;
 
@@ -313,7 +313,7 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 			path = list_create();
 
 			while (v3i_compare(trav->pos, start_pos)) {
-				cur_pos = (v3i *)malloc(sizeof(v3i));
+				cur_pos = malloc(sizeof(v3i));
 				*cur_pos = trav->pos;
 
 				list_push(path, cur_pos);

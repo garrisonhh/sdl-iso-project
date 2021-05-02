@@ -4,11 +4,11 @@
 #include "heap.h"
 
 heap_t *heap_create(int initial_depth, int (*compare)(const void *, const void *)) {
-	heap_t *heap = (heap_t *)malloc(sizeof(heap_t));
+	heap_t *heap = malloc(sizeof(heap_t));
 
 	heap->max_size = (1 << initial_depth) - 1;
 	heap->size = 0;
-	heap->items = (void **)calloc(heap->max_size, sizeof(void *));
+	heap->items = calloc(heap->max_size, sizeof(void *));
 	heap->compare = compare;
 
 	for (size_t i = 0; i < heap->max_size; i++)
@@ -79,7 +79,7 @@ void heap_insert(heap_t *heap, void *item) {
 
 	if (++heap->size == heap->max_size) {
 		heap->max_size = (heap->max_size << 1) | 1;
-		heap->items = (void **)realloc(heap->items, sizeof(void *) * heap->max_size);
+		heap->items = realloc(heap->items, sizeof(void *) * heap->max_size);
 	}
 }
 

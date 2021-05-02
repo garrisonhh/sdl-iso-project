@@ -6,7 +6,7 @@
 #include "block_types/plant.h"
 
 block_t *block_create(size_t block_id) {
-	block_t *block = (block_t *)malloc(sizeof(block_t));
+	block_t *block = malloc(sizeof(block_t));
 
 	*block = *block_gen_get(block_id);
 

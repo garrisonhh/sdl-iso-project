@@ -39,7 +39,7 @@ SDL_Texture *load_sdl_texture(const char *path) {
 }
 
 sprite_t *load_sprite(const char *path) {
-	sprite_t *sprite = (sprite_t *)malloc(sizeof(sprite_t));
+	sprite_t *sprite = malloc(sizeof(sprite_t));
 
 	sprite->texture = load_sdl_texture(path);
 	SDL_QueryTexture(sprite->texture, NULL, NULL, &sprite->size.x, &sprite->size.y);
@@ -62,7 +62,7 @@ voxel_tex_t* load_voxel_texture(const char *path) {
 	strcat(top_path, "_top.png");
 	strcat(side_path, "_side.png");
 
-	voxel_tex_t* voxel_tex = (voxel_tex_t *)malloc(sizeof(voxel_tex_t));
+	voxel_tex_t* voxel_tex = malloc(sizeof(voxel_tex_t));
 	voxel_tex->top = load_sdl_texture(top_path);
 	voxel_tex->side = load_sdl_texture(side_path);
 
@@ -87,7 +87,7 @@ connected_tex_t *load_connected_texture(const char *path) {
 	strcat(front_path, "_front.png");
 	strcat(back_path, "_back.png");
 
-	connected_tex_t *connected_tex = (connected_tex_t *)malloc(sizeof(connected_tex_t));
+	connected_tex_t *connected_tex = malloc(sizeof(connected_tex_t));
 
 	connected_tex->base = load_sdl_texture(base_path);
 	connected_tex->top = load_sdl_texture(top_path);
@@ -100,7 +100,7 @@ connected_tex_t *load_connected_texture(const char *path) {
 */
 
 sheet_tex_t *load_sheet_texture(const char *path) {
-	sheet_tex_t *sheet_tex = (sheet_tex_t *)malloc(sizeof(sheet_tex_t));
+	sheet_tex_t *sheet_tex = malloc(sizeof(sheet_tex_t));
 	
 	sheet_tex->texture = load_sdl_texture(path);
 
@@ -123,7 +123,7 @@ void textures_load() {
 	hashmap_t *tex_type_map = hashmap_create(num_tex_types * 2, false, hash_string);
 
 	for (i = 0; i < num_tex_types; ++i) {
-		tex_type = (texture_type_e *)malloc(sizeof(texture_type_e));
+		tex_type = malloc(sizeof(texture_type_e));
 		*tex_type = (texture_type_e)i;
 		hashmap_set(tex_type_map, tex_type_strings[i], strlen(tex_type_strings[i]), tex_type);
 	}
@@ -137,7 +137,7 @@ void textures_load() {
 
 	// set up globals
 	NUM_TEXTURES = texture_objects->size;
-	TEXTURES = (texture_t **)malloc(sizeof(texture_t *) * NUM_TEXTURES);
+	TEXTURES = malloc(sizeof(texture_t *) * NUM_TEXTURES);
 	TEXTURE_MAP = hashmap_create(NUM_TEXTURES * 2, true, hash_string);
 
 	// load textures
@@ -148,7 +148,7 @@ void textures_load() {
 	size_t *texture_id;
 
 	for (i = 0; i < NUM_TEXTURES; ++i) {
-		TEXTURES[i] = (texture_t *)malloc(sizeof(texture_t));
+		TEXTURES[i] = malloc(sizeof(texture_t));
 
 		texture_obj = texture_objects->items[i];
 
@@ -215,7 +215,7 @@ void textures_load() {
 		TEXTURES[i]->type = *tex_type;
 		TEXTURES[i]->transparent = transparent;
 
-		texture_id = (size_t *)malloc(sizeof(size_t));
+		texture_id = malloc(sizeof(size_t));
 		*texture_id = i;
 		hashmap_set(TEXTURE_MAP, (char *)name, strlen(name), texture_id);
 	}

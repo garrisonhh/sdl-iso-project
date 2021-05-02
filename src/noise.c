@@ -18,7 +18,7 @@ double lerp2d(double corners[4], v2d point) {
 void noise_init(v2i dims) {
 	perlin_dims = dims;
 	perlin_size = (dims.y + 1) * (dims.x + 1);
-	perlin_vectors = (v2d *)malloc(sizeof(v2d) * perlin_size);
+	perlin_vectors = malloc(sizeof(v2d) * perlin_size);
 
 	for (int i = 0; i < perlin_size; i++) {
 		perlin_vectors[i].x = (double)((rand() % 3) - 1);

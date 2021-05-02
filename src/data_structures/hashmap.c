@@ -5,11 +5,11 @@
 #include "../utils.h"
 
 hashmap_t *hashmap_create(size_t initial_size, bool rehashes, hash_t (*hash_func)(const void *, size_t)) {
-	hashmap_t *hmap = (hashmap_t *)malloc(sizeof(hashmap_t));
+	hashmap_t *hmap = malloc(sizeof(hashmap_t));
 
 	hmap->min_size = hmap->max_size = initial_size;
 	hmap->size = 0;
-	hmap->buckets = (hashbucket_t **)malloc(sizeof(hashbucket_t *) * hmap->max_size);
+	hmap->buckets = malloc(sizeof(hashbucket_t *) * hmap->max_size);
 	hmap->hash_func = hash_func;
 	hmap->rehashes = rehashes;
 
@@ -59,7 +59,7 @@ void hashmap_rehash(hashmap_t *hmap, bool increase) {
 	else
 		hmap->max_size >>= 1;
 
-	hmap->buckets = (hashbucket_t **)malloc(sizeof(hashbucket_t *) * hmap->max_size);
+	hmap->buckets = malloc(sizeof(hashbucket_t *) * hmap->max_size);
 	hmap->size = 0;
 
 	for (i = 0; i < hmap->max_size; i++)
@@ -142,7 +142,7 @@ hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
 	if (trav != NULL) { // found matching bucket, modify value
 		trav->value = value;
 	} else { // no matching bucket, create new bucket
-		bucket = (hashbucket_t *)malloc(sizeof(hashbucket_t));
+		bucket = malloc(sizeof(hashbucket_t));
 
 		bucket->key = malloc(size_key);
 		memcpy(bucket->key, key, size_key);
@@ -174,7 +174,7 @@ void **hashmap_values(hashmap_t *hmap) {
 	hashbucket_t *trav;
 	size_t i, cur_values;
 
-	values = (void **)calloc(hmap->size, sizeof(void *));
+	values = calloc(hmap->size, sizeof(void *));
 	cur_values = 0;
 
 	for (i = 0; i < hmap->max_size; i++) {
@@ -194,7 +194,7 @@ void **hashmap_keys(hashmap_t *hmap) {
 	hashbucket_t *trav;
 	size_t i, cur_keys;
 
-	keys = (void **)calloc(hmap->size, sizeof(void *));
+	keys = calloc(hmap->size, sizeof(void *));
 	cur_keys = 0;
 
 	for (i = 0; i < hmap->max_size; i++) {

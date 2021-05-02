@@ -3,11 +3,11 @@
 #include "array.h"
 
 array_t *array_create(size_t initial_size) {
-	array_t *array = (array_t *)malloc(sizeof(array_t));
+	array_t *array = malloc(sizeof(array_t));
 	
 	array->size = 0;
 	array->max_size = initial_size;
-	array->items = (void **)malloc(sizeof(void *) * array->max_size);
+	array->items = malloc(sizeof(void *) * array->max_size);
 
 	return array;
 }
@@ -41,7 +41,7 @@ void array_remove(array_t *array, void *item) {
 
 			if (array->max_size > 4 && array->size < array->max_size >> 1) {
 				array->max_size >>= 1;
-				array->items = (void **)realloc(array->items, sizeof(void *) * array->max_size);
+				array->items = realloc(array->items, sizeof(void *) * array->max_size);
 			}
 			break;
 		}

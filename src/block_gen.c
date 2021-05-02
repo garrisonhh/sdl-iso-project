@@ -34,7 +34,7 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 	const char *coll_type_name, *block_type_name;
 	size_t *block_id;
 
-	block = (block_t *)malloc(sizeof(block_t));
+	block = malloc(sizeof(block_t));
 
 	name = content_get_string(block_obj, "name");
 
@@ -47,7 +47,7 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 	block->texture = texture_from_key((char *)texture);
 
 	// coll data
-	coll_data = (block_coll_data_t *)malloc(sizeof(block_coll_data_t));
+	coll_data = malloc(sizeof(block_coll_data_t));
 
 	if (content_has_key(block_obj, "collision")) {
 		coll_type_name = content_get_string(block_obj, "collision");
@@ -67,7 +67,7 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 			coll_data->bbox = &BLOCK_DEFAULT_BOX;
 			break;
 		case BLOCK_COLL_CUSTOM_BOX:
-			coll_data->bbox = (bbox_t *)malloc(sizeof(bbox_t));
+			coll_data->bbox = malloc(sizeof(bbox_t));
 			*coll_data->bbox = content_get_bbox(block_obj, "bbox");
 			break;
 		case BLOCK_COLL_CHOPPED_BOX:
@@ -99,7 +99,7 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 	BLOCKS[index] = block;
 	BLOCK_COLL_DATA[index] = coll_data;
 
-	block_id = (size_t *)malloc(sizeof(size_t));
+	block_id = malloc(sizeof(size_t));
 	*block_id = index;
 	hashmap_set(BLOCK_MAP, (char *)name, strlen(name), block_id);
 }
@@ -119,7 +119,7 @@ void block_gen_load() {
 	hashmap_t *coll_type_map = hashmap_create(num_coll_types * 2, false, hash_string);
 
 	for (i = 0; i < num_coll_types; ++i) {
-		coll_type = (block_coll_e *)malloc(sizeof(block_coll_e));
+		coll_type = malloc(sizeof(block_coll_e));
 		*coll_type = i;
 
 		hashmap_set(coll_type_map, coll_type_strings[i], strlen(coll_type_strings[i]), coll_type);
@@ -135,7 +135,7 @@ void block_gen_load() {
 	hashmap_t *block_type_map = hashmap_create(num_block_types * 2, false, hash_string);
 
 	for (i = 0; i < num_block_types; ++i) {
-		block_type = (block_type_e *)malloc(sizeof(block_coll_e));
+		block_type = malloc(sizeof(block_coll_e));
 		*block_type = i;
 
 		hashmap_set(block_type_map, block_type_strings[i], strlen(block_type_strings[i]), block_type);
@@ -150,8 +150,8 @@ void block_gen_load() {
 
 	// set up globals
 	NUM_BLOCKS = block_objects->size;
-	BLOCKS = (block_t **)malloc(sizeof(block_t *) * NUM_BLOCKS);
-	BLOCK_COLL_DATA = (block_coll_data_t **)malloc(sizeof(block_coll_data_t *) * NUM_BLOCKS);
+	BLOCKS = malloc(sizeof(block_t *) * NUM_BLOCKS);
+	BLOCK_COLL_DATA = malloc(sizeof(block_coll_data_t *) * NUM_BLOCKS);
 	BLOCK_MAP = hashmap_create(NUM_BLOCKS * 2, true, hash_string);
 
 	// load blocks

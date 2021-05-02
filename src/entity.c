@@ -11,7 +11,7 @@
 #include "utils.h"
 
 entity_t *entity_create(texture_t *sprite, v3d pos, v3d size) {
-	entity_t *entity = (entity_t *)malloc(sizeof(entity_t));
+	entity_t *entity = malloc(sizeof(entity_t));
 
 	entity->sprite = sprite;
 	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
@@ -48,7 +48,7 @@ array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 
 				if ((block = block_get(world, current_loc)) != NULL
 				  && block->coll_data->coll_type != BLOCK_COLL_NONE) {
-					block_coll = (block_collidable_t *)malloc(sizeof(block_collidable_t));
+					block_coll = malloc(sizeof(block_collidable_t));
 
 					block_coll->loc = current_loc;
 					block_coll->coll_data = block->coll_data;
@@ -57,7 +57,7 @@ array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 				} else if (current_loc.x < 0 || current_loc.x >= world->block_size
 						|| current_loc.y < 0 || current_loc.y >= world->block_size
 						|| current_loc.z < 0 || current_loc.z >= world->block_size) {
-					block_coll = (block_collidable_t *)malloc(sizeof(block_collidable_t));
+					block_coll = malloc(sizeof(block_collidable_t));
 
 					block_coll->loc = current_loc;
 					block_coll->coll_data = &WALL_COLL_DATA;

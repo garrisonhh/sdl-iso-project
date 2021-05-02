@@ -4,7 +4,7 @@
 #include "list.h"
 
 list_t *list_create() {
-	list_t *list = (list_t *)malloc(sizeof(list_t));
+	list_t *list = malloc(sizeof(list_t));
 
 	list->root = NULL;
 	list->tip = NULL;
@@ -32,7 +32,7 @@ void list_destroy(list_t *list, bool destroy_values) {
 }
 
 void list_push(list_t *list, void *item) {
-	list_node_t *node = (list_node_t *)malloc(sizeof(list_node_t));
+	list_node_t *node = malloc(sizeof(list_node_t));
 
 	node->item = item;
 
@@ -74,7 +74,7 @@ void *list_peek(list_t *list) {
 }
 
 void list_append(list_t *list, void *item) {
-	list_node_t *node = (list_node_t *)malloc(sizeof(list_node_t));
+	list_node_t *node = malloc(sizeof(list_node_t));
 
 	node->item = item;
 	node->next = NULL;

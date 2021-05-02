@@ -51,7 +51,7 @@ v2i *bresenham(v2i a, v2i b, size_t *num_points) {
 		delta = (v2i){delta.y, delta.x};
 
 	*num_points = delta.x + 1;
-	points = (v2i *)calloc(*num_points, sizeof(v2i));
+	points = calloc(*num_points, sizeof(v2i));
 
 	bresenham_down_right(delta, points);
 

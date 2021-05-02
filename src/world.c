@@ -23,7 +23,7 @@ const v3i OUTLINE_EDGE_OFFSETS[4] = {
 };
 
 chunk_t *chunk_create() {
-	chunk_t *chunk = (chunk_t *)malloc(sizeof(chunk_t));
+	chunk_t *chunk = malloc(sizeof(chunk_t));
 
 	for (int i = 0; i < CHUNK_SIZE; i++) {
 		chunk->blocks[i] = NULL;
@@ -168,7 +168,7 @@ block_t *block_get(world_t *world, v3i loc) {
 }
 
 void world_push_update(world_t *world, v3i loc) {
-	v3i *update = (v3i *)malloc(sizeof loc);
+	v3i *update = malloc(sizeof loc);
 
 	*update = loc;
 
@@ -265,7 +265,7 @@ void world_spawn_entity(world_t *world, entity_t *entity) {
 
 // sizes are a power of 2
 world_t *world_create(unsigned size_power) {
-	world_t *world = (world_t *)malloc(sizeof(world_t));
+	world_t *world = malloc(sizeof(world_t));
 
 	world->size_power = size_power;
 	world->size = 1 << world->size_power;
@@ -273,7 +273,7 @@ world_t *world_create(unsigned size_power) {
 
 	world->chunk_mask = world->size - 1;
 	world->num_chunks = 1 << (world->size_power * 3);
-	world->chunks = (chunk_t **)malloc(sizeof(chunk_t *) * world->num_chunks);
+	world->chunks = malloc(sizeof(chunk_t *) * world->num_chunks);
 
 	for (int i = 0; i < world->num_chunks; i++)
 	 	world->chunks[i] = NULL; //world->chunks[i] = chunk_create();
