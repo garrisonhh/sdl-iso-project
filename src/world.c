@@ -450,11 +450,9 @@ void world_tick(world_t *world, int ms) {
 	}
 
 	// block ticks
-	list_node_t *node = world->ticks->root;
+	list_node_t *node;
 
-	while (node != NULL) {
+	LIST_FOREACH(node, world->ticks) {
 		block_tick(node->item, world, time);
-
-		node = node->next;
 	}
 }

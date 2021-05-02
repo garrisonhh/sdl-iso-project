@@ -210,7 +210,7 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 								 block->tex_state.expose_mask, void_mask);
 
 			if ((outline_mask = block->tex_state.state.outline_mask))
-				render_block_outline(loc, outline_mask, block->tex_state.expose_mask);
+				render_block_outline(loc, outline_mask, block->tex_state.expose_mask & ~void_mask);
 		}
 	} else {
 		if (block->tex_state.expose_mask) {
@@ -314,14 +314,9 @@ void render_world(world_t *world) {
 						}
 					}
 
-					if ((bucket = chunk->buckets[block_index]) != NULL) {
-						bucket_trav = bucket->root;
-
-						while (bucket_trav != NULL) {
-							render_entity((entity_t *)bucket_trav->item);
-							bucket_trav = bucket_trav->next;
-						}
-					}
+					if ((bucket = chunk->buckets[block_index]) != NULL)
+						LIST_FOREACH(bucket_trav, bucket)
+							render_entity(bucket_trav->item);
 				}
 			}
 		}

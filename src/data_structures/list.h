@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+#define LIST_FOREACH(node, list) for (node = list->root; node != NULL; node = node->next)
+
 struct list_node_t {
 	void *item;
 	struct list_node_t *next;
