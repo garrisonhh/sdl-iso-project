@@ -14,9 +14,9 @@ block_t *block_create(size_t block_id) {
 	if (block->type == BLOCK_PLANT) {
 		block->state.plant = (plant_t){
 			.growth = 0.0,
-			.growth_rate = 0.1,
-			.growth_rate_delta = 0.0,
-			.fullgrown = 3
+			.growth_rate = 0.01,
+			.growth_rate_delta = 0.005,
+			.fullgrown = 2
 		};
 	}
 

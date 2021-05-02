@@ -7,6 +7,8 @@
 #include "block_collision.h"
 #include "block_types/plant.h"
 
+typedef struct world_t world_t;
+
 // TODO multiblock structures
 enum block_type_e {
 	BLOCK_STATELESS = 0,
@@ -33,5 +35,7 @@ typedef struct block_t block_t;
 
 block_t *block_create(size_t);
 void block_destroy(block_t *);
+
+void block_tick(block_t *, world_t *, double time);
 
 #endif

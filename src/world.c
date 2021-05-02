@@ -172,7 +172,7 @@ void world_push_update(world_t *world, v3i loc) {
 
 	*update = loc;
 
-	list_push(world->updates, update);
+	list_push(world->mask_updates, update);
 }
 
 // only for internal use
@@ -194,7 +194,15 @@ void block_set_no_update(world_t *world, v3i loc, size_t block_id) {
 	else
 		chunk->num_blocks++;
 
-	chunk->blocks[block_index] = block_create(block_id);
+	block_t *block = block_create(block_id);
+
+	chunk->blocks[block_index] = block;
+
+	// TODO this conservatively checks tickability
+	if (block->type == BLOCK_PLANT) {
+		//printf("id: %lu\n", block_id);
+		list_append(world->ticks, block);
+	}
 }
 
 void block_set(world_t *world, v3i loc, size_t block_id) {
@@ -270,7 +278,8 @@ world_t *world_create(unsigned size_power) {
 	for (int i = 0; i < world->num_chunks; i++)
 	 	world->chunks[i] = NULL; //world->chunks[i] = chunk_create();
 
-	world->updates = list_create();
+	world->mask_updates = list_create();
+	world->ticks = list_create();
 
 	world->player = player_create();
 	world->entities = array_create(2);
@@ -290,7 +299,8 @@ void world_destroy(world_t *world) {
 	for (i = 0; i < world->entities->size; ++i)
 		entity_destroy(world->entities->items[i]);
 
-	list_destroy(world->updates, true);
+	list_destroy(world->mask_updates, true);
+	list_destroy(world->ticks, false);
 	array_destroy(world->entities, false);
 	path_network_destroy(world->path_net);
 
@@ -409,16 +419,17 @@ void world_generate(world_t *world) {
 }
 
 void world_tick(world_t *world, int ms) {
+	double time = ((double)ms) / 1000.0;
+
 	// update entities and check for bucket swaps
 	entity_t *entity;
 	v3i last_loc, this_loc;
-	size_t i;
 
-	for (i = 0; i < world->entities->size; i++) {
+	for (size_t i = 0; i < world->entities->size; i++) {
 		entity = world->entities->items[i];
 
 		last_loc = v3i_from_v3d(entity->ray.pos);
-		entity_tick(entity, world, ms);
+		entity_tick(entity, world, time);
 		this_loc = v3i_from_v3d(entity->ray.pos);
 
 		if (v3i_compare(last_loc, this_loc)) {
@@ -427,14 +438,23 @@ void world_tick(world_t *world, int ms) {
 		}
 	}
 
-	// block updates
+	// block mask updates
 	v3i *update;
 
-	while (world->updates->size) {
-		update = (v3i *)list_pop(world->updates);	
+	while (world->mask_updates->size) {
+		update = (v3i *)list_pop(world->mask_updates);	
 
 		block_update_masks(world, *update);
 
 		free(update);
+	}
+
+	// block ticks
+	list_node_t *node = world->ticks->root;
+
+	while (node != NULL) {
+		block_tick(node->item, world, time);
+
+		node = node->next;
 	}
 }

@@ -4,8 +4,8 @@
 struct plant_t {
 	// growth_rate is per second
 	// delta is possible +- rate change for offspring
-	float growth_rate, growth_rate_delta;
-	float growth;
+	double growth_rate, growth_rate_delta;
+	double growth;
 	int fullgrown;
 };
 typedef struct plant_t plant_t;

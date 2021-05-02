@@ -14,7 +14,8 @@
 		{
 			"name": "tall grass",
 			"collision": "none",
-			"sheet cell": [1, 0]
+			"sheet cell": [0, 0],
+			"type": "plant"
 		},
 		{
 			"name": "log",

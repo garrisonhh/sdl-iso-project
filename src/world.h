@@ -26,7 +26,8 @@ typedef struct chunk_t chunk_t;
 struct world_t {
 	chunk_t **chunks;
 
-	list_t *updates; // queue of v3is
+	list_t *mask_updates; // malloc'd v3i *
+	list_t *ticks; // block_t *
 
 	array_t *entities;
 	struct entity_t *player;

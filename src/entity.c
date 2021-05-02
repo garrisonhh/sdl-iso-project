@@ -209,12 +209,10 @@ void entity_follow_path(entity_t *entity, double time) {
 	}
 }
 
-void entity_tick(entity_t *entity, struct world_t *world, double ms) {
-	double time;
+void entity_tick(entity_t *entity, struct world_t *world, double time) {
 	array_t *block_colls;
 
-	time = ms / 1000;
-	time = MIN(time, 0.1); // super slow ticks equals broken physics
+	time = MIN(time, 0.1); // super slow physics ticks means broken physics
 
 	// think (modify state)
 	entity_follow_path(entity, time);

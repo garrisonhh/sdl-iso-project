@@ -82,11 +82,12 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 		block_type_name = content_get_string(block_obj, "type");
 		block_type = hashmap_get(block_type_map, (char *)block_type_name, strlen(block_type_name));
 		block->type = *block_type;
+		printf("plant! %s %lu\n", name, index);
 	} else {
 		block->type = BLOCK_STATELESS;
 	}
 
-	// TODO block state
+	// TODO block state?
 
 	// tex_state
 	block->tex_state = texture_state_from_type(block->texture->type);
