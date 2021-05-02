@@ -93,7 +93,7 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 	block->tex_state = texture_state_from_type(block->texture->type);
 
 	if (block->texture->type == TEX_SHEET && content_has_key(block_obj, "sheet cell"))
-		block->tex_state.state.cell = content_get_v2i(block_obj, "sheet cell");
+		block->tex_state.cell = content_get_v2i(block_obj, "sheet cell");
 
 	// save model
 	BLOCKS[index] = block;

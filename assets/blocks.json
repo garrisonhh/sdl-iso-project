@@ -7,6 +7,14 @@
 			"name": "grass"
 		},
 		{
+			"name": "leaves"
+		},
+		{
+			"name": "log",
+			"collision": "custom",
+			"bbox": [[0.2, 0.2, 0.2], [0.6, 0.6, 0.6]]
+		},
+		{
 			"name": "bush",
 			"collision": "custom",
 			"bbox": [[0.2, 0.2, 0.2], [0.6, 0.6, 0.6]]
@@ -18,12 +26,10 @@
 			"type": "plant"
 		},
 		{
-			"name": "log",
-			"collision": "custom",
-			"bbox": [[0.2, 0.2, 0.2], [0.6, 0.6, 0.6]]
-		},
-		{
-			"name": "leaves"
+			"name": "flower",
+			"collision": "none",
+			"sheet cell": [0, 0],
+			"type": "plant"
 		}
 	]
 }

@@ -53,16 +53,12 @@ struct texture_t {
 typedef struct texture_t texture_t;
 
 // texture state
-struct texture_state_t {
-	unsigned expose_mask: 3;
-
-	union {
-		unsigned outline_mask: 8;
-		unsigned connected_mask: 6;
-		v2i cell;
-	} state;
+union texture_state_t {
+	unsigned outline_mask: 8;
+	unsigned connected_mask: 6;
+	v2i cell;
 };
-typedef struct texture_state_t texture_state_t;
+typedef union texture_state_t texture_state_t;
 
 extern voxel_tex_t *VOID_VOXEL_TEXTURE;
 

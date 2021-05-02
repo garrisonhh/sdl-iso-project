@@ -282,17 +282,15 @@ texture_t *texture_from_key(char *key) {
 texture_state_t texture_state_from_type(texture_type_e tex_type) {
 	texture_state_t tex_state;
 
-	tex_state.expose_mask = 0x7;
-
 	switch (tex_type) {
 		case TEX_VOXEL:
-			tex_state.state.outline_mask = 0x0;
+			tex_state.outline_mask = 0x0;
 			break;
 		case TEX_CONNECTED:
-			tex_state.state.connected_mask = 0x0;
+			tex_state.connected_mask = 0x0;
 			break;
 		case TEX_SHEET:
-			tex_state.state.cell = (v2i){0, 0};
+			tex_state.cell = (v2i){0, 0};
 			break;
 		default:
 			break;

@@ -9,26 +9,27 @@
 
 typedef struct world_t world_t;
 
-// TODO multiblock structures
 enum block_type_e {
 	BLOCK_STATELESS = 0,
 	BLOCK_PLANT = 1,
 };
 typedef enum block_type_e block_type_e;
 
-union block_state_t {
+struct block_state_t {
+	int ticks: 1;
 	plant_t plant;
 };
-typedef union block_state_t block_state_t;
+typedef struct block_state_t block_state_t;
 
 struct block_t {
 	texture_t *texture;
+
+	unsigned expose_mask: 3;
 	texture_state_t tex_state;
 
 	block_coll_data_t *coll_data;
 
 	block_type_e type;
-	// TODO store whether state is tickable?
 	block_state_t state;
 };
 typedef struct block_t block_t;

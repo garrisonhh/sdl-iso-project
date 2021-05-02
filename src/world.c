@@ -94,6 +94,21 @@ void block_update_masks(world_t *world, v3i loc) {
 		int i;
 		unsigned mask;
 
+		// expose mask
+		v3i neighbor;
+
+		mask = 0x0;
+
+		for (i = 0; i < 3; ++i) {
+			neighbor = loc;
+			v3i_set(&neighbor, i, v3i_get(&neighbor, i) + 1);
+
+			if (block_see_through(block_get(world, neighbor)))
+				mask |= 0x1 << i;
+		}
+
+		block->expose_mask = mask;
+
 		// connect mask
 		if (block->texture->type == TEX_CONNECTED) {
 			// TODO re-implement this with connect tags idea
@@ -102,21 +117,6 @@ void block_update_masks(world_t *world, v3i loc) {
 		}
 
 		if (block->texture->type == TEX_VOXEL) {
-			// expose mask
-			v3i neighbor;
-
-			mask = 0x0;
-
-			for (i = 0; i < 3; ++i) {
-				neighbor = loc;
-				v3i_set(&neighbor, i, v3i_get(&neighbor, i) + 1);
-
-				if (block_see_through(block_get(world, neighbor)))
-					mask |= 0x1 << i;
-			}
-
-			block->tex_state.expose_mask = mask;
-
 			// outline mask
 			v3i diagonal;
 			int swap;
@@ -152,7 +152,7 @@ void block_update_masks(world_t *world, v3i loc) {
 				SWAP(diagonal.x, diagonal.y, swap);
 			}
 			
-			block->tex_state.state.outline_mask = mask;
+			block->tex_state.outline_mask = mask;
 		}
 	}
 }
@@ -368,11 +368,11 @@ void world_generate(world_t *world) {
 		v2i dims = {world->size >> 1, world->size >> 1};
 		v3i loc;
 
-		size_t dirt, grass, bush, tall_grass;
-		dirt = block_gen_get_id("dirt");
-		grass = block_gen_get_id("grass");
-		bush = block_gen_get_id("bush");
-		tall_grass = block_gen_get_id("tall grass");
+		size_t dirt = block_gen_get_id("dirt");
+		size_t grass = block_gen_get_id("grass");
+		size_t bush = block_gen_get_id("bush");
+		size_t tall_grass = block_gen_get_id("tall grass");
+		size_t flower = block_gen_get_id("flower");
 
 		srand(time(0));
 		noise_init(dims);
@@ -395,6 +395,9 @@ void world_generate(world_t *world) {
 				case 1:
 				case 2:
 					block_set_no_update(world, loc, tall_grass);
+					break;
+				case 3:
+					block_set_no_update(world, loc, flower);
 					break;
 			}
 

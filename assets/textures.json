@@ -36,6 +36,11 @@
 			"path": "tall_grass",
 			"type": "sheet",
 			"transparent": true
+		},
+		{
+			"name": "flower",
+			"type": "sheet",
+			"transparent": true
 		}
 	]
 }

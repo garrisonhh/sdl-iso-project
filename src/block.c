@@ -31,7 +31,7 @@ void block_tick(block_t *block, world_t *world, double time) {
 	switch (block->type) {
 		case BLOCK_PLANT:
 			plant_tick(&block->state.plant, time);
-			block->tex_state.state.cell.x = plant_growth_level(&block->state.plant);
+			block->tex_state.cell.x = plant_growth_level(&block->state.plant);
 			break;
 		default:
 			break;
