@@ -10,6 +10,16 @@ block_t *block_create(size_t block_id) {
 
 	*block = *block_gen_get(block_id);
 
+	// TODO TESTING REMOVE
+	if (block->type == BLOCK_PLANT) {
+		block->state.plant = (plant_t){
+			.growth = 0.0,
+			.growth_rate = 0.1,
+			.growth_rate_delta = 0.0,
+			.fullgrown = 3
+		};
+	}
+
 	return block;
 }
 
@@ -17,6 +27,13 @@ void block_destroy(block_t *block) {
 	free(block);
 }
 
-void block_tick(block_t *block, world_t *world) {
-	// TODO
+void block_tick(block_t *block, world_t *world, double time) {
+	switch (block->type) {
+		case BLOCK_PLANT:
+			plant_tick(&block->state.plant, time);
+			block->tex_state.state.cell.x = plant_growth_level(&block->state.plant);
+			break;
+		default:
+			break;
+	}
 }

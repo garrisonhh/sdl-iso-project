@@ -7,6 +7,7 @@
 #include "block_collision.h"
 #include "block_types/plant.h"
 
+// TODO multiblock structures
 enum block_type_e {
 	BLOCK_STATELESS = 0,
 	BLOCK_PLANT = 1,
@@ -25,6 +26,7 @@ struct block_t {
 	block_coll_data_t *coll_data;
 
 	block_type_e type;
+	// TODO store whether state is tickable?
 	block_state_t state;
 };
 typedef struct block_t block_t;
