@@ -373,6 +373,10 @@ void world_generate(world_t *world) {
 		size_t bush = block_gen_get_id("bush");
 		size_t tall_grass = block_gen_get_id("tall grass");
 		size_t flower = block_gen_get_id("flower");
+		size_t sml_rock = block_gen_get_id("small rock");
+		// larger rocks don't look good in forest umgebung
+		//size_t med_rock = block_gen_get_id("medium rock");
+		//size_t lrg_rock = block_gen_get_id("large rock");
 
 		srand(time(0));
 		noise_init(dims);
@@ -388,17 +392,29 @@ void world_generate(world_t *world) {
 
 			++loc.z;
 
-			switch (rand() % 20) {
+			switch (rand() % 30) {
 				case 0:
 					block_set_no_update(world, loc, bush);
 					break;
 				case 1:
 				case 2:
+				case 3:
 					block_set_no_update(world, loc, tall_grass);
 					break;
-				case 3:
+				case 4:
 					block_set_no_update(world, loc, flower);
 					break;
+				case 5:
+					block_set_no_update(world, loc, sml_rock);
+					break;
+				/*
+				case 6:
+					block_set_no_update(world, loc, med_rock);
+					break;
+				case 7:
+					block_set_no_update(world, loc, lrg_rock);
+					break;
+				*/
 			}
 
 			if (rand() % 500 == 0)

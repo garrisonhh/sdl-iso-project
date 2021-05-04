@@ -10,6 +10,7 @@ json_object *content_load_file(const char *file_path);
 void content_close_file(json_object *);
 
 bool content_has_key(json_object *obj, const char *key);
+json_object *content_get_obj(json_object *, const char *key);
 
 bool content_get_bool(json_object *, const char *key);
 int content_get_int(json_object *, const char *key);

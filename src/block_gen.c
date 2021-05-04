@@ -82,18 +82,17 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 		block_type_name = content_get_string(block_obj, "type");
 		block_type = hashmap_get(block_type_map, (char *)block_type_name, strlen(block_type_name));
 		block->type = *block_type;
-		printf("plant! %s %lu\n", name, index);
 	} else {
 		block->type = BLOCK_STATELESS;
 	}
 
-	// TODO block state?
+	// TODO block subtype
 
 	// tex_state
 	block->tex_state = texture_state_from_type(block->texture->type);
 
-	if (block->texture->type == TEX_SHEET && content_has_key(block_obj, "sheet cell"))
-		block->tex_state.cell = content_get_v2i(block_obj, "sheet cell");
+	if (block->texture->type == TEX_SHEET && content_has_key(block_obj, "sheet-cell"))
+		block->tex_state.cell = content_get_v2i(block_obj, "sheet-cell");
 
 	// save model
 	BLOCKS[index] = block;
@@ -141,12 +140,16 @@ void block_gen_load() {
 		hashmap_set(block_type_map, block_type_strings[i], strlen(block_type_strings[i]), block_type);
 	}
 
-	// access json block list
-	json_object *file;
+	// load json file
+	json_object *file;//, *block_subtypes;
 	array_t *block_objects;
 
 	file = content_load_file("assets/blocks.json");
 	block_objects = content_get_array(file, "blocks");
+	//block_subtypes = content_get_obj(file, "subtypes");
+
+	// load subtypes
+	// TODO
 
 	// set up globals
 	NUM_BLOCKS = block_objects->size;

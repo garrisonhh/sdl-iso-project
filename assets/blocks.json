@@ -21,15 +21,54 @@
 		},
 		{
 			"name": "tall grass",
+			"sheet-cell": [0, 0],
 			"collision": "none",
-			"sheet cell": [0, 0],
-			"type": "plant"
+			"type": "plant",
+			"subtype": "tall grass"
 		},
 		{
 			"name": "flower",
+			"sheet-cell": [0, 0],
 			"collision": "none",
-			"sheet cell": [0, 0],
-			"type": "plant"
+			"type": "plant",
+			"subtype": "flower"
+		},
+		{
+			"name": "small rock",
+			"texture": "rocks",
+			"sheet-cell": [0, 0],
+			"collision": "custom",
+			"bbox": [[0.4, 0.4, 0.0], [0.2, 0.2, 0.2]]
+		},
+		{
+			"name": "medium rock",
+			"texture": "rocks",
+			"sheet-cell": [1, 0],
+			"collision": "custom",
+			"bbox": [[0.3, 0.3, 0.0], [0.4, 0.4, 0.4]]
+		},
+		{
+			"name": "large rock",
+			"texture": "rocks",
+			"sheet-cell": [2, 0],
+			"collision": "custom",
+			"bbox": [[0.2, 0.2, 0.0], [0.6, 0.6, 0.6]]
 		}
-	]
+
+	],
+
+	"subtypes": {
+		"plant": [
+			{
+				"name": "tall grass",
+				"fullgrown": 3,
+				"growth-rate": 0.1
+			},
+			{
+				"name": "flower",
+				"fullgrown": 3,
+				"growth-rate": 0.1
+			}
+		]
+	}
 }

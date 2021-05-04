@@ -41,6 +41,11 @@
 			"name": "flower",
 			"type": "sheet",
 			"transparent": true
+		},
+		{
+			"name": "rocks",
+			"type": "sheet",
+			"transparent": true
 		}
 	]
 }
