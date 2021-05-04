@@ -61,13 +61,13 @@
 		"plant": [
 			{
 				"name": "tall grass",
-				"fullgrown": 3,
+				"fullgrown": 2,
 				"growth-rate": 0.1
 			},
 			{
 				"name": "flower",
-				"fullgrown": 3,
-				"growth-rate": 0.1
+				"fullgrown": 2,
+				"growth-rate": 0.01
 			}
 		]
 	}

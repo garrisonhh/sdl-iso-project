@@ -10,16 +10,6 @@ block_t *block_create(size_t block_id) {
 
 	*block = *block_gen_get(block_id);
 
-	// TODO TESTING REMOVE
-	if (block->type == BLOCK_PLANT) {
-		block->state.plant = (plant_t){
-			.growth = 0.0,
-			.growth_rate = 0.1,
-			.growth_rate_delta = 0.005,
-			.fullgrown = 2
-		};
-	}
-
 	return block;
 }
 

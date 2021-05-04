@@ -2,6 +2,7 @@
 #define CONTENT_H
 
 #include <json-c/json.h>
+#include <stdbool.h>
 #include "data_structures/array.h"
 #include "vector.h"
 #include "collision.h"

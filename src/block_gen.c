@@ -1,9 +1,10 @@
 #include <json-c/json.h>
 #include <stdlib.h>
-#include "block.h"
-#include "block_collision.h"
 #include "content.h"
 #include "textures.h"
+#include "block.h"
+#include "block_collision.h"
+#include "block_types/plant.h"
 #include "data_structures/hashmap.h"
 #include "data_structures/hash_functions.h"
 
@@ -24,14 +25,41 @@ bbox_t BLOCK_DEFAULT_BOX = {
 };
 block_coll_data_t WALL_COLL_DATA; // collision data for world borders
 
+hashmap_t *block_gen_load_plants(array_t *plant_objects) {
+	hashmap_t *plant_models;
+	json_object *plant_obj;
+	plant_t *plant;
+	const char *name;
+
+	plant_models = hashmap_create(4, true, hash_string);
+
+	for (size_t i = 0; i < plant_objects->size; ++i) {
+		plant_obj = plant_objects->items[i];
+		plant = malloc(sizeof(plant_t));
+
+		name = content_get_string(plant_obj, "name");
+		*plant = (plant_t){
+			.growth = 0,
+			.growth_rate = content_get_double(plant_obj, "growth-rate"),
+			.fullgrown = content_get_int(plant_obj, "fullgrown")
+		};
+
+		hashmap_set(plant_models, (char *)name, strlen(name), plant);
+	}
+
+	return plant_models;
+}
+
 void block_gen_load_block(json_object *block_obj, size_t index,
-						  hashmap_t *coll_type_map, hashmap_t *block_type_map) {
+						  hashmap_t *coll_type_map,
+						  hashmap_t *block_type_map,
+						  hashmap_t *block_subtype_maps[block_type_map->size]) {
 	block_t *block;
 	block_coll_e *coll_type;
 	block_coll_data_t *coll_data;
 	block_type_e *block_type;
 	const char *name, *texture;
-	const char *coll_type_name, *block_type_name;
+	const char *coll_type_name, *block_type_name, *block_subtype_name;
 	size_t *block_id;
 
 	block = malloc(sizeof(block_t));
@@ -86,7 +114,17 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 		block->type = BLOCK_STATELESS;
 	}
 
-	// TODO block subtype
+	// block subtype
+	switch (block->type) {
+		case BLOCK_STATELESS:
+			break;
+		case BLOCK_PLANT:
+			block_subtype_name = content_get_string(block_obj, "subtype");
+			block->state.plant = *(plant_t *)hashmap_get(block_subtype_maps[BLOCK_PLANT],
+														 (char *)block_subtype_name,
+														 strlen(block_subtype_name));
+			break;
+	}
 
 	// tex_state
 	block->tex_state = texture_state_from_type(block->texture->type);
@@ -141,15 +179,18 @@ void block_gen_load() {
 	}
 
 	// load json file
-	json_object *file;//, *block_subtypes;
+	json_object *file, *block_subtypes;
 	array_t *block_objects;
 
 	file = content_load_file("assets/blocks.json");
 	block_objects = content_get_array(file, "blocks");
-	//block_subtypes = content_get_obj(file, "subtypes");
+	block_subtypes = content_get_obj(file, "subtypes");
 
-	// load subtypes
-	// TODO
+	// load subtypes (indexed to block_type_e values)
+	hashmap_t *block_subtype_maps[num_block_types];
+
+	block_subtype_maps[BLOCK_STATELESS] = NULL;
+	block_subtype_maps[BLOCK_PLANT] = block_gen_load_plants(content_get_array(block_subtypes, "plant"));
 
 	// set up globals
 	NUM_BLOCKS = block_objects->size;
@@ -159,9 +200,11 @@ void block_gen_load() {
 
 	// load blocks
 	for (i = 0; i < block_objects->size; ++i)
-		block_gen_load_block(block_objects->items[i], i, coll_type_map, block_type_map);
+		block_gen_load_block(block_objects->items[i], i, coll_type_map, block_type_map, block_subtype_maps);
 
 	// clean up and exit
+	hashmap_destroy(block_subtype_maps[BLOCK_PLANT], true);
+
 	array_destroy(block_objects, false);
 	hashmap_destroy(coll_type_map, true);
 	content_close_file(file);
