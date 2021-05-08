@@ -52,6 +52,14 @@ void timeit_end(const char *message) {
 	LAST_TIMEIT = time_now;
 }
 
+double timeit_get_time() {
+	struct timeval now;
+
+	gettimeofday(&now, NULL);
+
+	return (double)now.tv_sec + ((double)now.tv_usec) / 1000000;
+}
+
 void print_bits(const char *message, unsigned n, size_t bits) {
 	if (message != NULL)
 		printf("%s:\t", message);

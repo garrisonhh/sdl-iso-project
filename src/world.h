@@ -45,7 +45,7 @@ typedef struct world_t world_t;
 world_t *world_create(unsigned);
 void world_destroy(world_t *);
 void world_generate(world_t *);
-void world_tick(world_t *, int ms);
+void world_tick(world_t *, double time);
 void world_spawn_entity(world_t *, struct entity_t *);
 bool chunk_block_indices(world_t *, v3i, unsigned *, unsigned *);
 block_t *block_get(world_t *, v3i loc);

@@ -437,9 +437,7 @@ void world_generate(world_t *world) {
 	timeit_end("path network created");
 }
 
-void world_tick(world_t *world, int ms) {
-	double time = ((double)ms) / 1000.0;
-
+void world_tick(world_t *world, double time) {
 	// update entities and check for bucket swaps
 	entity_t *entity;
 	v3i last_loc, this_loc;

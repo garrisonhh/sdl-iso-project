@@ -65,10 +65,10 @@ int main(int argc, char *argv[]) {
 	world_generate(world);
 
 	// time
-	unsigned int last_time = SDL_GetTicks(), this_time;
+	double last_tick = timeit_get_time(), this_tick = 0;
 
-	// controls
-	SDL_Event e;
+	// controls TODO move control code to player.c
+	SDL_Event event;
 	const uint8_t *kb_state = SDL_GetKeyboardState(NULL);
 	v3i move_inputs;
 	const v3d move_down = {1, 1, 0};
@@ -80,13 +80,13 @@ int main(int argc, char *argv[]) {
 	bool quit = false;
 
 	while (!quit) {
-		while (SDL_PollEvent(&e)) {
-			switch (e.type) {
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
 				case SDL_QUIT:
 					quit = true;
 					break;
 				case SDL_KEYDOWN:
-					switch (e.key.keysym.sym) { // nothing wrong with this. very normal code.
+					switch (event.key.keysym.sym) { // nothing wrong with this. very normal code.
 						case SDLK_ESCAPE:
 							quit = true;
 							break;
@@ -96,14 +96,14 @@ int main(int argc, char *argv[]) {
 					}
 					break;
 				case SDL_KEYUP:
-					switch (e.key.keysym.sym) {
+					switch (event.key.keysym.sym) {
 						case SDLK_SPACE:
 							jump = false;
 							break;
 					}
 					break;
 				case SDL_MOUSEWHEEL:
-					camera_change_scale(e.wheel.y > 0);
+					camera_change_scale(event.wheel.y > 0);
 					break;
 			}
 		}
@@ -134,10 +134,10 @@ int main(int argc, char *argv[]) {
 			world->player->ray.dir.z += 9.0;
 
 		// tick
-		this_time = SDL_GetTicks();
-		world_tick(world, this_time - last_time);
+		this_tick = timeit_get_time();
+		world_tick(world, this_tick - last_tick);
 		camera_update(world);
-		last_time = this_time;
+		last_tick = this_tick;
 
 		// gfx
 		render_world(world);
