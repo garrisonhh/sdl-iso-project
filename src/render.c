@@ -304,11 +304,9 @@ void render_world(world_t *world) {
 							void_mask = render_find_void_mask(loc, max_block,
 															  player_loc.z, block->expose_mask);
 							
-							if (block->expose_mask || void_mask)
-								render_block(world, block, loc, void_mask);
-						} else if (block->expose_mask) {
-							render_block(world, block, loc, 0);
 						}
+
+						render_block(world, block, loc, void_mask);
 					}
 
 					if ((bucket = chunk->buckets[block_index]) != NULL)

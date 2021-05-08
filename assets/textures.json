@@ -1,7 +1,8 @@
 {
 	"textures": [
 		{
-			"name": "gary",
+			"name": "harry",
+			"path": "harry/harry",
 			"type": "sprite"
 		},
 		{
