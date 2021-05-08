@@ -17,7 +17,7 @@ struct chunk_t {
 	block_t *blocks[CHUNK_SIZE];
 	list_t *buckets[CHUNK_SIZE];
 
-	// num_blocks tracked in block_set();
+	// num_blocks tracked in world_set();
 	// num_entities tracked using block bucket funcs
 	size_t num_blocks, num_entities;
 };
@@ -46,8 +46,8 @@ world_t *world_create(unsigned);
 void world_destroy(world_t *);
 void world_generate(world_t *);
 void world_tick(world_t *, double time);
-void world_spawn_entity(world_t *, struct entity_t *);
-bool chunk_block_indices(world_t *, v3i, unsigned *, unsigned *);
-block_t *block_get(world_t *, v3i loc);
+void world_spawn(world_t *, entity_t *);
+bool world_indices(world_t *, v3i, unsigned *, unsigned *);
+block_t *world_get(world_t *, v3i loc);
 
 #endif

@@ -3,11 +3,10 @@
 
 #include <stdbool.h>
 #include "collision.h"
-#include "world.h"
 #include "textures.h"
 #include "data_structures/list.h"
 
-struct world_t; // forward declaration to avoid header hell
+typedef struct world_t world_t;
 
 struct entity_t {
 	texture_t *sprite;
@@ -22,6 +21,6 @@ typedef struct entity_t entity_t;
 entity_t *entity_create(texture_t *, v3d pos, v3d size);
 void entity_destroy(entity_t *);
 void entity_add_path(entity_t *, list_t *);
-void entity_tick(entity_t *, struct world_t *, double time);
+void entity_tick(entity_t *, world_t *, double time);
 
 #endif

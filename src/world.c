@@ -47,9 +47,9 @@ void chunk_destroy(chunk_t *chunk) {
 	free(chunk);
 }
 
-// if you just want to access a block, use block_get() unless you're REALLY going for optimization,
+// if you just want to access a block, use world_get() unless you're REALLY going for optimization,
 // it is very safe and doesn't have any hidden gotchas
-bool chunk_block_indices(world_t *world, v3i loc, unsigned *chunk_result, unsigned *block_result) {
+bool world_indices(world_t *world, v3i loc, unsigned *chunk_result, unsigned *block_result) {
 	unsigned chunk_index = 0, block_index = 0;
 	int dim, i;
 
@@ -73,7 +73,7 @@ bool chunk_block_indices(world_t *world, v3i loc, unsigned *chunk_result, unsign
 }
 
 // call after a potential net decrease in entities/blocks in chunk
-void chunk_check_destroy(world_t *world, unsigned chunk_index) {
+void world_check_chunk(world_t *world, unsigned chunk_index) {
 	chunk_t *chunk;
 
 	if ((chunk = world->chunks[chunk_index]) != NULL
@@ -83,14 +83,10 @@ void chunk_check_destroy(world_t *world, unsigned chunk_index) {
 	}
 }
 
-bool block_see_through(block_t *block) {
-	return block == NULL || block->texture->transparent;
-}
-
-void block_update_masks(world_t *world, v3i loc) {
+void world_update_masks(world_t *world, v3i loc) {
 	block_t *block;
 
-	if ((block = block_get(world, loc)) != NULL) {
+	if ((block = world_get(world, loc)) != NULL) {
 		int i;
 		unsigned mask;
 
@@ -103,7 +99,7 @@ void block_update_masks(world_t *world, v3i loc) {
 			neighbor = loc;
 			v3i_set(&neighbor, i, v3i_get(&neighbor, i) + 1);
 
-			if (block_see_through(block_get(world, neighbor)))
+			if (block_see_through(world_get(world, neighbor)))
 				mask |= 0x1 << i;
 		}
 
@@ -125,7 +121,7 @@ void block_update_masks(world_t *world, v3i loc) {
 
 			// check each of the top edges based on the edge offset
 			for (i = 0; i < 4; ++i)
-				if (block_see_through(block_get(world, v3i_add(loc, OUTLINE_EDGE_OFFSETS[i]))))
+				if (block_see_through(world_get(world, v3i_add(loc, OUTLINE_EDGE_OFFSETS[i]))))
 					mask |= 0x1 << i;
 
 			// check corners
@@ -133,8 +129,8 @@ void block_update_masks(world_t *world, v3i loc) {
 			diagonal = (v3i){1, -1, 0};
 
 			for (i = 0; i <= 1; ++i) {
-				if (!block_see_through(block_get(world, v3i_add(loc, diagonal)))
-				 || block_see_through(block_get(world, v3i_add(loc, neighbor)))) {
+				if (!block_see_through(world_get(world, v3i_add(loc, diagonal)))
+				 || block_see_through(world_get(world, v3i_add(loc, neighbor)))) {
 					mask |= 0x1 << (i + 4);
 				}
 				
@@ -146,7 +142,7 @@ void block_update_masks(world_t *world, v3i loc) {
 			diagonal = (v3i){1, 0, -1};
 
 			for (i = 0; i <= 1; ++i) {
-				if (!block_see_through(block_get(world, v3i_add(loc, diagonal))))
+				if (!block_see_through(world_get(world, v3i_add(loc, diagonal))))
 					mask |= 0x1 << (i + 6);
 				
 				SWAP(diagonal.x, diagonal.y, swap);
@@ -157,11 +153,11 @@ void block_update_masks(world_t *world, v3i loc) {
 	}
 }
 
-block_t *block_get(world_t *world, v3i loc) {
+block_t *world_get(world_t *world, v3i loc) {
 	unsigned chunk_index, block_index;
 	chunk_t *chunk;
 
-	if (!chunk_block_indices(world, loc, &chunk_index, &block_index)
+	if (!world_indices(world, loc, &chunk_index, &block_index)
 	 || (chunk = world->chunks[chunk_index]) == NULL)
 		return NULL;
 	return chunk->blocks[block_index];
@@ -176,10 +172,10 @@ void world_push_update(world_t *world, v3i loc) {
 }
 
 // only for internal use
-void block_set_no_update(world_t *world, v3i loc, size_t block_id) {
+void world_set_no_update(world_t *world, v3i loc, size_t block_id) {
 	unsigned chunk_index, block_index;
 	
-	if (!chunk_block_indices(world, loc, &chunk_index, &block_index))
+	if (!world_indices(world, loc, &chunk_index, &block_index))
 		return;
 
 	chunk_t *chunk = world->chunks[chunk_index];
@@ -205,20 +201,20 @@ void block_set_no_update(world_t *world, v3i loc, size_t block_id) {
 	}
 }
 
-void block_set(world_t *world, v3i loc, size_t block_id) {
+void world_set(world_t *world, v3i loc, size_t block_id) {
 	v3i offset;
 
-	block_set_no_update(world, loc, block_id);
+	world_set_no_update(world, loc, block_id);
 
 	FOR_CUBE(offset.x, offset.y, offset.z, -1, 2) {
 		world_push_update(world, v3i_add(loc, offset));
 	}
 }
 
-void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
+void world_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	unsigned chunk_index, block_index;
 	
-	if (!chunk_block_indices(world, loc, &chunk_index, &block_index)) {
+	if (!world_indices(world, loc, &chunk_index, &block_index)) {
 		printf("adding to out of bounds entity bucket.\n");
 		exit(1);
 	}
@@ -237,10 +233,10 @@ void block_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	chunk->num_entities++;
 }
 
-void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
+void world_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 	unsigned chunk_index, block_index;
 	
-	if (!chunk_block_indices(world, loc, &chunk_index, &block_index)) {
+	if (!world_indices(world, loc, &chunk_index, &block_index)) {
 		printf("removing from out of bounds entity bucket.\n");
 		exit(1);
 	}
@@ -255,11 +251,11 @@ void block_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 		chunk->buckets[block_index] = NULL;
 	}
 
-	chunk_check_destroy(world, chunk_index);
+	world_check_chunk(world, chunk_index);
 }
 
-void world_spawn_entity(world_t *world, entity_t *entity) {
-	block_bucket_add(world, v3i_from_v3d(entity->ray.pos), entity);
+void world_spawn(world_t *world, entity_t *entity) {
+	world_bucket_add(world, v3i_from_v3d(entity->ray.pos), entity);
 	array_add(world->entities, entity);
 }
 
@@ -284,7 +280,7 @@ world_t *world_create(unsigned size_power) {
 	world->player = player_create();
 	world->entities = array_create(2);
 
-	world_spawn_entity(world, world->player);
+	world_spawn(world, world->player);
 
 	return world;
 }
@@ -322,7 +318,7 @@ void generate_tree(world_t *world, v3i loc) {
 
 	for (i = 0; i < max_v + 5; i++) {
 		if (i < max_v) {
-			block_set(world, loc, log);
+			world_set(world, loc, log);
 		}
 
 		radius = 2.5;
@@ -336,7 +332,7 @@ void generate_tree(world_t *world, v3i loc) {
 					
 					if (sqrt(pow((double)(x - loc.x), 2.0) + pow((double)(y - loc.y), 2.0)) <= radius) {
 						leaf_loc = (v3i){x, y, loc.z};
-						block_set(world, leaf_loc, leaves);
+						world_set(world, leaf_loc, leaves);
 					}
 				}
 			}
@@ -358,7 +354,7 @@ void world_generate(world_t *world) {
 		for (loc.x = 3; loc.x >= 0; --loc.x) {
 			for (loc.y = 3; loc.y >= 0; --loc.y) {
 				loc.z = 3 - loc.y;
-				block_set_no_update(world, loc, ramp);
+				world_set_no_update(world, loc, ramp);
 			}
 		}
 
@@ -386,33 +382,33 @@ void world_generate(world_t *world) {
 			noise_val = (int)(pow((1.0 + noise_at(noise_pos)) / 2, 3.0) * (double)(MIN(world->block_size, 64)));
 
 			for (loc.z = 0; loc.z < noise_val; loc.z++)
-				block_set_no_update(world, loc, dirt);
+				world_set_no_update(world, loc, dirt);
 			
-			block_set_no_update(world, loc, grass);
+			world_set_no_update(world, loc, grass);
 
 			++loc.z;
 
 			switch (rand() % 30) {
 				case 0:
-					block_set_no_update(world, loc, bush);
+					world_set_no_update(world, loc, bush);
 					break;
 				case 1:
 				case 2:
 				case 3:
-					block_set_no_update(world, loc, tall_grass);
+					world_set_no_update(world, loc, tall_grass);
 					break;
 				case 4:
-					block_set_no_update(world, loc, flower);
+					world_set_no_update(world, loc, flower);
 					break;
 				case 5:
-					block_set_no_update(world, loc, sml_rock);
+					world_set_no_update(world, loc, sml_rock);
 					break;
 				/*
 				case 6:
-					block_set_no_update(world, loc, med_rock);
+					world_set_no_update(world, loc, med_rock);
 					break;
 				case 7:
-					block_set_no_update(world, loc, lrg_rock);
+					world_set_no_update(world, loc, lrg_rock);
 					break;
 				*/
 			}
@@ -428,7 +424,7 @@ void world_generate(world_t *world) {
 	v3i loc;
 
 	FOR_CUBE(loc.x, loc.y, loc.z, 0, world->block_size)
-		block_update_masks(world, loc);
+		world_update_masks(world, loc);
 
 	timeit_end("block masks updated");
 
@@ -450,8 +446,8 @@ void world_tick(world_t *world, double time) {
 		this_loc = v3i_from_v3d(entity->ray.pos);
 
 		if (v3i_compare(last_loc, this_loc)) {
-			block_bucket_remove(world, last_loc, entity);
-			block_bucket_add(world, this_loc, entity);
+			world_bucket_remove(world, last_loc, entity);
+			world_bucket_add(world, this_loc, entity);
 		}
 	}
 
@@ -461,7 +457,7 @@ void world_tick(world_t *world, double time) {
 	while (world->mask_updates->size) {
 		update = (v3i *)list_pop(world->mask_updates);	
 
-		block_update_masks(world, *update);
+		world_update_masks(world, *update);
 
 		free(update);
 	}

@@ -44,7 +44,7 @@ bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), 
 
 	// iterate though voxel space
 	while (true) {
-		if (test_block(block_get(world, loc))) {
+		if (test_block(world_get(world, loc))) {
 			if (block_hit != NULL)
 				*block_hit = loc;
 			if (axis_hit != NULL)

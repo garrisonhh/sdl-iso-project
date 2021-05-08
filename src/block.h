@@ -39,4 +39,6 @@ void block_destroy(block_t *);
 
 void block_tick(block_t *, world_t *, double time);
 
+bool block_see_through(block_t *);
+
 #endif

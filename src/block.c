@@ -27,3 +27,7 @@ void block_tick(block_t *block, world_t *world, double time) {
 			break;
 	}
 }
+
+bool block_see_through(block_t *block) {
+	return block == NULL || block->texture->transparent;
+}

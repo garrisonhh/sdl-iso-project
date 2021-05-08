@@ -46,7 +46,7 @@ array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 				current_loc = (v3i){x, y, z};
 				current_loc = v3i_add(entity_loc, current_loc);
 
-				if ((block = block_get(world, current_loc)) != NULL
+				if ((block = world_get(world, current_loc)) != NULL
 				  && block->coll_data->coll_type != BLOCK_COLL_NONE) {
 					block_coll = malloc(sizeof(block_collidable_t));
 

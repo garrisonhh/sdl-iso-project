@@ -86,13 +86,13 @@ void path_node_connect(path_node_t *a, path_node_t *b) {
 }
 
 bool path_block_empty(world_t *world, v3i loc) {
-	block_t *block = block_get(world, loc);
+	block_t *block = world_get(world, loc);
 	
 	return block == NULL || block->coll_data->coll_type == BLOCK_COLL_NONE;
 }
 
 bool path_block_solid(world_t *world, v3i loc) {
-	block_t *block = block_get(world, loc);
+	block_t *block = world_get(world, loc);
 	
 	return block != NULL && block->coll_data->coll_type == BLOCK_COLL_DEFAULT_BOX;
 }

@@ -108,7 +108,7 @@ void render_generate_shadows(world_t *world, array_t *(*shadows)[world->block_si
 		shadow_loc = v3i_from_v3d(shadow_pos);
 
 		while (shadow_loc.z >= 0) {
-			if ((block = block_get(world, shadow_loc)) != NULL
+			if ((block = world_get(world, shadow_loc)) != NULL
 			 && !block->texture->transparent) {
 				break;
 			}
@@ -296,7 +296,7 @@ void render_world(world_t *world) {
 		
 		for (loc.y = min_block.y; loc.y < max_block.y; loc.y++) {
 			for (loc.x = min_block.x; loc.x < max_block.x; loc.x++) {
-				chunk_block_indices(world, loc, &chunk_index, &block_index);
+				world_indices(world, loc, &chunk_index, &block_index);
 
 				if ((chunk = world->chunks[chunk_index]) != NULL) {
 					if ((block = chunk->blocks[block_index]) != NULL) {
