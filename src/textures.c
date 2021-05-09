@@ -10,8 +10,6 @@
 #include "data_structures/hashmap.h"
 #include "data_structures/hash_functions.h"
 
-#define ANIMATION_FPS 12.0
-
 texture_t **TEXTURES = NULL;
 size_t NUM_TEXTURES;
 hashmap_t *TEXTURE_MAP;
@@ -137,22 +135,6 @@ sheet_tex_t *load_sheet_texture(const char *path, json_object *obj) {
 	sheet_tex->sheet_size = v2i_div(image_size, cell_size);
 
 	return sheet_tex;
-}
-
-void entity_anim_swap(entity_t *entity, int anim) {
-	entity->anim_cell.y = anim;
-	entity->anim_state = 0.0;
-}
-
-void entity_sprite_tick(entity_t *entity, double time) {
-	if (entity->sprite->anim_lengths[entity->anim_cell.y] > 1) {
-		entity->anim_state += time * ANIMATION_FPS;
-
-		if (entity->anim_state > entity->sprite->anim_lengths[entity->anim_cell.y])
-			entity->anim_state -= (double)entity->sprite->anim_lengths[entity->anim_cell.y];
-
-		entity->anim_cell.x = (int)entity->anim_state;
-	}
 }
 
 void textures_load() {
@@ -304,9 +286,9 @@ void textures_destroy() {
 }
 
 texture_t *texture_from_key(char *key) {
-	size_t *value;
+	size_t *value = hashmap_get(TEXTURE_MAP, key, strlen(key));
 
-	if ((value = (size_t *)hashmap_get(TEXTURE_MAP, key, strlen(key))) == NULL) {
+	if (value == NULL) {
 		printf("key not found in TEXTURE_MAP: %s\n", key);
 		exit(1);
 	}

@@ -213,6 +213,22 @@ void entity_follow_path(entity_t *entity, double time) {
 	}
 }
 
+void entity_anim_swap(entity_t *entity, int anim) {
+	entity->anim_cell.y = anim;
+	entity->anim_state = 0.0;
+}
+
+void entity_sprite_tick(entity_t *entity, double time) {
+	if (entity->sprite->anim_lengths[entity->anim_cell.y] > 1) {
+		entity->anim_state += time * ANIMATION_FPS;
+
+		if (entity->anim_state > entity->sprite->anim_lengths[entity->anim_cell.y])
+			entity->anim_state -= (double)entity->sprite->anim_lengths[entity->anim_cell.y];
+
+		entity->anim_cell.x = (int)entity->anim_state;
+	}
+}
+
 void entity_tick(entity_t *entity, struct world_t *world, double time) {
 	array_t *block_colls;
 

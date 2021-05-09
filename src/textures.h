@@ -6,7 +6,7 @@
 #include "vector.h"
 #include "data_structures/array.h"
 
-typedef struct entity_t entity_t;
+#define ANIMATION_FPS 12.0
 
 // numbers are used for json loading, if you change them make sure to
 // check the textures_load function
@@ -74,9 +74,6 @@ union texture_state_t {
 typedef union texture_state_t texture_state_t;
 
 extern voxel_tex_t *VOID_VOXEL_TEXTURE;
-
-void entity_anim_swap(entity_t *entity, int anim);
-void entity_sprite_tick(entity_t *entity, double time);
 
 void textures_load(void);
 void textures_destroy(void);
