@@ -226,8 +226,10 @@ void world_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 		world->chunks[chunk_index] = chunk;
 	}
 
-	if (chunk->buckets[block_index] == NULL)
+	if (chunk->buckets[block_index] == NULL) {
 		chunk->buckets[block_index] = list_create();
+		list_push(world->buckets, chunk->buckets[block_index]);
+	}
 	
 	list_push(chunk->buckets[block_index], entity);
 	chunk->num_entities++;
@@ -247,11 +249,32 @@ void world_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 	chunk->num_entities--;
 	
 	if (chunk->buckets[block_index]->size == 0) {
+		list_remove(world->buckets, chunk->buckets[block_index]);
 		list_destroy(chunk->buckets[block_index], false);
 		chunk->buckets[block_index] = NULL;
 	}
 
 	world_check_chunk(world, chunk_index);
+}
+
+void world_bucket_z_sort(list_t *bucket) {
+	if (bucket->size == 2) {
+		if (entity_bucket_compare(&bucket->root->item, &bucket->tip->item) > 0)
+			list_append(bucket, list_pop(bucket));
+	} else if (bucket->size > 2) {
+		int bucket_size = bucket->size, i = 0;
+		entity_t **entities = malloc(sizeof(entity_t *) * bucket_size);
+
+		while (bucket->size)
+			entities[i++] = list_pop(bucket);
+
+		qsort(entities, bucket_size, sizeof(entity_t *), entity_bucket_compare);
+
+		for (i = 0; i < bucket_size; ++i)
+			list_append(bucket, entities[i]);
+
+		free(entities);
+	}
 }
 
 void world_spawn(world_t *world, entity_t *entity) {
@@ -276,6 +299,7 @@ world_t *world_create(unsigned size_power) {
 
 	world->mask_updates = list_create();
 	world->ticks = list_create();
+	world->buckets = list_create();
 
 	world->player = player_create();
 	world->entities = array_create(2);
@@ -434,10 +458,12 @@ void world_generate(world_t *world) {
 }
 
 void world_tick(world_t *world, double time) {
-	// update entities and check for bucket swaps
 	entity_t *entity;
 	v3i last_loc, this_loc;
+	v3i *update;
+	list_node_t *node;
 
+	// update entities and check for bucket swaps
 	for (size_t i = 0; i < world->entities->size; i++) {
 		entity = world->entities->items[i];
 
@@ -451,9 +477,7 @@ void world_tick(world_t *world, double time) {
 		}
 	}
 
-	// block mask updates
-	v3i *update;
-
+	// update loops
 	while (world->mask_updates->size) {
 		update = (v3i *)list_pop(world->mask_updates);	
 
@@ -462,10 +486,11 @@ void world_tick(world_t *world, double time) {
 		free(update);
 	}
 
-	// block ticks
-	list_node_t *node;
-
 	LIST_FOREACH(node, world->ticks) {
 		block_tick(node->item, world, time);
+	}
+
+	LIST_FOREACH(node, world->buckets) {
+		world_bucket_z_sort(node->item);
 	}
 }

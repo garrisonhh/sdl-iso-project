@@ -29,6 +29,7 @@ struct world_t {
 
 	list_t *mask_updates; // malloc'd v3i *
 	list_t *ticks; // block_t *
+	list_t *buckets;
 
 	array_t *entities;
 	entity_t *player;

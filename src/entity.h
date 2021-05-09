@@ -26,8 +26,12 @@ struct entity_t {
 typedef struct entity_t entity_t;
 
 entity_t *entity_create(sprite_t *, v3d pos, v3d size);
-
 void entity_destroy(entity_t *);
+
+// entity bucket sorting
+double entity_y(entity_t *);
+int entity_bucket_compare(const void *, const void *);
+
 void entity_add_path(entity_t *, list_t *);
 void entity_tick(entity_t *, world_t *, double time);
 

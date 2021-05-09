@@ -239,6 +239,7 @@ void render_world(world_t *world) {
 	unsigned chunk_index, block_index;
 	unsigned void_mask;
 	bool render_to_fg, player_blocked;
+	double block_y;
 	ray_t cam_ray;
 	chunk_t *chunk;
 	block_t *block;
@@ -292,7 +293,7 @@ void render_world(world_t *world) {
 		}
 
 		// render blocks and buckets
-		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x3F); // block outlines
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x3F); // block outline color
 		
 		for (loc.y = min_block.y; loc.y < max_block.y; loc.y++) {
 			for (loc.x = min_block.x; loc.x < max_block.x; loc.x++) {
@@ -306,12 +307,36 @@ void render_world(world_t *world) {
 							
 						}
 
-						render_block(world, block, loc, void_mask);
-					}
+						if (block->texture->transparent) { // draw block sorted between entities
+							if ((bucket = chunk->buckets[block_index]) != NULL) {
+								block_y = (double)(loc.x + loc.y) + 1.0; // 1.0 for (0.5, 0.5) center of block
+								bucket_trav = bucket->root;
 
-					if ((bucket = chunk->buckets[block_index]) != NULL)
+								while (bucket_trav != NULL && entity_y(bucket_trav->item) < block_y) {
+									render_entity(bucket_trav->item);
+									bucket_trav = bucket_trav->next;
+								}
+
+								render_block(world, block, loc, void_mask);
+								
+								while (bucket_trav != NULL) {
+									render_entity(bucket_trav->item);
+									bucket_trav = bucket_trav->next;
+								}
+							} else {
+								render_block(world, block, loc, void_mask);
+							}
+						} else { // draw entities over block regardless
+							render_block(world, block, loc, void_mask);
+
+							if ((bucket = chunk->buckets[block_index]) != NULL)
+								LIST_FOREACH(bucket_trav, bucket)
+									render_entity(bucket_trav->item);
+						}
+					} else if ((bucket = chunk->buckets[block_index]) != NULL) {
 						LIST_FOREACH(bucket_trav, bucket)
 							render_entity(bucket_trav->item);
+					}
 				}
 			}
 		}
