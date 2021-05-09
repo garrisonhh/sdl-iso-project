@@ -66,6 +66,13 @@ int main(int argc, char *argv[]) {
 
 	// time
 	double last_tick = timeit_get_time(), this_tick = 0;
+	double ticks[32];
+	double tick_avg;
+	int tick_idx = 0;
+	int i;
+
+	for (i = 0; i < 32; ++i)
+		ticks[i] = 0;
 
 	// controls TODO move control code to player.c
 	SDL_Event event;
@@ -134,10 +141,20 @@ int main(int argc, char *argv[]) {
 			world->player->ray.dir.z += 9.0;
 
 		// tick
+		last_tick = this_tick;
 		this_tick = timeit_get_time();
 		world_tick(world, this_tick - last_tick);
 		camera_update(world);
-		last_tick = this_tick;
+
+		ticks[tick_idx++] = this_tick - last_tick;
+		tick_idx %= 32;
+
+		tick_avg = 0;
+
+		for (i = 0; i < 32; ++i)
+			tick_avg += ticks[i];
+
+		printf("FPS: %lf\n", 1.0 / (tick_avg / 32));
 
 		// gfx
 		render_world(world);

@@ -2,11 +2,12 @@
 #define PATHING_H
 
 #include <stdbool.h>
-#include "world.h"
 #include "vector.h"
 #include "data_structures/hashmap.h"
 #include "data_structures/list.h"
 #include "data_structures/array.h"
+
+typedef struct world_t world_t;
 
 // path network types
 struct path_node_t {

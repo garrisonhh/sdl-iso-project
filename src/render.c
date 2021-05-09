@@ -139,7 +139,7 @@ void render_entity(entity_t *entity) {
 	entity_pos.z -= entity->size.z / 2;
 	screen_pos = project_v3d(entity_pos, true);
 
-	render_sprite(entity->sprite->tex.sprite, screen_pos);
+	render_sprite(entity->sprite, screen_pos, entity->anim_cell);
 }
 
 unsigned render_find_void_mask(v3i loc, v3i max_block, int player_z, unsigned block_expose_mask) {

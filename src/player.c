@@ -9,7 +9,9 @@ entity_t *player_create() {
 
 	pos = (v3d){5.0, 5.0, 15.0};
 	size = (v3d){0.8, 0.8, 1.0};
-	player = entity_create(texture_from_key("harry"), pos, size);
+	player = entity_create(texture_from_key("harry")->tex.sprite, pos, size);
+
+	entity_anim_swap(player, 4);
 
 	return player;
 }

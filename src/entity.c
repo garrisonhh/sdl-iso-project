@@ -6,14 +6,18 @@
 #include "world.h"
 #include "block_gen.h"
 #include "block_collision.h"
+#include "textures.h"
+#include "entity.h"
 #include "data_structures/array.h"
 #include "data_structures/list.h"
 #include "utils.h"
 
-entity_t *entity_create(texture_t *sprite, v3d pos, v3d size) {
+entity_t *entity_create(sprite_t *sprite, v3d pos, v3d size) {
 	entity_t *entity = malloc(sizeof(entity_t));
 
 	entity->sprite = sprite;
+	entity->anim_cell = (v2i){0, 0};
+
 	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
 	entity->size = size;
 	entity->center = v3d_scale(entity->size, 0.5);
@@ -227,4 +231,7 @@ void entity_tick(entity_t *entity, struct world_t *world, double time) {
 	entity_move_and_collide(entity, block_colls, time);
 
 	array_destroy(block_colls, true);
+
+	// sprite state
+	entity_sprite_tick(entity, time);
 }

@@ -5,10 +5,11 @@
 #include <stdint.h>
 #include "vector.h"
 #include "entity.h"
+#include "block.h"
 #include "data_structures/array.h"
 #include "data_structures/list.h"
 #include "data_structures/hashmap.h"
-#include "block.h"
+#include "pathing.h"
 
 #define CHUNK_SIZE 4096 // 0x000 -> 0xFFF
 #define GRAVITY (-20)
@@ -30,9 +31,9 @@ struct world_t {
 	list_t *ticks; // block_t *
 
 	array_t *entities;
-	struct entity_t *player;
+	entity_t *player;
 
-	struct path_network_t *path_net;
+	path_network_t *path_net;
 
 	// size = chunks along 1 dimension
 	// size_power = power of 2 for size

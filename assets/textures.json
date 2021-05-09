@@ -3,7 +3,9 @@
 		{
 			"name": "harry",
 			"path": "harry/harry",
-			"type": "sprite"
+			"type": "sprite",
+			"sprite-size": [13, 19],
+			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
 		},
 		{
 			"name": "void",

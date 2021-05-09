@@ -47,14 +47,21 @@ void render_sdl_texture(SDL_Texture *texture, v2i pos) {
 	SDL_RenderCopy(renderer, texture, NULL, &draw_rect);
 }
 
-void render_sprite(sprite_t *sprite, v2i pos) {
-	pos = v2i_add(pos, sprite->pos);
-	SDL_Rect draw_rect = {
-		pos.x, pos.y,
-		sprite->size.x, sprite->size.y
+void render_sprite(sprite_t *sprite, v2i pos, v2i cell) {
+	SDL_Rect src_rect = {
+		cell.x * sprite->size.x,
+		cell.y * sprite->size.y,
+		sprite->size.x,
+		sprite->size.y
+	};
+	SDL_Rect dst_rect = {
+		pos.x + sprite->pos.x,
+		pos.y + sprite->pos.y,
+		sprite->size.x,
+		sprite->size.y
 	};
 
-	SDL_RenderCopy(renderer, sprite->texture, NULL, &draw_rect);
+	SDL_RenderCopy(renderer, sprite->sheet, &src_rect, &dst_rect);
 }
 
 // these masks use only the last 3 bits, ZYX (to match indexing (v3i){x, y, z})
@@ -128,5 +135,5 @@ void render_sheet_texture(sheet_tex_t *sheet_tex, v2i pos, v2i cell) {
 		VOXEL_HEIGHT
 	};
 
-	SDL_RenderCopy(renderer, sheet_tex->texture, &cell_rect, &draw_rect);
+	SDL_RenderCopy(renderer, sheet_tex->sheet, &cell_rect, &draw_rect);
 }

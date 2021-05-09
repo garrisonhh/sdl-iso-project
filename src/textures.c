@@ -10,6 +10,8 @@
 #include "data_structures/hashmap.h"
 #include "data_structures/hash_functions.h"
 
+#define ANIMATION_FPS 12.0
+
 texture_t **TEXTURES = NULL;
 size_t NUM_TEXTURES;
 hashmap_t *TEXTURE_MAP;
@@ -38,12 +40,32 @@ SDL_Texture *load_sdl_texture(const char *path) {
 	return texture;
 }
 
-sprite_t *load_sprite(const char *path) {
+sprite_t *load_sprite(const char *path, json_object *obj) {
 	sprite_t *sprite = malloc(sizeof(sprite_t));
 
-	sprite->texture = load_sdl_texture(path);
-	SDL_QueryTexture(sprite->texture, NULL, NULL, &sprite->size.x, &sprite->size.y);
+	sprite->sheet = load_sdl_texture(path);
+
+	if (content_has_key(obj, "sprite-size"))
+		sprite->size = content_get_v2i(obj, "sprite-size");
+	else
+		SDL_QueryTexture(sprite->sheet, NULL, NULL, &sprite->size.x, &sprite->size.y);
+
 	sprite->pos = (v2i){-(sprite->size.x >> 1), -sprite->size.y};
+
+	if (content_has_key(obj, "anim-lengths")) {
+		array_t *anim_len_objs = content_get_array(obj, "anim-lengths");
+
+		sprite->num_anims = anim_len_objs->size;
+		sprite->anim_lengths = malloc(sizeof(int) * anim_len_objs->size);
+
+		for (size_t i = 0; i < anim_len_objs->size; ++i)
+			sprite->anim_lengths[i] = json_object_get_int(anim_len_objs->items[i]);
+	} else {
+		sprite->num_anims = 1;
+		sprite->anim_lengths = malloc(sizeof(int));
+
+		sprite->anim_lengths[0] = 1;
+	}
 
 	return sprite;
 }
@@ -99,12 +121,38 @@ connected_tex_t *load_connected_texture(const char *path) {
 }
 */
 
-sheet_tex_t *load_sheet_texture(const char *path) {
+sheet_tex_t *load_sheet_texture(const char *path, json_object *obj) {
 	sheet_tex_t *sheet_tex = malloc(sizeof(sheet_tex_t));
+	v2i image_size, cell_size;
 	
-	sheet_tex->texture = load_sdl_texture(path);
+	sheet_tex->sheet = load_sdl_texture(path);
+
+	if (content_has_key(obj, "cell-size"))
+		cell_size = content_get_v2i(obj, "cell-size");
+	else
+		cell_size = VOXEL_DRAW_SIZE;
+
+	SDL_QueryTexture(sheet_tex->sheet, NULL, NULL, &image_size.x, &image_size.y);
+
+	sheet_tex->sheet_size = v2i_div(image_size, cell_size);
 
 	return sheet_tex;
+}
+
+void entity_anim_swap(entity_t *entity, int anim) {
+	entity->anim_cell.y = anim;
+	entity->anim_state = 0.0;
+}
+
+void entity_sprite_tick(entity_t *entity, double time) {
+	if (entity->sprite->anim_lengths[entity->anim_cell.y] > 1) {
+		entity->anim_state += time * ANIMATION_FPS;
+
+		if (entity->anim_state > entity->sprite->anim_lengths[entity->anim_cell.y])
+			entity->anim_state -= (double)entity->sprite->anim_lengths[entity->anim_cell.y];
+
+		entity->anim_cell.x = (int)entity->anim_state;
+	}
 }
 
 void textures_load() {
@@ -171,13 +219,13 @@ void textures_load() {
 
 		sprintf(file_path, "assets/%s.png", rel_path);
 
-		// load texture file
+		// load texture
 		switch (*tex_type) {
 			case TEX_TEXTURE:
 				TEXTURES[i]->tex.texture = load_sdl_texture(file_path);
 				break;
 			case TEX_SPRITE:
-				TEXTURES[i]->tex.sprite = load_sprite(file_path);
+				TEXTURES[i]->tex.sprite = load_sprite(file_path, texture_obj);
 				break;
 			case TEX_VOXEL:
 				TEXTURES[i]->tex.voxel = load_voxel_texture(file_path);
@@ -187,7 +235,7 @@ void textures_load() {
 				exit(1);
 				break;
 			case TEX_SHEET:
-				TEXTURES[i]->tex.sheet = load_sheet_texture(file_path);
+				TEXTURES[i]->tex.sheet = load_sheet_texture(file_path, texture_obj);
 				break;
 		}
 
@@ -196,20 +244,6 @@ void textures_load() {
 			transparent = false;
 		else
 			transparent = content_get_bool(texture_obj, "transparent");
-
-		// sheet texture size
-		if (*tex_type == TEX_SHEET) {
-			v2i image_size, cell_size;
-
-			if (content_has_key(texture_obj, "cell size"))
-				cell_size = content_get_v2i(texture_obj, "cell size");
-			else
-				cell_size = VOXEL_DRAW_SIZE;
-
-			SDL_QueryTexture(TEXTURES[i]->tex.sheet->texture, NULL, NULL, &image_size.x, &image_size.y);
-
-			TEXTURES[i]->tex.sheet->size = v2i_div(image_size, cell_size);
-		}
 
 		// save to array and hashmap
 		TEXTURES[i]->type = *tex_type;
@@ -235,7 +269,8 @@ void textures_destroy() {
 				SDL_DestroyTexture(TEXTURES[i]->tex.texture);
 				break;
 			case TEX_SPRITE:
-				SDL_DestroyTexture(TEXTURES[i]->tex.sprite->texture);
+				SDL_DestroyTexture(TEXTURES[i]->tex.sprite->sheet);
+				free(TEXTURES[i]->tex.sprite->anim_lengths);
 				free(TEXTURES[i]->tex.sprite);
 				break;
 			case TEX_VOXEL:
@@ -252,7 +287,7 @@ void textures_destroy() {
 				free(TEXTURES[i]->tex.connected);
 				break;
 			case TEX_SHEET:
-				SDL_DestroyTexture(TEXTURES[i]->tex.sheet->texture);
+				SDL_DestroyTexture(TEXTURES[i]->tex.sheet->sheet);
 				free(TEXTURES[i]->tex.sheet);
 				break;
 		}
