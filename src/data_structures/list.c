@@ -122,10 +122,14 @@ void *list_remove(list_t *list, void *item) {
 	if (trav != NULL) {
 		void *item;
 
-		if (trav == list->root)
+		if (trav == list->root) {
 			list->root = trav->next;
-		else
+		} else if (trav == list->tip) {
+			list->tip = last;
+			last->next = NULL;
+		} else {
 			last->next = trav->next;
+		}
 
 		item = trav->item;
 		free(trav);

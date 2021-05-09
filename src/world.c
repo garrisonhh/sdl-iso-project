@@ -185,18 +185,19 @@ void world_set_no_update(world_t *world, v3i loc, size_t block_id) {
 		world->chunks[chunk_index] = chunk;
 	}
 
-	if (chunk->blocks[block_index] != NULL)
-		free(chunk->blocks[block_index]);
-	else
-		chunk->num_blocks++;
+	if (chunk->blocks[block_index] != NULL) {
+		list_remove(world->ticks, chunk->blocks[block_index]);
+		block_destroy(chunk->blocks[block_index]);
+	} else {
+		++chunk->num_blocks;
+	}
 
 	block_t *block = block_create(block_id);
 
 	chunk->blocks[block_index] = block;
 
-	// TODO this conservatively checks tickability
+	// TODO scalable solution; this checks tickability
 	if (block->type == BLOCK_PLANT) {
-		//printf("id: %lu\n", block_id);
 		list_append(world->ticks, block);
 	}
 }
@@ -341,9 +342,8 @@ void generate_tree(world_t *world, v3i loc) {
 	max_v = 3 + rand() % 2;
 
 	for (i = 0; i < max_v + 5; i++) {
-		if (i < max_v) {
-			world_set(world, loc, log);
-		}
+		if (i < max_v)
+			world_set_no_update(world, loc, log);
 
 		radius = 2.5;
 		radius = i > max_v ? MIN((5 + max_v) - i, radius) : radius;
@@ -356,7 +356,7 @@ void generate_tree(world_t *world, v3i loc) {
 					
 					if (sqrt(pow((double)(x - loc.x), 2.0) + pow((double)(y - loc.y), 2.0)) <= radius) {
 						leaf_loc = (v3i){x, y, loc.z};
-						world_set(world, leaf_loc, leaves);
+						world_set_no_update(world, leaf_loc, leaves);
 					}
 				}
 			}
