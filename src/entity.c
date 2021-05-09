@@ -223,23 +223,35 @@ void entity_anim_set(entity_t *entity, int anim) {
 // apply human animations
 void entity_apply_human(entity_t *entity) {
 	int anim;
+	double dir;
+	v3i facing;
 
-	if (d_close(entity->ray.dir.z, 0.0)
-	 && !d_close(v3d_magnitude(entity->ray.dir), 0.0)) { // walking
-		if (entity->facing.y < 0) // backwards
+	for (int i = 0; i < 3; ++i) {
+		dir = v3d_get(&entity->facing, i);
+
+		if (d_close(dir, 0.0))
+			v3i_set(&facing, i, 0);
+		else if (dir > 0.0)
+			v3i_set(&facing, i, 1);
+		else
+			v3i_set(&facing, i, -1);
+	}
+
+	if (facing.z == 0 && !d_close(v3d_magnitude(entity->ray.dir), 0.0)) { // walking
+		if (facing.y < 0) // backwards
 			anim = 5;
-		else if (entity->facing.x < 0) // left
+		else if (facing.x < 0) // left
 			anim = 7;
-		else if (entity->facing.x > 0) // right
+		else if (facing.x > 0) // right
 			anim = 6;
 		else // forwards
 			anim = 4;
 	} else { // still
-		if (entity->facing.y < 0) // backwards
+		if (facing.y < 0) // backwards
 			anim = 1;
-		else if (entity->facing.x < 0) // left
+		else if (facing.x < 0) // left
 			anim = 3;
-		else if (entity->facing.x > 0) // right
+		else if (facing.x > 0) // right
 			anim = 2;
 		else // forwards
 			anim = 0;
