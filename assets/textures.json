@@ -4,6 +4,7 @@
 			"name": "harry",
 			"path": "harry/harry",
 			"type": "sprite",
+			"sprite-type": "human",
 			"sprite-size": [13, 19],
 			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
 		},

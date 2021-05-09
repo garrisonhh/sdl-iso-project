@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 		for (i = 0; i < 32; ++i)
 			tick_avg += ticks[i];
 
-		printf("FPS: %lf\n", 1.0 / (tick_avg / 32));
+		//printf("FPS: %lf\n", 1.0 / (tick_avg / 32));
 
 		// gfx
 		render_world(world);

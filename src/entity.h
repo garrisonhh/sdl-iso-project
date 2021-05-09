@@ -13,6 +13,7 @@ struct entity_t {
 	sprite_t *sprite;
 	v2i anim_cell;
 	double anim_state;
+	v3d facing;
 
 	// collision
 	ray_t ray;

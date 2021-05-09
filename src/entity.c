@@ -17,6 +17,7 @@ entity_t *entity_create(sprite_t *sprite, v3d pos, v3d size) {
 
 	entity->sprite = sprite;
 	entity->anim_cell = (v2i){0, 0};
+	entity->facing = (v3d){0.0, 1.0, 0.0};
 
 	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
 	entity->size = size;
@@ -85,7 +86,7 @@ ray_t entity_collide_bbox(entity_t *entity, ray_t movement, bbox_t block_bbox) {
 	if (collision_axis >= 0) {
 		v3d_set(&entity->ray.dir, collision_axis, 0);
 
-		if (collision_axis == 2 && (movement.dir.z <= 0 || d_close(movement.dir.z, 0)) )
+		if (collision_axis == 2 && (movement.dir.z <= 0.0 || d_close(movement.dir.z, 0)))
 			entity->on_ground = true;
 
 		movement.dir = resolved_dir;
@@ -213,20 +214,39 @@ void entity_follow_path(entity_t *entity, double time) {
 	}
 }
 
-void entity_anim_swap(entity_t *entity, int anim) {
+void entity_anim_set(entity_t *entity, int anim) {
 	entity->anim_cell.y = anim;
+	entity->anim_cell.x = 0;
 	entity->anim_state = 0.0;
 }
 
-void entity_sprite_tick(entity_t *entity, double time) {
-	if (entity->sprite->anim_lengths[entity->anim_cell.y] > 1) {
-		entity->anim_state += time * ANIMATION_FPS;
+// apply human animations
+void entity_apply_human(entity_t *entity) {
+	int anim;
 
-		if (entity->anim_state > entity->sprite->anim_lengths[entity->anim_cell.y])
-			entity->anim_state -= (double)entity->sprite->anim_lengths[entity->anim_cell.y];
-
-		entity->anim_cell.x = (int)entity->anim_state;
+	if (d_close(entity->ray.dir.z, 0.0)
+	 && !d_close(v3d_magnitude(entity->ray.dir), 0.0)) { // walking
+		if (entity->facing.y < 0) // backwards
+			anim = 5;
+		else if (entity->facing.x < 0) // left
+			anim = 7;
+		else if (entity->facing.x > 0) // right
+			anim = 6;
+		else // forwards
+			anim = 4;
+	} else { // still
+		if (entity->facing.y < 0) // backwards
+			anim = 1;
+		else if (entity->facing.x < 0) // left
+			anim = 3;
+		else if (entity->facing.x > 0) // right
+			anim = 2;
+		else // forwards
+			anim = 0;
 	}
+
+	if (entity->anim_cell.y != anim)
+		entity_anim_set(entity, anim);
 }
 
 void entity_tick(entity_t *entity, struct world_t *world, double time) {
@@ -245,9 +265,30 @@ void entity_tick(entity_t *entity, struct world_t *world, double time) {
 
 	block_colls = entity_surrounding_block_colls(entity, world);
 	entity_move_and_collide(entity, block_colls, time);
-
 	array_destroy(block_colls, true);
 
 	// sprite state
-	entity_sprite_tick(entity, time);
+	if (!d_close(fabs(entity->ray.dir.x) + fabs(entity->ray.dir.y), 0)) {
+		entity->facing.x = entity->ray.dir.x - entity->ray.dir.y;
+		entity->facing.y = entity->ray.dir.x + entity->ray.dir.y;
+	}
+
+	entity->facing.z = entity->ray.dir.z;
+
+	switch (entity->sprite->type) {
+		case SPRITE_STATIC:
+			break;
+		case SPRITE_HUMAN:
+			entity_apply_human(entity);
+			break;
+	}
+
+	if (entity->sprite->anim_lengths[entity->anim_cell.y] > 1) {
+		entity->anim_state += time * ANIMATION_FPS;
+
+		if (entity->anim_state > entity->sprite->anim_lengths[entity->anim_cell.y])
+			entity->anim_state -= (double)entity->sprite->anim_lengths[entity->anim_cell.y];
+
+		entity->anim_cell.x = (int)entity->anim_state;
+	}
 }

@@ -8,21 +8,28 @@
 
 #define ANIMATION_FPS 12.0
 
-// numbers are used for json loading, if you change them make sure to
-// check the textures_load function
+// also modify textures_load when modifying this enum
 enum texture_type_e {
 	TEX_TEXTURE = 0,
-
 	TEX_SPRITE = 1,
-
 	TEX_VOXEL = 2,
 	TEX_CONNECTED = 3,
 	TEX_SHEET = 4,
 };
 typedef enum texture_type_e texture_type_e;   
 
+// also modify textures_load when modifying this enum
+// sprite types define the mapping of animation sheets; how they are ticked
+enum sprite_type_e {
+	SPRITE_STATIC = 0,
+	SPRITE_HUMAN = 1,
+};
+typedef enum sprite_type_e sprite_type_e;
+
 // texture types
 struct sprite_t {
+	sprite_type_e type;
+
 	// each row is an animation
 	SDL_Texture *sheet;
 	v2i pos, size;

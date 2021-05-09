@@ -38,10 +38,18 @@ SDL_Texture *load_sdl_texture(const char *path) {
 	return texture;
 }
 
-sprite_t *load_sprite(const char *path, json_object *obj) {
+sprite_t *load_sprite(const char *path, json_object *obj, hashmap_t *sprite_type_map) {
 	sprite_t *sprite = malloc(sizeof(sprite_t));
+	const char *sprite_type_name;
 
 	sprite->sheet = load_sdl_texture(path);
+
+	if (content_has_key(obj, "sprite-type")) {
+		sprite_type_name = content_get_string(obj, "sprite-type");
+		sprite->type = *(sprite_type_e *)hashmap_get(sprite_type_map, (char *)sprite_type_name, strlen(sprite_type_name));
+	} else {
+		sprite->type = SPRITE_STATIC;
+	}
 
 	if (content_has_key(obj, "sprite-size"))
 		sprite->size = content_get_v2i(obj, "sprite-size");
@@ -59,9 +67,8 @@ sprite_t *load_sprite(const char *path, json_object *obj) {
 		for (size_t i = 0; i < anim_len_objs->size; ++i)
 			sprite->anim_lengths[i] = json_object_get_int(anim_len_objs->items[i]);
 	} else {
-		sprite->num_anims = 1;
 		sprite->anim_lengths = malloc(sizeof(int));
-
+		sprite->num_anims = 1;
 		sprite->anim_lengths[0] = 1;
 	}
 
@@ -140,7 +147,7 @@ sheet_tex_t *load_sheet_texture(const char *path, json_object *obj) {
 void textures_load() {
 	int i;
 
-	// create tex_type map
+	// tex_type map
 	const int num_tex_types = 5;
 	char *tex_type_strings[] = {
 		"texture",
@@ -156,6 +163,21 @@ void textures_load() {
 		tex_type = malloc(sizeof(texture_type_e));
 		*tex_type = (texture_type_e)i;
 		hashmap_set(tex_type_map, tex_type_strings[i], strlen(tex_type_strings[i]), tex_type);
+	}
+
+	// sprite_type map
+	const int num_sprite_types = 2;
+	char *sprite_type_strings[] = {
+		"static",
+		"human",
+	};
+	sprite_type_e *sprite_type;
+	hashmap_t *sprite_type_map = hashmap_create(num_sprite_types * 2, false, hash_string);
+
+	for (i = 0; i < num_sprite_types; ++i) {
+		sprite_type = malloc(sizeof(sprite_type_e));
+		*sprite_type = (sprite_type_e)i;
+		hashmap_set(sprite_type_map, sprite_type_strings[i], strlen(sprite_type_strings[i]), sprite_type);
 	}
 
 	// json texture list
@@ -207,7 +229,7 @@ void textures_load() {
 				TEXTURES[i]->tex.texture = load_sdl_texture(file_path);
 				break;
 			case TEX_SPRITE:
-				TEXTURES[i]->tex.sprite = load_sprite(file_path, texture_obj);
+				TEXTURES[i]->tex.sprite = load_sprite(file_path, texture_obj, sprite_type_map);
 				break;
 			case TEX_VOXEL:
 				TEXTURES[i]->tex.voxel = load_voxel_texture(file_path);
@@ -239,6 +261,7 @@ void textures_load() {
 	// clean up and exit
 	array_destroy(texture_objects, false);
 	hashmap_destroy(tex_type_map, true);
+	hashmap_destroy(sprite_type_map, true);
 	content_close_file(file_obj);
 
 	VOID_VOXEL_TEXTURE = texture_from_key("void")->tex.voxel;
