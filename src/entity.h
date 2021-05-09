@@ -1,19 +1,22 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include <stdlib.h>
 #include <stdbool.h>
 #include "collision.h"
 #include "textures.h"
+#include "animation.h"
 #include "data_structures/list.h"
 
 typedef struct world_t world_t;
 
 struct entity_t {
-	// sprite
-	sprite_t *sprite;
-	v2i anim_cell;
-	double anim_state;
-	v3d facing;
+	// sprites
+	sprite_t **sprites;
+	animation_t *anim_states;
+	size_t num_sprites;
+	v3d last_dir;
+	v3i facing;
 
 	// collision
 	ray_t ray;
@@ -25,7 +28,7 @@ struct entity_t {
 };
 typedef struct entity_t entity_t;
 
-entity_t *entity_create(sprite_t *, v3d pos, v3d size);
+entity_t *entity_create(sprite_t **sprites, size_t num_sprites, v3d pos, v3d size);
 void entity_destroy(entity_t *);
 
 // entity bucket sorting

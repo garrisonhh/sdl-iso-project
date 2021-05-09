@@ -7,17 +7,24 @@
 #include "block_gen.h"
 #include "block_collision.h"
 #include "textures.h"
-#include "entity.h"
+#include "animation.h"
 #include "data_structures/array.h"
 #include "data_structures/list.h"
 #include "utils.h"
 
-entity_t *entity_create(sprite_t *sprite, v3d pos, v3d size) {
+entity_t *entity_create(sprite_t **sprites, size_t num_sprites, v3d pos, v3d size) {
 	entity_t *entity = malloc(sizeof(entity_t));
 
-	entity->sprite = sprite;
-	entity->anim_cell = (v2i){0, 0};
-	entity->facing = (v3d){0.0, 1.0, 0.0};
+	entity->sprites = sprites;
+	entity->num_sprites = num_sprites;
+	entity->anim_states = malloc(sizeof(animation_t) * num_sprites);
+
+	for (size_t i = 0; i < entity->num_sprites; ++i) {
+		entity->anim_states[i].cell = (v2i){0, 0};
+		entity->anim_states[i].state = 0.0;
+	}
+
+	entity->facing = (v3i){0, 1, 0};
 
 	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
 	entity->size = size;
@@ -30,6 +37,9 @@ entity_t *entity_create(sprite_t *sprite, v3d pos, v3d size) {
 }
 
 void entity_destroy(entity_t *entity) {
+	free(entity->sprites);
+	free(entity->anim_states);
+
 	list_destroy(entity->path, true);
 
 	free(entity);
@@ -222,57 +232,61 @@ int entity_bucket_compare(const void *a, const void *b) {
 	return (((entity_y(*(entity_t **)a) - entity_y(*(entity_t **)b)) >= 0) ? 1 : -1);
 }
 
-void entity_anim_set(entity_t *entity, int anim) {
-	entity->anim_cell.y = anim;
-	entity->anim_cell.x = 0;
-	entity->anim_state = 0.0;
-}
-
-// apply human animations
-void entity_apply_human(entity_t *entity) {
-	int anim;
+void entity_tick(entity_t *entity, world_t *world, double time) {
+	int i;
 	double dir;
-	v3i facing;
-
-	for (int i = 0; i < 3; ++i) {
-		dir = v3d_get(&entity->facing, i);
-
-		if (d_close(dir, 0.0))
-			v3i_set(&facing, i, 0);
-		else if (dir > 0.0)
-			v3i_set(&facing, i, 1);
-		else
-			v3i_set(&facing, i, -1);
-	}
-
-	if (facing.z == 0 && !d_close(v3d_magnitude(entity->ray.dir), 0.0)) { // walking
-		if (facing.y < 0) // backwards
-			anim = 5;
-		else if (facing.x < 0) // left
-			anim = 7;
-		else if (facing.x > 0) // right
-			anim = 6;
-		else // forwards
-			anim = 4;
-	} else { // still
-		if (facing.y < 0) // backwards
-			anim = 1;
-		else if (facing.x < 0) // left
-			anim = 3;
-		else if (facing.x > 0) // right
-			anim = 2;
-		else // forwards
-			anim = 0;
-	}
-
-	if (entity->anim_cell.y != anim)
-		entity_anim_set(entity, anim);
-}
-
-void entity_tick(entity_t *entity, struct world_t *world, double time) {
 	array_t *block_colls;
+	sprite_t *sprite;
+	animation_t *anim_state;
 
 	time = MIN(time, 0.1); // super slow physics ticks means broken physics
+
+	// sprite state
+	// sprite 2d direction
+	if (!d_close(fabs(entity->ray.dir.x) + fabs(entity->ray.dir.y), 0)) {
+		entity->last_dir.x = entity->ray.dir.x - entity->ray.dir.y;
+		entity->last_dir.y = entity->ray.dir.x + entity->ray.dir.y;
+	}
+
+	entity->last_dir.z = entity->ray.dir.z;
+
+	for (i = 0; i < 3; ++i) {
+		dir = v3d_get(&entity->last_dir, i);
+
+		if (d_close(dir, 0.0))
+			v3i_set(&entity->facing, i, 0);
+		else if (dir > 0.0)
+			v3i_set(&entity->facing, i, 1);
+		else
+			v3i_set(&entity->facing, i, -1);
+	}
+
+	// animation state
+	for (i = 0; i < entity->num_sprites; ++i) {
+		sprite = entity->sprites[i];
+		anim_state = &entity->anim_states[i];
+
+		switch (sprite->type) {
+			case SPRITE_STATIC:
+				break;
+			case SPRITE_HUMAN_BODY:
+				anim_human_body(entity, anim_state);
+				break;
+			case SPRITE_HUMAN_BACK_HANDS:
+			case SPRITE_HUMAN_FRONT_HANDS:
+				anim_human_hands(entity, anim_state);
+				break;
+		}
+
+		if (sprite->anim_lengths[anim_state->cell.y] > 1) {
+			anim_state->state += time * ANIMATION_FPS;
+
+			if (anim_state->state > sprite->anim_lengths[anim_state->cell.y])
+				anim_state->state -= (double)sprite->anim_lengths[anim_state->cell.y];
+
+			anim_state->cell.x = (int)anim_state->state;
+		}
+	}
 
 	// think (modify state)
 	entity_follow_path(entity, time);
@@ -286,29 +300,4 @@ void entity_tick(entity_t *entity, struct world_t *world, double time) {
 	block_colls = entity_surrounding_block_colls(entity, world);
 	entity_move_and_collide(entity, block_colls, time);
 	array_destroy(block_colls, true);
-
-	// sprite state
-	if (!d_close(fabs(entity->ray.dir.x) + fabs(entity->ray.dir.y), 0)) {
-		entity->facing.x = entity->ray.dir.x - entity->ray.dir.y;
-		entity->facing.y = entity->ray.dir.x + entity->ray.dir.y;
-	}
-
-	entity->facing.z = entity->ray.dir.z;
-
-	switch (entity->sprite->type) {
-		case SPRITE_STATIC:
-			break;
-		case SPRITE_HUMAN:
-			entity_apply_human(entity);
-			break;
-	}
-
-	if (entity->sprite->anim_lengths[entity->anim_cell.y] > 1) {
-		entity->anim_state += time * ANIMATION_FPS;
-
-		if (entity->anim_state > entity->sprite->anim_lengths[entity->anim_cell.y])
-			entity->anim_state -= (double)entity->sprite->anim_lengths[entity->anim_cell.y];
-
-		entity->anim_cell.x = (int)entity->anim_state;
-	}
 }

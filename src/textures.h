@@ -22,11 +22,14 @@ typedef enum texture_type_e texture_type_e;
 // sprite types define the mapping of animation sheets; how they are ticked
 enum sprite_type_e {
 	SPRITE_STATIC = 0,
-	SPRITE_HUMAN = 1,
+	SPRITE_HUMAN_BODY = 1,
+	SPRITE_HUMAN_BACK_HANDS = 2,
+	SPRITE_HUMAN_FRONT_HANDS = 3,
 };
 typedef enum sprite_type_e sprite_type_e;
 
 // texture types
+// sprites require an animation_t for state as well, see animation.*
 struct sprite_t {
 	sprite_type_e type;
 
@@ -85,7 +88,8 @@ extern voxel_tex_t *VOID_VOXEL_TEXTURE;
 void textures_load(void);
 void textures_destroy(void);
 
-texture_t *texture_from_key(char *);
+texture_t *texture_from_key(const char *);
+sprite_t *sprite_from_key(const char *);
 texture_state_t texture_state_from_type(texture_type_e tex_type);
 
 #endif

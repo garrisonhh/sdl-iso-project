@@ -40,13 +40,22 @@ SDL_Texture *load_sdl_texture(const char *path) {
 
 sprite_t *load_sprite(const char *path, json_object *obj, hashmap_t *sprite_type_map) {
 	sprite_t *sprite = malloc(sizeof(sprite_t));
-	const char *sprite_type_name;
 
 	sprite->sheet = load_sdl_texture(path);
 
 	if (content_has_key(obj, "sprite-type")) {
+		const char *sprite_type_name;
+		sprite_type_e *sprite_type;
+
 		sprite_type_name = content_get_string(obj, "sprite-type");
-		sprite->type = *(sprite_type_e *)hashmap_get(sprite_type_map, (char *)sprite_type_name, strlen(sprite_type_name));
+		sprite_type = hashmap_get(sprite_type_map, (char *)sprite_type_name, strlen(sprite_type_name));
+
+		if (sprite_type == NULL) {
+			printf("\"%s\" is not a valid sprite type.\n", sprite_type_name);
+			exit(1);
+		}
+
+		sprite->type = *sprite_type;
 	} else {
 		sprite->type = SPRITE_STATIC;
 	}
@@ -166,10 +175,12 @@ void textures_load() {
 	}
 
 	// sprite_type map
-	const int num_sprite_types = 2;
+	const int num_sprite_types = 4;
 	char *sprite_type_strings[] = {
 		"static",
-		"human",
+		"human-body",
+		"human-back-hands",
+		"human-front-hands",
 	};
 	sprite_type_e *sprite_type;
 	hashmap_t *sprite_type_map = hashmap_create(num_sprite_types * 2, false, hash_string);
@@ -308,8 +319,8 @@ void textures_destroy() {
 	TEXTURE_MAP = NULL;
 }
 
-texture_t *texture_from_key(char *key) {
-	size_t *value = hashmap_get(TEXTURE_MAP, key, strlen(key));
+texture_t *texture_from_key(const char *key) {
+	size_t *value = hashmap_get(TEXTURE_MAP, (char *)key, strlen(key));
 
 	if (value == NULL) {
 		printf("key not found in TEXTURE_MAP: %s\n", key);
@@ -317,6 +328,10 @@ texture_t *texture_from_key(char *key) {
 	}
 	
 	return TEXTURES[*value];
+}
+
+sprite_t *sprite_from_key(const char *key) {
+	return texture_from_key(key)->tex.sprite;
 }
 
 texture_state_t texture_state_from_type(texture_type_e tex_type) {

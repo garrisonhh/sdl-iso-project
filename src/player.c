@@ -9,7 +9,15 @@ entity_t *player_create() {
 
 	pos = (v3d){5.0, 5.0, 15.0};
 	size = (v3d){0.8, 0.8, 1.0};
-	player = entity_create(texture_from_key("harry")->tex.sprite, pos, size);
+
+	size_t num_sprites = 3;
+	sprite_t **sprites = malloc(sizeof(sprite_t *) * num_sprites);
+
+	sprites[0] = sprite_from_key("harry_back");
+	sprites[1] = sprite_from_key("harry_body");
+	sprites[2] = sprite_from_key("harry_front");
+
+	player = entity_create(sprites, num_sprites, pos, size);
 
 	return player;
 }
