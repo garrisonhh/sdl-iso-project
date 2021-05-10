@@ -121,7 +121,7 @@ void render_generate_shadows(world_t *world, array_t *(*shadows)[world->block_si
 		if (shadow_loc.z >= 0 && shadow_loc.z < world->block_size) {
 			shadow = malloc(sizeof(circle_t));
 			shadow->loc = project_v3d(shadow_pos, true);
-			shadow->radius = (int)((entity->size.x * VOXEL_WIDTH) / 2.0);
+			shadow->radius = entity->sprites[0]->size.x >> 1;
 
 			if ((*shadows)[shadow_loc.z] == NULL)
 				(*shadows)[shadow_loc.z] = array_create(2);

@@ -71,7 +71,7 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, unsigned expose_m
 	voxel_tex_t *cur_texture;
 
 	for (int i = 0; i < 3; ++i) {
-		if ((expose_mask >> i) & 1 || (void_mask >> i) & 1) {//(expose_mask | void_mask >> i) & 1) {
+		if ((expose_mask >> i) & 1 || (void_mask >> i) & 1) {
 			draw_rect = VOXEL_TEX_RECTS[i];
 			draw_rect.x += pos.x;
 			draw_rect.y += pos.y;
@@ -80,10 +80,12 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, unsigned expose_m
 
 			switch (i) {
 				case 0:
+					SDL_SetTextureColorMod(cur_texture->side, 0xCF, 0xCF, 0xDF);
 					SDL_RenderCopyEx(renderer, cur_texture->side, NULL, &draw_rect,
 							         0, NULL, SDL_FLIP_HORIZONTAL);
 					break;
 				case 1:
+					SDL_SetTextureColorMod(cur_texture->side, 0xDF, 0xDF, 0xEF);
 					SDL_RenderCopy(renderer, cur_texture->side, NULL, &draw_rect);
 					break;
 				case 2:
