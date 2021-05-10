@@ -10,7 +10,7 @@ const int GUI_WIDTH = SCREEN_WIDTH >> 2;
 const int GUI_HEIGHT = SCREEN_HEIGHT >> 2;
 SDL_Texture *STATIC_GUI;
 
-bool UPDATED_FLAG = true; // gui_render will only re-draw static gui elements if this is true
+bool UPDATE_STATIC = true; // gui_render will only re-draw static gui elements if this is true
 bool DEBUG = false;
 
 sprite_t *COMPASS;
@@ -37,10 +37,15 @@ void gui_load() {
 
 void gui_update(double fps) {
 	sprintf(FPS_COUNTER, "FPS: %3.1lf", fps);
+
+	if (COMPASS_CELL.x != camera.rotation) {
+		COMPASS_CELL.x = camera.rotation;
+		UPDATE_STATIC = true;
+	}
 }
 
 void gui_render() {
-	if (UPDATED_FLAG) {
+	if (UPDATE_STATIC) {
 		SDL_SetRenderTarget(renderer, STATIC_GUI);
 
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
@@ -49,14 +54,14 @@ void gui_render() {
 		render_sprite_no_offset(COMPASS, COMPASS_POS, COMPASS_CELL); 
 		
 		SDL_SetRenderTarget(renderer, NULL);
-		UPDATED_FLAG = false;
+		UPDATE_STATIC = false;
 	}
+
+	SDL_RenderCopy(renderer, STATIC_GUI, NULL, NULL);
 
 	if (DEBUG) {
 		fonts_render_text(FONT_UI, FPS_COUNTER, FPS_COUNTER_POS);
 	}
-
-	SDL_RenderCopy(renderer, STATIC_GUI, NULL, NULL);
 }
 
 void gui_toggle_debug() {

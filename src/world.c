@@ -369,19 +369,15 @@ void generate_tree(world_t *world, v3i loc) {
 void world_generate(world_t *world) {
 	timeit_start();
 
-	if (0) { // debug world
-		size_t ramp = block_gen_get_id("ramp");
-		v3i loc;
+	if (1) { // debug world
+		size_t grass = block_gen_get_id("grass");
+		v3i loc = (v3i){0, 0, 0};
 
-		loc = (v3i){0, 0, 0};
-
-		for (loc.x = 3; loc.x >= 0; --loc.x) {
-			for (loc.y = 3; loc.y >= 0; --loc.y) {
-				loc.z = 3 - loc.y;
-				world_set_no_update(world, loc, ramp);
+		for (loc.x = 0; loc.x < world->block_size; ++loc.x) {
+			for (loc.y = 0; loc.y < world->block_size; ++loc.y) {
+				world_set_no_update(world, loc, grass);
 			}
 		}
-
 	} else {
 		int noise_val;
 		v2d noise_pos;

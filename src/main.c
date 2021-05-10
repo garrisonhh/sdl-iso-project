@@ -67,8 +67,10 @@ int main(int argc, char *argv[]) {
 	init();
 
 	// world
-	world_t *world = world_create(3);
+	world_t *world = world_create(1);
 	world_generate(world);
+
+	camera_set_block_size(world->block_size);
 
 	// time
 	double last_tick = timeit_get_time(), this_tick = 0;
@@ -103,13 +105,20 @@ int main(int argc, char *argv[]) {
 						case SDLK_ESCAPE:
 							quit = true;
 							break;
-						case SDLK_SPACE:
-							jump = true;
-							break;
 						case SDLK_BACKQUOTE:
 							gui_toggle_debug();
 							break;
+						case SDLK_SPACE:
+							jump = true;
+							break;
+						case SDLK_e:
+							camera_rotate(true);
+							break;
+						case SDLK_q:
+							camera_rotate(false);
+							break;
 					}
+
 					break;
 				case SDL_KEYUP:
 					switch (event.key.keysym.sym) {
@@ -117,6 +126,7 @@ int main(int argc, char *argv[]) {
 							jump = false;
 							break;
 					}
+
 					break;
 				case SDL_MOUSEWHEEL:
 					camera_change_scale(event.wheel.y > 0);
@@ -154,7 +164,7 @@ int main(int argc, char *argv[]) {
 		this_tick = timeit_get_time();
 
 		world_tick(world, this_tick - last_tick);
-		camera_update(world);
+		camera_set_center(world->player->ray.pos);
 
 		ticks[tick_idx++] = this_tick - last_tick;
 		tick_idx %= 32;
