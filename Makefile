@@ -1,6 +1,6 @@
 OBJS = src/*.c src/*/*.c
-COMPILER_FLAGS_DEBUG = -Wall -g
-COMPILER_FLAGS_BUILD = -O3
+COMPILER_FLAGS_DEBUG = -Wall -g -ffast-math
+COMPILER_FLAGS_BUILD = -O3 -ffast-math
 LINKER_FLAGS = -lm -lSDL2 -lSDL2_image -ljson-c
 TARGET = iso
 
