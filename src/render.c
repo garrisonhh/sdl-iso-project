@@ -161,6 +161,7 @@ unsigned render_find_void_mask(v3i loc, v3i max_block, int player_z, unsigned bl
 	return void_mask;
 }
 
+/*
 void render_block_outline(v3i loc, unsigned outline_mask, unsigned expose_mask) {
 	int i, j;
 	v2i block_pos;
@@ -198,35 +199,44 @@ void render_block_outline(v3i loc, unsigned outline_mask, unsigned expose_mask) 
 		}
 	}
 }
+*/
+
+const SDL_Rect VOXEL_SCREEN_BOUNDS = {
+	-(VOXEL_WIDTH >> 1),
+	-(VOXEL_HEIGHT >> 1),
+	SCREEN_WIDTH + VOXEL_WIDTH,
+	SCREEN_HEIGHT + VOXEL_HEIGHT
+};
 
 void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 	texture_type_e tex_type = block->texture->type;
 
 	if (tex_type == TEX_VOXEL) {
 		if (block->expose_mask || void_mask) {
-			unsigned outline_mask;
+			//unsigned outline_mask;
 
-			render_voxel_texture(block->texture->tex.voxel,
-								 project_v3i(loc, true),
+			render_voxel_texture(block->texture->tex.voxel, project_v3i(loc, true),
 								 block->expose_mask, void_mask);
 
+			/*
 			if ((outline_mask = block->tex_state.outline_mask))
 				render_block_outline(loc, outline_mask, block->expose_mask & ~void_mask);
+			*/
 		}
 	} else if (block->expose_mask) {
+		v2i screen_pos = project_v3i(loc, true);
+
 		// the amount of times I had to type "tex" or "texture" here is hilarious lol
 		switch (tex_type) {
 			case TEX_TEXTURE:
-				render_sdl_texture(block->texture->tex.texture, project_v3i(loc, true));
+				render_sdl_texture(block->texture->tex.texture, screen_pos);
 				break;
 			case TEX_CONNECTED:
-				render_connected_texture(block->texture->tex.connected,
-										 project_v3i(loc, true),
+				render_connected_texture(block->texture->tex.connected, screen_pos,
 										 block->tex_state.connected_mask);
 				break;
 			case TEX_SHEET:
-				render_sheet_texture(block->texture->tex.sheet,
-									 project_v3i(loc, true),
+				render_sheet_texture(block->texture->tex.sheet, screen_pos,
 									 block->tex_state.cell);
 				break;
 			default:
