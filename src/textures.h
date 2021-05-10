@@ -88,6 +88,8 @@ extern voxel_tex_t *VOID_VOXEL_TEXTURE;
 void textures_load(void);
 void textures_destroy(void);
 
+SDL_Texture *load_sdl_texture(const char *path);
+
 texture_t *texture_from_key(const char *);
 sprite_t *sprite_from_key(const char *);
 texture_state_t texture_state_from_type(texture_type_e tex_type);

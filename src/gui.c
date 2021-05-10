@@ -3,6 +3,7 @@
 #include "render.h"
 #include "textures.h"
 #include "render_textures.h"
+#include "fonts.h"
 #include "camera.h"
 
 const int GUI_WIDTH = SCREEN_WIDTH >> 2;
@@ -10,9 +11,13 @@ const int GUI_HEIGHT = SCREEN_HEIGHT >> 2;
 SDL_Texture *STATIC_GUI;
 
 bool UPDATED_FLAG = true; // gui_render will only re-draw static gui elements if this is true
+bool DEBUG = false;
 
 sprite_t *COMPASS;
 v2i COMPASS_POS, COMPASS_CELL;
+
+char FPS_COUNTER[12];
+v2i FPS_COUNTER_POS = {0, 0};
 
 // call after render_init
 void gui_init() {
@@ -31,7 +36,7 @@ void gui_load() {
 }
 
 void gui_update(double fps) {
-	// TODO
+	sprintf(FPS_COUNTER, "FPS: %3.1lf", fps);
 }
 
 void gui_render() {
@@ -47,5 +52,13 @@ void gui_render() {
 		UPDATED_FLAG = false;
 	}
 
+	if (DEBUG) {
+		fonts_render_text(FONT_UI, FPS_COUNTER, FPS_COUNTER_POS);
+	}
+
 	SDL_RenderCopy(renderer, STATIC_GUI, NULL, NULL);
+}
+
+void gui_toggle_debug() {
+	DEBUG = !DEBUG;
 }

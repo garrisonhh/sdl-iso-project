@@ -91,8 +91,8 @@ voxel_tex_t* load_voxel_texture(const char *path) {
 
 	len_path = strlen(path) - 4;
 
-	strncpy(top_path, path, len_path);
-	strncpy(side_path, path, len_path);
+	strncpy(top_path, path, 99);
+	strncpy(side_path, path, 99);
 	top_path[len_path] = 0;
 	side_path[len_path] = 0;
 	strcat(top_path, "_top.png");

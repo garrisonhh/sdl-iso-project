@@ -7,4 +7,6 @@ void gui_load(void);
 void gui_update(double fps);
 void gui_render(void);
 
+void gui_toggle_debug();
+
 #endif

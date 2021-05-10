@@ -97,7 +97,7 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, unsigned expose_m
 
 			switch (i) {
 				case 0:
-					SDL_SetTextureColorMod(cur_texture->side, 0xCF, 0xCF, 0xDF);
+					SDL_SetTextureColorMod(cur_texture->side, 0xBF, 0xBF, 0xDF);
 					SDL_RenderCopyEx(renderer, cur_texture->side, NULL, &draw_rect,
 							         0, NULL, SDL_FLIP_HORIZONTAL);
 					break;

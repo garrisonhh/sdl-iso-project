@@ -14,6 +14,7 @@
 #include "textures.h"
 #include "block_gen.h"
 #include "gui.h"
+#include "fonts.h"
 
 SDL_Window *window = NULL;
 
@@ -42,6 +43,7 @@ void init() {
 	render_init(window);
 	gui_init();
 
+	fonts_load();
 	textures_load();
 	block_gen_load();
 
@@ -104,6 +106,9 @@ int main(int argc, char *argv[]) {
 						case SDLK_SPACE:
 							jump = true;
 							break;
+						case SDLK_BACKQUOTE:
+							gui_toggle_debug();
+							break;
 					}
 					break;
 				case SDL_KEYUP:
@@ -158,8 +163,6 @@ int main(int argc, char *argv[]) {
 		for (i = 0; i < 32; ++i)
 			tick_avg += ticks[i];
 
-		//printf("FPS: %lf\n", 1.0 / (tick_avg / 32));
-		
 		gui_update(1.0 / (tick_avg / 32));
 
 		// draw frame
