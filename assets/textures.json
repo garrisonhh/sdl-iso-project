@@ -1,6 +1,14 @@
 {
 	"textures": [
 		{
+			"name": "compass",
+			"path": "ui/compass",
+			"type": "sprite",
+			"sprite-type": "static",
+			"sprite-size": [28, 19]
+		},
+
+		{
 			"name": "harry_body",
 			"path": "harry/harry_body",
 			"type": "sprite",
@@ -24,6 +32,7 @@
 			"sprite-size": [13, 19],
 			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
 		},
+
 
 		{
 			"name": "void",
@@ -70,6 +79,5 @@
 			"type": "sheet",
 			"transparent": true
 		}
-
 	]
 }

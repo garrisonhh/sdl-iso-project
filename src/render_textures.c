@@ -64,6 +64,23 @@ void render_sprite(sprite_t *sprite, v2i pos, v2i cell) {
 	SDL_RenderCopy(renderer, sprite->sheet, &src_rect, &dst_rect);
 }
 
+void render_sprite_no_offset(sprite_t *sprite, v2i pos, v2i cell) {
+	SDL_Rect src_rect = {
+		cell.x * sprite->size.x,
+		cell.y * sprite->size.y,
+		sprite->size.x,
+		sprite->size.y
+	};
+	SDL_Rect dst_rect = {
+		pos.x,
+		pos.y,
+		sprite->size.x,
+		sprite->size.y
+	};
+
+	SDL_RenderCopy(renderer, sprite->sheet, &src_rect, &dst_rect);
+}
+
 // these masks use only the last 3 bits, ZYX (to match indexing (v3i){x, y, z})
 // void_mask determines sides which will be displayed as void (fully black)
 void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, unsigned expose_mask, unsigned void_mask) {

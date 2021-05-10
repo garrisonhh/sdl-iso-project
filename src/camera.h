@@ -11,14 +11,18 @@ struct camera_t {
 	v2i pos, center_screen;
 	SDL_Rect viewport;
 	circle_t view_circle;
+
+	int rotation; // 0-3; whether facing N, E, S, W
 };
 typedef struct camera_t camera_t;
 
 extern camera_t camera;
 
+v2i project_v3i(v3i);
+v2i project_v3d(v3d);
+
 void camera_init(void);
-v2i project_v3i(v3i, bool);
-v2i project_v3d(v3d, bool);
+
 void camera_update(world_t *);
 void camera_set_scale(int);
 void camera_change_scale(bool);

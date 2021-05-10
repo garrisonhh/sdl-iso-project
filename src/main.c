@@ -13,6 +13,7 @@
 #include "utils.h"
 #include "textures.h"
 #include "block_gen.h"
+#include "gui.h"
 
 SDL_Window *window = NULL;
 
@@ -39,16 +40,19 @@ void init() {
 	}
 	
 	render_init(window);
+	gui_init();
 
 	textures_load();
 	block_gen_load();
+
+	gui_load();
 }
 
 void quit_all() {
 	textures_destroy();
 	block_gen_destroy();
 
-	render_destroy();
+	render_quit();
 
 	SDL_DestroyWindow(window);
 	window = NULL;
@@ -143,21 +147,24 @@ int main(int argc, char *argv[]) {
 		// tick
 		last_tick = this_tick;
 		this_tick = timeit_get_time();
+
 		world_tick(world, this_tick - last_tick);
 		camera_update(world);
 
 		ticks[tick_idx++] = this_tick - last_tick;
 		tick_idx %= 32;
-
 		tick_avg = 0;
 
 		for (i = 0; i < 32; ++i)
 			tick_avg += ticks[i];
 
 		//printf("FPS: %lf\n", 1.0 / (tick_avg / 32));
+		
+		gui_update(1.0 / (tick_avg / 32));
 
-		// gfx
+		// draw frame
 		render_world(world);
+		gui_render();
 		SDL_RenderPresent(renderer);
 	}
 

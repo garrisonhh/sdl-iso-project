@@ -14,7 +14,7 @@ extern const int VOXEL_Z_HEIGHT;
 extern SDL_Renderer *renderer;
 
 void render_init(SDL_Window *);
-void render_destroy(void);
+void render_quit(void);
 void render_world(world_t *);
 
 #endif

@@ -6,6 +6,7 @@
 #include <math.h>
 #include "render.h"
 #include "textures.h"
+#include "gui.h"
 #include "vector.h"
 #include "collision.h"
 #include "raycast.h"
@@ -67,21 +68,20 @@ void render_init(SDL_Window *window) {
 	foreground = SDL_CreateTexture(renderer,
 								   SDL_PIXELFORMAT_RGBA8888,
 								   SDL_TEXTUREACCESS_TARGET,
-								   SCREEN_WIDTH,
-								   SCREEN_HEIGHT);
+								   SCREEN_WIDTH, SCREEN_HEIGHT);
+	SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
+
 	background = SDL_CreateTexture(renderer,
 								   SDL_PIXELFORMAT_RGBA8888,
 								   SDL_TEXTUREACCESS_TARGET,
-								   SCREEN_WIDTH,
-								   SCREEN_HEIGHT);
-	SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
+								   SCREEN_WIDTH, SCREEN_HEIGHT);
 	SDL_SetTextureBlendMode(background, SDL_BLENDMODE_BLEND);
 
 	camera_init();
 	render_textures_init();
 }
 
-void render_destroy() {
+void render_quit() {
 	// foreground and background are free'd by DestroyRenderer
 	SDL_DestroyRenderer(renderer);
 	renderer = NULL;
@@ -120,7 +120,7 @@ void render_generate_shadows(world_t *world, array_t *(*shadows)[world->block_si
 
 		if (shadow_loc.z >= 0 && shadow_loc.z < world->block_size) {
 			shadow = malloc(sizeof(circle_t));
-			shadow->loc = project_v3d(shadow_pos, true);
+			shadow->loc = project_v3d(shadow_pos);
 			shadow->radius = entity->sprites[0]->size.x >> 1;
 
 			if ((*shadows)[shadow_loc.z] == NULL)
@@ -137,7 +137,7 @@ void render_entity(entity_t *entity) {
 
 	entity_pos = entity->ray.pos;
 	entity_pos.z -= entity->size.z / 2;
-	screen_pos = project_v3d(entity_pos, true);
+	screen_pos = project_v3d(entity_pos);
 
 	for (size_t i = 0; i < entity->num_sprites; ++i)
 		render_sprite(entity->sprites[i], screen_pos, entity->anim_states[i].cell);
@@ -215,7 +215,7 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 		if (block->expose_mask || void_mask) {
 			//unsigned outline_mask;
 
-			render_voxel_texture(block->texture->tex.voxel, project_v3i(loc, true),
+			render_voxel_texture(block->texture->tex.voxel, project_v3i(loc),
 								 block->expose_mask, void_mask);
 
 			/*
@@ -224,19 +224,17 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 			*/
 		}
 	} else if (block->expose_mask) {
-		v2i screen_pos = project_v3i(loc, true);
-
 		// the amount of times I had to type "tex" or "texture" here is hilarious lol
 		switch (tex_type) {
 			case TEX_TEXTURE:
-				render_sdl_texture(block->texture->tex.texture, screen_pos);
+				render_sdl_texture(block->texture->tex.texture, project_v3i(loc));
 				break;
 			case TEX_CONNECTED:
-				render_connected_texture(block->texture->tex.connected, screen_pos,
+				render_connected_texture(block->texture->tex.connected, project_v3i(loc),
 										 block->tex_state.connected_mask);
 				break;
 			case TEX_SHEET:
-				render_sheet_texture(block->texture->tex.sheet, screen_pos,
+				render_sheet_texture(block->texture->tex.sheet, project_v3i(loc),
 									 block->tex_state.cell);
 				break;
 			default:
