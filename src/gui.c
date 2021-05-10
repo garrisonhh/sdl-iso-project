@@ -14,6 +14,7 @@ bool UPDATED_FLAG = true; // gui_render will only re-draw static gui elements if
 sprite_t *COMPASS;
 v2i COMPASS_POS, COMPASS_CELL;
 
+// call after render_init
 void gui_init() {
 	STATIC_GUI = SDL_CreateTexture(renderer,
 							SDL_PIXELFORMAT_RGBA8888,
@@ -22,6 +23,7 @@ void gui_init() {
 	SDL_SetTextureBlendMode(STATIC_GUI, SDL_BLENDMODE_BLEND);
 }
 
+// call after textures_load
 void gui_load() {
 	COMPASS = sprite_from_key("compass");
 	COMPASS_POS = (v2i){GUI_WIDTH - COMPASS->size.x, 0};
@@ -29,7 +31,7 @@ void gui_load() {
 }
 
 void gui_update(double fps) {
-
+	// TODO
 }
 
 void gui_render() {

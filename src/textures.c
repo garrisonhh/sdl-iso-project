@@ -196,7 +196,7 @@ void textures_load() {
 	array_t *texture_objects;
 
 	file_obj = content_load_file("assets/textures.json");
-	texture_objects = content_get_array(file_obj, "textures");
+	texture_objects = content_array_from_obj(file_obj);
 
 	// set up globals
 	NUM_TEXTURES = texture_objects->size;

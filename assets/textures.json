@@ -1,83 +1,81 @@
-{
-	"textures": [
-		{
-			"name": "compass",
-			"path": "ui/compass",
-			"type": "sprite",
-			"sprite-type": "static",
-			"sprite-size": [28, 19]
-		},
+[
+	{
+		"name": "compass",
+		"path": "ui/compass",
+		"type": "sprite",
+		"sprite-type": "static",
+		"sprite-size": [28, 19]
+	},
 
-		{
-			"name": "harry_body",
-			"path": "harry/harry_body",
-			"type": "sprite",
-			"sprite-type": "human-body",
-			"sprite-size": [13, 19],
-			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
-		},
-		{
-			"name": "harry_back",
-			"path": "harry/harry_back",
-			"type": "sprite",
-			"sprite-type": "human-back-hands",
-			"sprite-size": [13, 19],
-			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
-		},
-		{
-			"name": "harry_front",
-			"path": "harry/harry_front",
-			"type": "sprite",
-			"sprite-type": "human-front-hands",
-			"sprite-size": [13, 19],
-			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
-		},
+	{
+		"name": "harry_body",
+		"path": "harry/harry_body",
+		"type": "sprite",
+		"sprite-type": "human-body",
+		"sprite-size": [13, 19],
+		"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
+	},
+	{
+		"name": "harry_back",
+		"path": "harry/harry_back",
+		"type": "sprite",
+		"sprite-type": "human-back-hands",
+		"sprite-size": [13, 19],
+		"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
+	},
+	{
+		"name": "harry_front",
+		"path": "harry/harry_front",
+		"type": "sprite",
+		"sprite-type": "human-front-hands",
+		"sprite-size": [13, 19],
+		"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
+	},
 
 
-		{
-			"name": "void",
-			"type": "voxel"
-		},
-		{
-			"name": "dirt",
-			"type": "voxel"
-		},
-		{
-			"name": "grass",
-			"type": "voxel"
-		},
+	{
+		"name": "void",
+		"type": "voxel"
+	},
+	{
+		"name": "dirt",
+		"type": "voxel"
+	},
+	{
+		"name": "grass",
+		"type": "voxel"
+	},
 
-		{
-			"name": "leaves",
-			"type": "texture",
-			"transparent": true
-		},
-		{
-			"name": "log",
-			"type": "texture",
-			"transparent": true
-		},
-		{
-			"name": "bush",
-			"type": "texture",
-			"transparent": true
-		},
+	{
+		"name": "leaves",
+		"type": "texture",
+		"transparent": true
+	},
+	{
+		"name": "log",
+		"type": "texture",
+		"transparent": true
+	},
+	{
+		"name": "bush",
+		"type": "texture",
+		"transparent": true
+	},
 
-		{
-			"name": "tall grass",
-			"path": "tall_grass",
-			"type": "sheet",
-			"transparent": true
-		},
-		{
-			"name": "flower",
-			"type": "sheet",
-			"transparent": true
-		},
-		{
-			"name": "rocks",
-			"type": "sheet",
-			"transparent": true
-		}
-	]
-}
+	{
+		"name": "tall grass",
+		"path": "tall_grass",
+		"type": "sheet",
+		"transparent": true
+	},
+	{
+		"name": "flower",
+		"type": "sheet",
+		"transparent": true
+	},
+	{
+		"name": "rocks",
+		"type": "sheet",
+		"transparent": true
+	}
+]
