@@ -3,90 +3,70 @@
 #include "utils.h"
 #include "animation.h"
 
-void anim_state_set(animation_t *state, int anim) {
-	state->cell.y = anim;
+void anim_state_set(animation_t *state, int pose) {
+	state->cell.y = pose;
 	state->cell.x = 0;
 	state->state = 0.0;
 }
 
 bool anim_entity_walking(entity_t *entity) {
-	return entity->facing.z == 0 && !d_close(v3d_magnitude(entity->ray.dir), 0.0);
+	return entity->dir_z == DIR_LEVEL && !d_close(v3d_magnitude(entity->ray.dir), 0.0);
 }
 
 void anim_human_body(entity_t *entity, animation_t *state) {
-	int anim;
-	bool backwards, left, right;
+	int pose;
 
-	backwards = entity->facing.y < 0;
-	left = entity->facing.x < 0;
-	right = entity->facing.x > 0;
-
-	if (anim_entity_walking(entity)) {
-		if (backwards)
-			anim = 5;
-		else if (left)
-			anim = 7;
-		else if (right)
-			anim = 6;
-		else
-			anim = 4;
-	} else { // still
-		if (backwards)
-			anim = 1;
-		else if (left)
-			anim = 3;
-		else if (right)
-			anim = 2;
-		else
-			anim = 0;
+	switch (entity->dir_xy) {
+		case DIR_FRONT:
+			pose = 0;
+			break;
+		case DIR_BACK:
+		case DIR_BACK_LEFT:
+		case DIR_BACK_RIGHT:
+			pose = 1;
+			break;
+		case DIR_RIGHT:
+		case DIR_FRONT_RIGHT:
+			pose = 2;
+			break;
+		case DIR_LEFT:
+		case DIR_FRONT_LEFT:
+			pose = 3;
+			break;
 	}
 
-	if (state->cell.y != anim)
-		anim_state_set(state, anim);
+	if (anim_entity_walking(entity))
+		pose += 4;
+
+	if (state->cell.y != pose)
+		anim_state_set(state, pose);
 }
 
 void anim_human_hands(entity_t *entity, animation_t *state) {
-	int anim;
-	bool backwards, left, right;
+	int pose;
 
-	backwards = entity->facing.y < 0;
-	left = entity->facing.x < 0;
-	right = entity->facing.x > 0;
-
-	if (anim_entity_walking(entity)) {
-		if (left) {
-			if (backwards)
-				anim = 6;
-			else
-				anim = 7;
-		} else if (right) {
-			if (backwards)
-				anim = 7;
-			else
-				anim = 6;
-		} else if (backwards) {
-			anim = 5;
-		} else {
-			anim = 4;
-		}
-	} else {
-		if (left) {
-			if (backwards)
-				anim = 2;
-			else
-				anim = 3;
-		} else if (right) {
-			if (backwards)
-				anim = 3;
-			else
-				anim = 2;
-		} else if (backwards) {
-			anim = 1;
-		} else {
-			anim = 0;
-		}
+	switch (entity->dir_xy) {
+		case DIR_FRONT:
+			pose = 0;
+			break;
+		case DIR_BACK:
+			pose = 1;
+			break;
+		case DIR_RIGHT:
+		case DIR_FRONT_RIGHT:
+		case DIR_BACK_LEFT:
+			pose = 2;
+			break;
+		case DIR_LEFT:
+		case DIR_FRONT_LEFT:
+		case DIR_BACK_RIGHT:
+			pose = 3;
+			break;
 	}
 
-	if (state->cell.y != anim)
-		anim_state_set(state, anim);
+	if (anim_entity_walking(entity))
+		pose += 4;
+
+	if (state->cell.y != pose)
+		anim_state_set(state, pose);
 }

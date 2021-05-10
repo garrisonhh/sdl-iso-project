@@ -11,12 +11,14 @@
 typedef struct world_t world_t;
 
 struct entity_t {
-	// sprites
+	// sprites + animations
 	sprite_t **sprites;
-	animation_t *anim_states;
 	size_t num_sprites;
+
+	animation_t *anim_states;
 	v3d last_dir;
-	v3i facing;
+	dir_xy_e dir_xy;
+	dir_z_e dir_z;
 
 	// collision
 	ray_t ray;

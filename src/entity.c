@@ -12,6 +12,8 @@
 #include "data_structures/list.h"
 #include "utils.h"
 
+void entity_update_directions(entity_t *);
+
 entity_t *entity_create(sprite_t **sprites, size_t num_sprites, v3d pos, v3d size) {
 	entity_t *entity = malloc(sizeof(entity_t));
 
@@ -24,7 +26,9 @@ entity_t *entity_create(sprite_t **sprites, size_t num_sprites, v3d pos, v3d siz
 		entity->anim_states[i].state = 0.0;
 	}
 
-	entity->facing = (v3i){0, 1, 0};
+	entity->last_dir = (v3d){0.0, 1.0, 0.0};
+	entity->dir_xy = DIR_FRONT;
+	entity->dir_z = DIR_LEVEL;
 
 	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
 	entity->size = size;
@@ -32,6 +36,8 @@ entity_t *entity_create(sprite_t **sprites, size_t num_sprites, v3d pos, v3d siz
 
 	entity->on_ground = false;
 	entity->path = list_create();
+
+	entity_update_directions(entity); // sets dir_xy and dir_z
 
 	return entity;
 }
@@ -232,9 +238,52 @@ int entity_bucket_compare(const void *a, const void *b) {
 	return (((entity_y(*(entity_t **)a) - entity_y(*(entity_t **)b)) >= 0) ? 1 : -1);
 }
 
+void entity_update_directions(entity_t *entity) {
+	double dir;
+	v3i facing;
+
+	for (int i = 0; i < 3; ++i) {
+		dir = v3d_get(&entity->last_dir, i);
+
+		if (d_close(dir, 0.0))
+			v3i_set(&facing, i, 0);
+		else if (dir > 0.0)
+			v3i_set(&facing, i, 1);
+		else
+			v3i_set(&facing, i, -1);
+	}
+
+	if (facing.z < 0)
+		entity->dir_z = DIR_DOWN;
+	else if (facing.z > 0)
+		entity->dir_z = DIR_UP;
+	else
+		entity->dir_z = DIR_LEVEL;
+
+	if (facing.y < 0) {
+		if (facing.x < 0)
+			entity->dir_xy = DIR_BACK_LEFT;
+		else if (facing.x > 0)
+			entity->dir_xy = DIR_BACK_RIGHT;
+		else
+			entity->dir_xy = DIR_BACK;
+	} else if (facing.y > 0) {
+		if (facing.x < 0)
+			entity->dir_xy = DIR_FRONT_LEFT;
+		else if (facing.x > 0)
+			entity->dir_xy = DIR_FRONT_RIGHT;
+		else
+			entity->dir_xy = DIR_FRONT;
+	} else {
+		if (facing.x < 0)
+			entity->dir_xy = DIR_LEFT;
+		else if (facing.x > 0)
+			entity->dir_xy = DIR_RIGHT;
+	}
+}
+
 void entity_tick(entity_t *entity, world_t *world, double time) {
 	int i;
-	double dir;
 	array_t *block_colls;
 	sprite_t *sprite;
 	animation_t *anim_state;
@@ -249,17 +298,7 @@ void entity_tick(entity_t *entity, world_t *world, double time) {
 	}
 
 	entity->last_dir.z = entity->ray.dir.z;
-
-	for (i = 0; i < 3; ++i) {
-		dir = v3d_get(&entity->last_dir, i);
-
-		if (d_close(dir, 0.0))
-			v3i_set(&entity->facing, i, 0);
-		else if (dir > 0.0)
-			v3i_set(&entity->facing, i, 1);
-		else
-			v3i_set(&entity->facing, i, -1);
-	}
+	entity_update_directions(entity);
 
 	// animation state
 	for (i = 0; i < entity->num_sprites; ++i) {
