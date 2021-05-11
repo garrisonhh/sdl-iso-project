@@ -30,9 +30,17 @@ v2i project_v3i(v3i v) {
 }
 
 v2i project_v3d(v3d v) {
-	int swp;
+	v = camera_rotated_v3d(v3d_sub(v, camera.center));
 
-	v = v3d_sub(v, camera.center);
+	return (v2i){
+		(((v.x - v.y) * VOXEL_WIDTH) / 2) + camera.center_screen.x,
+		(((v.x + v.y) * VOXEL_WIDTH) / 4) - (v.z * VOXEL_Z_HEIGHT) + camera.center_screen.y
+	};
+}
+
+// use to adjust vectors for camera rotation
+v3d camera_rotated_v3d(v3d v) {
+	double swp;
 
 	switch (camera.rotation) {
 		case 1:
@@ -47,12 +55,72 @@ v2i project_v3d(v3d v) {
 			SWAP(v.x, v.y, swp);
 			v.x = -v.x;
 			break;
-	};
+	}
 
-	return (v2i){
-		(((v.x - v.y) * VOXEL_WIDTH) / 2) + camera.center_screen.x,
-		(((v.x + v.y) * VOXEL_WIDTH) / 4) - (v.z * VOXEL_Z_HEIGHT) + camera.center_screen.y
-	};
+	return v;
+}
+
+v3d camera_reverse_rotated_v3d(v3d v) {
+	double swp;
+
+	switch (camera.rotation) {
+		case 3:
+			SWAP(v.x, v.y, swp);
+			v.y = -v.y;
+			break;
+		case 2:
+			v.x = -v.x;
+			v.y = -v.y;
+			break;
+		case 1:
+			SWAP(v.x, v.y, swp);
+			v.x = -v.x;
+			break;
+	}
+
+	return v;
+}
+
+v3i camera_rotated_v3i(v3i v) {
+	int swp;
+
+	switch (camera.rotation) {
+		case 1:
+			SWAP(v.x, v.y, swp);
+			v.y = -v.y;
+			break;
+		case 2:
+			v.x = -v.x;
+			v.y = -v.y;
+			break;
+		case 3:
+			SWAP(v.x, v.y, swp);
+			v.x = -v.x;
+			break;
+	}
+
+	return v;
+}
+
+v3i camera_reverse_rotated_v3i(v3i v) {
+	int swp;
+
+	switch (camera.rotation) {
+		case 3:
+			SWAP(v.x, v.y, swp);
+			v.y = -v.y;
+			break;
+		case 2:
+			v.x = -v.x;
+			v.y = -v.y;
+			break;
+		case 1:
+			SWAP(v.x, v.y, swp);
+			v.x = -v.x;
+			break;
+	}
+
+	return v;
 }
 
 void camera_init() {

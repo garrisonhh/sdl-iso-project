@@ -8,6 +8,7 @@
 #include "block_collision.h"
 #include "textures.h"
 #include "animation.h"
+#include "camera.h"
 #include "data_structures/array.h"
 #include "data_structures/list.h"
 #include "utils.h"
@@ -252,6 +253,8 @@ void entity_update_directions(entity_t *entity) {
 		else
 			v3i_set(&facing, i, -1);
 	}
+
+	facing = camera_rotated_v3i(facing);
 
 	if (facing.z < 0)
 		entity->dir_z = DIR_DOWN;

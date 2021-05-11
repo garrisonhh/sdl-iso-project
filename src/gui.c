@@ -5,6 +5,7 @@
 #include "render_textures.h"
 #include "fonts.h"
 #include "camera.h"
+#include "world.h"
 
 const int GUI_WIDTH = SCREEN_WIDTH >> 2;
 const int GUI_HEIGHT = SCREEN_HEIGHT >> 2;
@@ -16,8 +17,12 @@ bool DEBUG = false;
 sprite_t *COMPASS;
 v2i COMPASS_POS, COMPASS_CELL;
 
-char FPS_COUNTER[12];
+// debug vars
+char FPS_COUNTER[16];
 v2i FPS_COUNTER_POS = {0, 0};
+
+char PLAYER_POS[32];
+v2i PLAYER_POS_POS = {0, 8};
 
 // call after render_init
 void gui_init() {
@@ -35,13 +40,16 @@ void gui_load() {
 	COMPASS_CELL = (v2i){0, 0};
 }
 
-void gui_update(double fps) {
+void gui_update(double fps, world_t *world) {
 	sprintf(FPS_COUNTER, "FPS: %3.1lf", fps);
 
 	if (COMPASS_CELL.x != camera.rotation) {
 		COMPASS_CELL.x = camera.rotation;
 		UPDATE_STATIC = true;
 	}
+
+	v3d pos = world->player->ray.pos;
+	sprintf(PLAYER_POS, "POS: %6.2lf %6.2lf %6.2lf", pos.x, pos.y, pos.z);
 }
 
 void gui_render() {
@@ -61,6 +69,7 @@ void gui_render() {
 
 	if (DEBUG) {
 		fonts_render_text(FONT_UI, FPS_COUNTER, FPS_COUNTER_POS);
+		fonts_render_text(FONT_UI, PLAYER_POS, PLAYER_POS_POS);
 	}
 }
 

@@ -153,6 +153,8 @@ int main(int argc, char *argv[]) {
 		if (move_inputs.x || move_inputs.y)
 			move = v3d_scale(move, PLAYER_SPEED / fabs(v3d_magnitude(move)));
 
+		move = camera_reverse_rotated_v3d(move);
+
 		world->player->ray.dir.x = move.x;
 		world->player->ray.dir.y = move.y;
 
@@ -173,7 +175,7 @@ int main(int argc, char *argv[]) {
 		for (i = 0; i < 32; ++i)
 			tick_avg += ticks[i];
 
-		gui_update(1.0 / (tick_avg / 32));
+		gui_update(1.0 / (tick_avg / 32), world);
 
 		// draw frame
 		render_world(world);

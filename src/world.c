@@ -369,8 +369,9 @@ void generate_tree(world_t *world, v3i loc) {
 void world_generate(world_t *world) {
 	timeit_start();
 
-	if (1) { // debug world
+	if (0) { // debug world
 		size_t grass = block_gen_get_id("grass");
+		size_t dirt = block_gen_get_id("dirt");
 		v3i loc = (v3i){0, 0, 0};
 
 		for (loc.x = 0; loc.x < world->block_size; ++loc.x) {
@@ -378,6 +379,9 @@ void world_generate(world_t *world) {
 				world_set_no_update(world, loc, grass);
 			}
 		}
+
+		loc = (v3i){0, 0, 0};
+		world_set_no_update(world, loc, dirt);
 	} else {
 		int noise_val;
 		v2d noise_pos;

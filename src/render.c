@@ -25,6 +25,7 @@
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 const v3d PLAYER_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
 
+// outline lines
 const v2i OUTLINE_TOP_EDGES[][2] = {
 	{
 		(v2i){0, (VOXEL_WIDTH >> 1) - 1},
@@ -201,15 +202,22 @@ void render_block_outline(v3i loc, unsigned outline_mask, unsigned expose_mask) 
 }
 */
 
-const SDL_Rect VOXEL_SCREEN_BOUNDS = {
-	-(VOXEL_WIDTH >> 1),
-	-(VOXEL_HEIGHT >> 1),
-	SCREEN_WIDTH + VOXEL_WIDTH,
-	SCREEN_HEIGHT + VOXEL_HEIGHT
-};
-
 void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 	texture_type_e tex_type = block->texture->type;
+
+	// modify loc so that it is the back center corner of voxel from camera perspective
+	switch (camera.rotation) {
+		case 1:
+			++loc.x;
+			break;
+		case 2:
+			++loc.x;
+			++loc.y;
+			break;
+		case 3:
+			++loc.y;
+			break;
+	}
 
 	if (tex_type == TEX_VOXEL) {
 		if (block->expose_mask || void_mask) {
@@ -219,7 +227,7 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 			render_voxel_texture(block->texture->tex.voxel, project_v3i(loc),
 								 block->expose_mask, void_mask);
 			*/
-			// TODO temporary for rotation implementation
+			// TODO update mask code for camera rotation
 			render_voxel_texture(block->texture->tex.voxel, project_v3i(loc),
 								 0xF, 0x0);
 
@@ -325,6 +333,12 @@ void render_world(world_t *world) {
 
 						if (block->texture->transparent) { // draw block sorted between entities
 							if ((bucket = chunk->buckets[block_index]) != NULL) {
+								// TODO apply camera rotation to this
+								// I think move entity_y and entity_bucket_compare to render.c, and then
+								// calculate block_y with camera taken into account
+								// also unsure what this means for entity sorting, it will have to be done
+								// at least after every rotation
+
 								block_y = (double)(loc.x + loc.y) + 1.0; // 1.0 for (0.5, 0.5) center of block
 								bucket_trav = bucket->root;
 
