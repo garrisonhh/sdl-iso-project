@@ -258,17 +258,14 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 
 void render_world(world_t *world) {
 	int i;
-	unsigned chunk_index, block_index;
 	unsigned void_mask;
 	bool render_to_fg, player_blocked;
 	double block_y;
 	ray_t cam_ray;
-	chunk_t *chunk;
 	block_t *block;
 	list_t *bucket;
 	list_node_t *bucket_trav;
 	v3i loc, player_loc;
-	// v3i min_block, max_block;
 	array_t *shadows[world->block_size];
 
 	// player_loc + raycasting for foregrounding
@@ -281,14 +278,6 @@ void render_world(world_t *world) {
 	};
 	cam_ray.pos.z += world->player->size.z / 2;
 	player_blocked = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
-
-	/*
-	// block range
-	for (i = 0; i < 3; i++) {
-		v3i_set(&min_block, i, MAX(0, v3i_get(&player_loc, i) - camera.render_dist));
-		v3i_set(&max_block, i, MIN(world->block_size, v3i_get(&player_loc, i) + camera.render_dist));
-	}
-	*/
 
 	// render targets
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
@@ -321,52 +310,52 @@ void render_world(world_t *world) {
 		
 		for (loc.y = camera.min_render.y; loc.y != camera.max_render.y; loc.y += camera.inc_render.y) {
 			for (loc.x = camera.min_render.x; loc.x != camera.max_render.x; loc.x += camera.inc_render.x) {
-				world_indices(world, loc, &chunk_index, &block_index);
+				// world_indices(world, loc, &chunk_index, &block_index);
 
-				if ((chunk = world->chunks[chunk_index]) != NULL) {
-					if ((block = chunk->blocks[block_index]) != NULL) {
-						if (block->texture->type == TEX_VOXEL) {
-							void_mask = render_find_void_mask(loc, camera.max_render,
-															  player_loc.z, block->expose_mask);
-							
-						}
+				world_get_render_loc(world, loc, &block, &bucket);
 
-						if (block->texture->transparent) { // draw block sorted between entities
-							if ((bucket = chunk->buckets[block_index]) != NULL) {
-								// TODO apply camera rotation to this
-								// I think move entity_y and entity_bucket_compare to render.c, and then
-								// calculate block_y with camera taken into account
-								// also unsure what this means for entity sorting, it will have to be done
-								// at least after every rotation
-
-								block_y = (double)(loc.x + loc.y) + 1.0; // 1.0 for (0.5, 0.5) center of block
-								bucket_trav = bucket->root;
-
-								while (bucket_trav != NULL && entity_y(bucket_trav->item) < block_y) {
-									render_entity(bucket_trav->item);
-									bucket_trav = bucket_trav->next;
-								}
-
-								render_block(world, block, loc, void_mask);
-								
-								while (bucket_trav != NULL) {
-									render_entity(bucket_trav->item);
-									bucket_trav = bucket_trav->next;
-								}
-							} else {
-								render_block(world, block, loc, void_mask);
-							}
-						} else { // draw entities over block regardless
-							render_block(world, block, loc, void_mask);
-
-							if ((bucket = chunk->buckets[block_index]) != NULL)
-								LIST_FOREACH(bucket_trav, bucket)
-									render_entity(bucket_trav->item);
-						}
-					} else if ((bucket = chunk->buckets[block_index]) != NULL) {
-						LIST_FOREACH(bucket_trav, bucket)
-							render_entity(bucket_trav->item);
+				if (block != NULL) {
+					if (block->texture->type == TEX_VOXEL) {
+						void_mask = render_find_void_mask(loc, camera.max_render,
+														  player_loc.z, block->expose_mask);
+						
 					}
+
+					if (block->texture->transparent) { // draw block sorted between entities
+						if (bucket != NULL) {
+							// TODO apply camera rotation to this
+							// I think move entity_y and entity_bucket_compare to render.c, and then
+							// calculate block_y with camera taken into account
+							// also unsure what this means for entity sorting, it will have to be done
+							// at least after every rotation
+
+							block_y = (double)(loc.x + loc.y) + 1.0; // 1.0 for (0.5, 0.5) center of block
+							bucket_trav = bucket->root;
+
+							while (bucket_trav != NULL && entity_y(bucket_trav->item) < block_y) {
+								render_entity(bucket_trav->item);
+								bucket_trav = bucket_trav->next;
+							}
+
+							render_block(world, block, loc, void_mask);
+							
+							while (bucket_trav != NULL) {
+								render_entity(bucket_trav->item);
+								bucket_trav = bucket_trav->next;
+							}
+						} else {
+							render_block(world, block, loc, void_mask);
+						}
+					} else { // draw entities over block regardless
+						render_block(world, block, loc, void_mask);
+
+						if (bucket != NULL)
+							LIST_FOREACH(bucket_trav, bucket)
+								render_entity(bucket_trav->item);
+					}
+				} else if (bucket != NULL) {
+					LIST_FOREACH(bucket_trav, bucket)
+						render_entity(bucket_trav->item);
 				}
 			}
 		}

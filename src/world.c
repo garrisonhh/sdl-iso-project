@@ -163,6 +163,20 @@ block_t *world_get(world_t *world, v3i loc) {
 	return chunk->blocks[block_index];
 }
 
+void world_get_render_loc(world_t *world, v3i loc, block_t **block_result, list_t **bucket_result) {
+	unsigned chunk_index, block_index;
+	chunk_t *chunk;
+
+	if (!world_indices(world, loc, &chunk_index, &block_index)
+	 || (chunk = world->chunks[chunk_index]) == NULL) {
+		*block_result = NULL;
+		*bucket_result = NULL;
+	} else {
+		*block_result = chunk->blocks[block_index];
+		*bucket_result = chunk->buckets[block_index];
+	}
+}
+
 void world_push_update(world_t *world, v3i loc) {
 	v3i *update = malloc(sizeof loc);
 

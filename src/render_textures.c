@@ -83,6 +83,7 @@ void render_sprite_no_offset(sprite_t *sprite, v2i pos, v2i cell) {
 
 // these masks use only the last 3 bits, ZYX (to match indexing (v3i){x, y, z})
 // void_mask determines sides which will be displayed as void (fully black)
+// TODO consider caching all 7 variations of voxel_textures, the 3 RenderCopy operations here is pretty costly time-wise
 void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, unsigned expose_mask, unsigned void_mask) {
 	SDL_Rect draw_rect;
 	voxel_tex_t *cur_texture;
