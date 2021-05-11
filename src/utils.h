@@ -28,6 +28,24 @@
 #define FOR_XYZ(x, y, z, mx, my, mz) for (z = 0; z < mz; z++) for (y = 0; y < my; y++) for (x = 0; x < mx; x++)
 #define FOR_CUBE(x, y, z, minv, maxv) for (z = minv; z < maxv; z++) for (y = minv; y < maxv; y++) for (x = minv; x < maxv; x++)
 
+// bitfield ops
+#define BIT_GET(bitfield, index) (((bitfield) >> (index)) & 1)
+#define BIT_SET_TRUE(bitfield, index) {bitfield |= (0x1 << index);}
+#define BIT_SET_FALSE(bitfield, index) {bitfield &= ~(0x1 << index);}
+
+#define BIT_SET_COND(bitfield, index, cond) {\
+	if (cond) \
+		BIT_SET_TRUE(bitfield, index) \
+	else \
+		BIT_SET_FALSE(bitfield, index) \
+}
+// swp is bool/unsigned/int
+#define BIT_SET_SWAP(bitfield, index1, index2, swp) {\
+	swp = BIT_GET(bitfield, index1);\
+	BIT_SET_COND(bitfield, index1, BIT_GET(bitfield, index2));\
+	BIT_SET_COND(bitfield, index2, swp);\
+}
+
 bool d_close(double a, double b);
 void timeit_start(void);
 void timeit_end(const char *message);

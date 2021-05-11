@@ -27,7 +27,7 @@ v2i PLAYER_POS_POS = {0, 8};
 // call after render_init
 void gui_init() {
 	STATIC_GUI = SDL_CreateTexture(renderer,
-							SDL_PIXELFORMAT_RGBA8888,
+							RENDER_FORMAT,
 							SDL_TEXTUREACCESS_TARGET,
 							GUI_WIDTH, GUI_HEIGHT);
 	SDL_SetTextureBlendMode(STATIC_GUI, SDL_BLENDMODE_BLEND);

@@ -44,7 +44,9 @@ struct sprite_t {
 typedef struct sprite_t sprite_t;
 
 struct voxel_tex_t {
-	SDL_Texture *top, *side;
+	// SDL_Texture *top, *side;
+	// cache indexed by (block->expose_mask - 1)
+	SDL_Texture *textures[7];
 };
 typedef struct voxel_tex_t voxel_tex_t;
 
@@ -77,7 +79,9 @@ typedef struct texture_t texture_t;
 
 // texture state
 union texture_state_t {
-	unsigned outline_mask: 8;
+	// order is -X +X -Y +Y for top/bottom, corners are (-X, -Y) (+X -Y)...
+	// bits 0-3 are top; 4-7 are bottom; 8-11 are corners
+	unsigned outline_mask: 12;
 	unsigned connected_mask: 6;
 	v2i cell;
 };

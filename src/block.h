@@ -24,7 +24,8 @@ typedef struct block_state_t block_state_t;
 struct block_t {
 	texture_t *texture;
 
-	unsigned expose_mask: 3;
+	// bits 0-3 are -X +X -Y +Y ; bit 4 is +Z
+	unsigned expose_mask: 5;
 	texture_state_t tex_state;
 
 	block_coll_data_t *coll_data;
@@ -38,7 +39,5 @@ block_t *block_create(size_t);
 void block_destroy(block_t *);
 
 void block_tick(block_t *, world_t *, double time);
-
-bool block_see_through(block_t *);
 
 #endif

@@ -17,20 +17,20 @@ void render_textures_init() {
 
 	SDL_Rect voxel_tex_rects_tmp[3] = {
 		{
+			VOXEL_WIDTH >> 1,
+			VOXEL_WIDTH >> 2,
+			VOXEL_WIDTH >> 1,
+			VOXEL_Z_HEIGHT
+		},
+		{
 			0,
-			-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
+			VOXEL_WIDTH >> 2,
 			VOXEL_WIDTH >> 1,
-			VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
+			VOXEL_Z_HEIGHT
 		},
 		{
-			-(VOXEL_WIDTH >> 1),
-			-VOXEL_Z_HEIGHT + (VOXEL_WIDTH >> 2),
-			VOXEL_WIDTH >> 1,
-			VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
-		},
-		{
-			-(VOXEL_WIDTH >> 1),
-			-VOXEL_Z_HEIGHT,
+			0,
+			0,
 			VOXEL_WIDTH,
 			VOXEL_WIDTH >> 1
 		},
@@ -81,37 +81,40 @@ void render_sprite_no_offset(sprite_t *sprite, v2i pos, v2i cell) {
 	SDL_RenderCopy(renderer, sprite->sheet, &src_rect, &dst_rect);
 }
 
-// these masks use only the last 3 bits, ZYX (to match indexing (v3i){x, y, z})
-// void_mask determines sides which will be displayed as void (fully black)
-// TODO consider caching all 7 variations of voxel_textures, the 3 RenderCopy operations here is pretty costly time-wise
+// surfaces are in right-left-top order
+SDL_Texture *render_cached_voxel_texture(SDL_Surface *surfaces[3], unsigned expose_mask) {
+	SDL_Surface *voxel_surface;
+	SDL_Texture *texture;
+
+	voxel_surface = SDL_CreateRGBSurfaceWithFormat(0, VOXEL_WIDTH, VOXEL_HEIGHT, 32, RENDER_FORMAT);
+
+	// voxel shading, equivalent to applying (255, 255, 127) with alphas 31 and 63
+	// this should correspond to shading in flat artwork
+	SDL_SetSurfaceColorMod(surfaces[1], 0xDF, 0xDF, 0xEF);
+	SDL_SetSurfaceColorMod(surfaces[0], 0xBF, 0xBF, 0xDF);
+
+	for (int i = 0; i < 3; ++i)
+		if ((expose_mask >> i) & 1)
+			SDL_BlitSurface(surfaces[i], NULL, voxel_surface, &VOXEL_TEX_RECTS[i]);
+
+	texture = SDL_CreateTextureFromSurface(renderer, voxel_surface);
+	SDL_FreeSurface(voxel_surface);
+
+	return texture;
+}
+
+// masks are 3-bit here
 void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, unsigned expose_mask, unsigned void_mask) {
-	SDL_Rect draw_rect;
-	voxel_tex_t *cur_texture;
+	expose_mask = (expose_mask & ~void_mask) & 0x7;
 
-	for (int i = 0; i < 3; ++i) {
-		if ((expose_mask >> i) & 1 || (void_mask >> i) & 1) {
-			draw_rect = VOXEL_TEX_RECTS[i];
-			draw_rect.x += pos.x;
-			draw_rect.y += pos.y;
+	pos.x += VOXEL_TEX_RECTS[2].x;
+	pos.y += VOXEL_TEX_RECTS[2].y;
 
-			cur_texture = ((void_mask >> i) & 1 ? VOID_VOXEL_TEXTURE : voxel_texture);
+	if (expose_mask)
+		render_sdl_texture(voxel_texture->textures[expose_mask - 1], pos);
 
-			switch (i) {
-				case 0:
-					SDL_SetTextureColorMod(cur_texture->side, 0xBF, 0xBF, 0xDF);
-					SDL_RenderCopyEx(renderer, cur_texture->side, NULL, &draw_rect,
-							         0, NULL, SDL_FLIP_HORIZONTAL);
-					break;
-				case 1:
-					SDL_SetTextureColorMod(cur_texture->side, 0xDF, 0xDF, 0xEF);
-					SDL_RenderCopy(renderer, cur_texture->side, NULL, &draw_rect);
-					break;
-				case 2:
-					SDL_RenderCopy(renderer, cur_texture->top, NULL, &draw_rect);
-					break;
-			}
-		}
-	}
+	if (void_mask)
+		render_sdl_texture(VOID_VOXEL_TEXTURE->textures[void_mask - 1], pos);
 }
 
 void render_connected_texture(connected_tex_t *connected_tex, v2i pos, unsigned connected_mask) {

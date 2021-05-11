@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include "world.h"
 
+#define RENDER_FORMAT SDL_PIXELFORMAT_RGBA8888
+
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 800
 #define VOXEL_WIDTH 32

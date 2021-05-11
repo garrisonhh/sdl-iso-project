@@ -25,8 +25,6 @@ struct chunk_t {
 typedef struct chunk_t chunk_t;
 
 struct world_t {
-	chunk_t **chunks;
-
 	list_t *mask_updates; // malloc'd v3i *
 	list_t *ticks; // block_t *
 	list_t *buckets;
@@ -36,11 +34,12 @@ struct world_t {
 
 	path_network_t *path_net;
 
+	chunk_t **chunks;
+	unsigned num_chunks, chunk_mask;
 	// size = chunks along 1 dimension
 	// size_power = power of 2 for size
 	// block_size = number of blocks along 1 dimension
 	unsigned size, size_power, block_size;
-	unsigned num_chunks, chunk_mask;
 };
 typedef struct world_t world_t;
 

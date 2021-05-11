@@ -7,6 +7,7 @@
 #include "content.h"
 #include "render.h"
 #include "textures.h"
+#include "render_textures.h"
 #include "data_structures/hashmap.h"
 #include "data_structures/hash_functions.h"
 
@@ -14,27 +15,41 @@ texture_t **TEXTURES = NULL;
 size_t NUM_TEXTURES;
 hashmap_t *TEXTURE_MAP;
 
-v2i VOXEL_DRAW_SIZE = {VOXEL_WIDTH, VOXEL_HEIGHT};
-
 voxel_tex_t *VOID_VOXEL_TEXTURE;
 
-SDL_Texture *load_sdl_texture(const char *path) {
-	SDL_Texture *texture = NULL;
-	SDL_Surface *loaded_surface = IMG_Load(path);
+// only use when you actually need the surface data
+SDL_Surface *load_sdl_surface(const char *path) {
+	SDL_Surface *surface, *converted;
 
-	if (loaded_surface == NULL) {
+	if ((surface = IMG_Load(path)) == NULL) {
 		printf("unable to load image %s:\n%s\n", path, IMG_GetError());
 		exit(1);
 	}
 
-	texture = SDL_CreateTextureFromSurface(renderer, loaded_surface);
+	converted = SDL_ConvertSurfaceFormat(surface, RENDER_FORMAT, 0);
+
+	SDL_FreeSurface(surface);
+
+	return converted;
+}
+
+SDL_Texture *load_sdl_texture(const char *path) {
+	SDL_Texture *texture;
+	SDL_Surface *surface;
+
+	if ((surface = IMG_Load(path)) == NULL) {
+		printf("unable to load image %s:\n%s\n", path, IMG_GetError());
+		exit(1);
+	}
+
+	texture = SDL_CreateTextureFromSurface(renderer, surface);
 	
 	if (texture == NULL) {
 		printf("unable to create texture from %s:\n%s\n", path, SDL_GetError());
 		exit(1);
 	}
 
-	SDL_FreeSurface(loaded_surface);
+	SDL_FreeSurface(surface);
 	return texture;
 }
 
@@ -85,10 +100,16 @@ sprite_t *load_sprite(const char *path, json_object *obj, hashmap_t *sprite_type
 }
 
 // loads [path]_top.png and [path]_side.png
+// this uses kinda complicated surface stuff in order to be able to store textures
+// with the SDL_TEXTUREACCESS_STATIC access format
 voxel_tex_t* load_voxel_texture(const char *path) {
 	size_t len_path;
 	char top_path[100], side_path[100];
+	SDL_Rect src_rect, dst_rect;
+	SDL_Surface *surfaces[3];
+	voxel_tex_t *voxel_tex;
 
+	voxel_tex = malloc(sizeof(voxel_tex_t));
 	len_path = strlen(path) - 4;
 
 	strncpy(top_path, path, 99);
@@ -98,9 +119,24 @@ voxel_tex_t* load_voxel_texture(const char *path) {
 	strcat(top_path, "_top.png");
 	strcat(side_path, "_side.png");
 
-	voxel_tex_t* voxel_tex = malloc(sizeof(voxel_tex_t));
-	voxel_tex->top = load_sdl_texture(top_path);
-	voxel_tex->side = load_sdl_texture(side_path);
+	surfaces[2] = load_sdl_surface(top_path);
+	surfaces[1] = load_sdl_surface(side_path);
+	surfaces[0] = SDL_CreateRGBSurfaceWithFormat(0, surfaces[1]->w, surfaces[1]->h, 32, RENDER_FORMAT);
+
+	// flip surfaces (yeah this is hacky and probably slow, but not performance-critical whatsoever)
+	src_rect = (SDL_Rect){0, 0, 1, surfaces[1]->h};
+	dst_rect = src_rect;
+
+	for (src_rect.x = 0; src_rect.x < surfaces[1]->w; ++src_rect.x) {
+		dst_rect.x = surfaces[1]->w - src_rect.x - 1;
+		SDL_BlitSurface(surfaces[1], &src_rect, surfaces[0], &dst_rect);
+	}
+
+	for (unsigned i = 1; i < 8; ++i)
+		voxel_tex->textures[i - 1] = render_cached_voxel_texture(surfaces, i);
+
+	for (int i = 0; i < 3; ++i)
+		SDL_FreeSurface(surfaces[i]);
 
 	return voxel_tex;
 }
@@ -144,7 +180,7 @@ sheet_tex_t *load_sheet_texture(const char *path, json_object *obj) {
 	if (content_has_key(obj, "cell-size"))
 		cell_size = content_get_v2i(obj, "cell-size");
 	else
-		cell_size = VOXEL_DRAW_SIZE;
+		cell_size = (v2i){VOXEL_WIDTH, VOXEL_HEIGHT};
 
 	SDL_QueryTexture(sheet_tex->sheet, NULL, NULL, &image_size.x, &image_size.y);
 
@@ -279,6 +315,8 @@ void textures_load() {
 }
 
 void textures_destroy() {
+	int j;
+
 	for (size_t i = 0; i < NUM_TEXTURES; i++) {
 		switch (TEXTURES[i]->type) {
 			case TEX_TEXTURE:
@@ -290,8 +328,8 @@ void textures_destroy() {
 				free(TEXTURES[i]->tex.sprite);
 				break;
 			case TEX_VOXEL:
-				SDL_DestroyTexture(TEXTURES[i]->tex.voxel->top);
-				SDL_DestroyTexture(TEXTURES[i]->tex.voxel->side);
+				for (j = 0; j < 7; ++j)
+					SDL_DestroyTexture(TEXTURES[i]->tex.voxel->textures[j]);
 				free(TEXTURES[i]->tex.voxel);
 				break;
 			case TEX_CONNECTED:

@@ -83,45 +83,53 @@ void world_check_chunk(world_t *world, unsigned chunk_index) {
 	}
 }
 
+bool world_block_see_through(world_t *world, v3i loc) {
+	block_t *block = world_get(world, loc);
+
+	return block == NULL || block->texture->transparent;
+}
+
 void world_update_masks(world_t *world, v3i loc) {
 	block_t *block;
 
 	if ((block = world_get(world, loc)) != NULL) {
-		int i;
+		int i, j;
 		unsigned mask;
-
-		// expose mask
 		v3i neighbor;
 
+		// expose mask
 		mask = 0x0;
 
-		for (i = 0; i < 3; ++i) {
+		for (i = 0; i <= 1; ++i) {
 			neighbor = loc;
-			v3i_set(&neighbor, i, v3i_get(&neighbor, i) + 1);
 
-			if (block_see_through(world_get(world, neighbor)))
-				mask |= 0x1 << i;
+			for (j = 0; j <= 1; ++j) {
+				v3i_set(&neighbor, i, v3i_get(&loc, i) + (j ? 1 : -1));
+
+				if (world_block_see_through(world, neighbor))
+					mask |= 0x1 << ((i << 1) | j);
+			}
 		}
+
+		neighbor = loc;
+		++neighbor.z;
+
+		if (world_block_see_through(world, neighbor))
+			mask |= 0x10; // 0x1 << 4;
 
 		block->expose_mask = mask;
 
 		// connect mask
-		if (block->texture->type == TEX_CONNECTED) {
-			// TODO re-implement this with connect tags idea
-			printf("tex_connected unimplemented currently");
-			exit(1);
-		}
+		// TODO
 
 		if (block->texture->type == TEX_VOXEL) {
 			// outline mask
-			v3i diagonal;
-			int swap;
-
 			mask = 0x0;
 
+			/*
 			// check each of the top edges based on the edge offset
 			for (i = 0; i < 4; ++i)
-				if (block_see_through(world_get(world, v3i_add(loc, OUTLINE_EDGE_OFFSETS[i]))))
+				if (world_block_see_through(world, v3i_add(loc, OUTLINE_EDGE_OFFSETS[i])))
 					mask |= 0x1 << i;
 
 			// check corners
@@ -129,8 +137,8 @@ void world_update_masks(world_t *world, v3i loc) {
 			diagonal = (v3i){1, -1, 0};
 
 			for (i = 0; i <= 1; ++i) {
-				if (!block_see_through(world_get(world, v3i_add(loc, diagonal)))
-				 || block_see_through(world_get(world, v3i_add(loc, neighbor)))) {
+				if (!world_block_see_through(world, v3i_add(loc, diagonal))
+				 || world_block_see_through(world, v3i_add(loc, neighbor))) {
 					mask |= 0x1 << (i + 4);
 				}
 				
@@ -142,11 +150,12 @@ void world_update_masks(world_t *world, v3i loc) {
 			diagonal = (v3i){1, 0, -1};
 
 			for (i = 0; i <= 1; ++i) {
-				if (!block_see_through(world_get(world, v3i_add(loc, diagonal))))
+				if (!world_block_see_through(world, v3i_add(loc, diagonal)))
 					mask |= 0x1 << (i + 6);
 				
 				SWAP(diagonal.x, diagonal.y, swap);
 			}
+			*/
 			
 			block->tex_state.outline_mask = mask;
 		}

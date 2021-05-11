@@ -67,13 +67,13 @@ void render_init(SDL_Window *window) {
 	SDL_RenderSetIntegerScale(renderer, true);
 
 	foreground = SDL_CreateTexture(renderer,
-								   SDL_PIXELFORMAT_RGBA8888,
+								   RENDER_FORMAT,
 								   SDL_TEXTUREACCESS_TARGET,
 								   SCREEN_WIDTH, SCREEN_HEIGHT);
 	SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
 
 	background = SDL_CreateTexture(renderer,
-								   SDL_PIXELFORMAT_RGBA8888,
+								   RENDER_FORMAT,
 								   SDL_TEXTUREACCESS_TARGET,
 								   SCREEN_WIDTH, SCREEN_HEIGHT);
 	SDL_SetTextureBlendMode(background, SDL_BLENDMODE_BLEND);
@@ -144,20 +144,23 @@ void render_entity(entity_t *entity) {
 		render_sprite(entity->sprites[i], screen_pos, entity->anim_states[i].cell);
 }
 
-unsigned render_find_void_mask(v3i loc, v3i max_block, int player_z, unsigned block_expose_mask) {
-	int i;
-	unsigned void_mask;
-
-	void_mask = 0x0;
+unsigned render_find_void_mask(v3i loc, int player_z, unsigned block_expose_mask) {
+	unsigned void_mask = 0x0;
 
 	// world borders
-	for (i = 0; i < 3; ++i)
-		if (v3i_get(&loc, i) == v3i_get(&max_block, i) - 1)
-			void_mask |= 0x1 << i;
+	for (int i = 0; i < 3; ++i)
+		if (v3i_get(&loc, i) == v3i_get(&camera.max_render, i) - v3i_get(&camera.inc_render, i))
+			BIT_SET_TRUE(void_mask, i)
 
 	// foreground/background "fog of war"
-	if (loc.z == player_z && !(block_expose_mask & 0x7))
-		void_mask |= 0x7;
+	if (loc.z == player_z && !BIT_GET(block_expose_mask, 4))
+		void_mask |= 0x4;
+
+	// swap XY when camera rotation calls for it
+	if (camera.rotation & 1) { // rotation == 1 || rotation == 3
+		bool swp;
+		BIT_SET_SWAP(void_mask, 0, 1, swp);
+	} 
 
 	return void_mask;
 }
@@ -204,6 +207,23 @@ void render_block_outline(v3i loc, unsigned outline_mask, unsigned expose_mask) 
 
 void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 	texture_type_e tex_type = block->texture->type;
+	unsigned expose_mask = 0x0;
+
+	// determine expose mask by rotation
+	for (int i = 0; i <= 1; ++i) {
+		if (v3i_get(&camera.inc_render, i) > 0)
+			BIT_SET_COND(expose_mask, i, BIT_GET(block->expose_mask, (i << 1) | 1))
+		else
+			BIT_SET_COND(expose_mask, i, BIT_GET(block->expose_mask, i << 1))
+	}
+
+	// swap XY when camera rotation calls for it
+	if (camera.rotation & 1) { // rotation == 1 || rotation == 3
+		bool swp;
+		BIT_SET_SWAP(expose_mask, 0, 1, swp);
+	} 
+
+	expose_mask |= BIT_GET(block->expose_mask, 4) << 2;
 
 	// modify loc so that it is the back center corner of voxel from camera perspective
 	switch (camera.rotation) {
@@ -220,23 +240,19 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 	}
 
 	if (tex_type == TEX_VOXEL) {
-		if (block->expose_mask || void_mask) {
+		if (expose_mask || void_mask) {
 			//unsigned outline_mask;
 
-			/*
-			render_voxel_texture(block->texture->tex.voxel, project_v3i(loc),
-								 block->expose_mask, void_mask);
-			*/
 			// TODO update mask code for camera rotation
 			render_voxel_texture(block->texture->tex.voxel, project_v3i(loc),
-								 0xF, 0x0);
+								 expose_mask, void_mask);
 
 			/*
 			if ((outline_mask = block->tex_state.outline_mask))
-				render_block_outline(loc, outline_mask, block->expose_mask & ~void_mask);
+				render_block_outline(loc, outline_mask, expose_mask & ~void_mask);
 			*/
 		}
-	} else if (block->expose_mask) {
+	} else if (expose_mask) {
 		// the amount of times I had to type "tex" or "texture" here is hilarious lol
 		switch (tex_type) {
 			case TEX_TEXTURE:
@@ -310,16 +326,11 @@ void render_world(world_t *world) {
 		
 		for (loc.y = camera.min_render.y; loc.y != camera.max_render.y; loc.y += camera.inc_render.y) {
 			for (loc.x = camera.min_render.x; loc.x != camera.max_render.x; loc.x += camera.inc_render.x) {
-				// world_indices(world, loc, &chunk_index, &block_index);
-
 				world_get_render_loc(world, loc, &block, &bucket);
 
 				if (block != NULL) {
-					if (block->texture->type == TEX_VOXEL) {
-						void_mask = render_find_void_mask(loc, camera.max_render,
-														  player_loc.z, block->expose_mask);
-						
-					}
+					if (block->texture->type == TEX_VOXEL)
+						void_mask = render_find_void_mask(loc, player_loc.z, block->expose_mask);
 
 					if (block->texture->transparent) { // draw block sorted between entities
 						if (bucket != NULL) {
