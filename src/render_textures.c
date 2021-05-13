@@ -2,9 +2,29 @@
 #include "textures.h"
 #include "render.h"
 #include "vector.h"
+#include "utils.h"
 
 SDL_Rect SDL_TEX_RECT;
 SDL_Rect VOXEL_TEX_RECTS[3];
+
+const v2i OUTLINES[6][2] = {
+	{ // top left
+		(v2i){0, (VOXEL_WIDTH >> 2) - 1},
+		(v2i){(VOXEL_WIDTH >> 1) - 1, 0}
+	},
+	{ // top right
+		(v2i){(VOXEL_WIDTH >> 1), 0},
+		(v2i){VOXEL_WIDTH - 1, (VOXEL_WIDTH >> 2) - 1}
+	},
+	{ // bottom left
+	},
+	{ // bottom right
+	},
+	{ // left corner
+	},
+	{ // right corner
+	},
+};
 
 // workaround for C's weird global constant rules
 void render_textures_init() {
@@ -103,18 +123,33 @@ SDL_Texture *render_cached_voxel_texture(SDL_Surface *surfaces[3], unsigned expo
 	return texture;
 }
 
-// masks are 3-bit here
-void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, unsigned expose_mask, unsigned void_mask) {
+// expose and void mask are processed to 3 bit: R-L-T
+// outline mask is processed to 6 bits corresponding to OUTLINES array; see above
+void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos,
+						  unsigned expose_mask, unsigned void_mask, unsigned outline_mask) {
 	expose_mask = (expose_mask & ~void_mask) & 0x7;
 
-	pos.x += VOXEL_TEX_RECTS[2].x;
-	pos.y += VOXEL_TEX_RECTS[2].y;
-
-	if (expose_mask)
+	if (expose_mask) {
+		SDL_RenderDrawPoint(renderer, pos.x, pos.y);
 		render_sdl_texture(voxel_texture->textures[expose_mask - 1], pos);
+	}
 
 	if (void_mask)
 		render_sdl_texture(VOID_VOXEL_TEXTURE->textures[void_mask - 1], pos);
+
+	if (outline_mask) {
+		v2i offset = {
+			pos.x + SDL_TEX_RECT.x,
+			pos.y + SDL_TEX_RECT.y
+		};
+
+		for (int i = 0; i < 2/*6*/; ++i) {
+			if (BIT_GET(outline_mask, i)) {
+				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
+											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
+			}
+		}
+	}
 }
 
 void render_connected_texture(connected_tex_t *connected_tex, v2i pos, unsigned connected_mask) {

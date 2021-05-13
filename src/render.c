@@ -6,6 +6,8 @@
 #include <math.h>
 #include "render.h"
 #include "textures.h"
+#include "render_primitives.h"
+#include "render_textures.h"
 #include "gui.h"
 #include "vector.h"
 #include "collision.h"
@@ -14,8 +16,6 @@
 #include "data_structures/hashmap.h"
 #include "data_structures/list.h"
 #include "camera.h"
-#include "render_primitives.h"
-#include "render_textures.h"
 #include "utils.h"
 #include "world.h"
 
@@ -24,30 +24,6 @@
 
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 const v3d PLAYER_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
-
-// outline lines
-const v2i OUTLINE_TOP_EDGES[][2] = {
-	{
-		(v2i){0, (VOXEL_WIDTH >> 1) - 1},
-		(v2i){VOXEL_WIDTH >> 1, (VOXEL_WIDTH >> 2) - 1},
-	},
-	{
-		(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2) - 1},
-		(v2i){0, 0},
-	},
-	{
-		(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2)},
-		(v2i){0, (VOXEL_WIDTH >> 1)},
-	},
-	{
-		(v2i){0, 0},
-		(v2i){VOXEL_WIDTH >> 1, (VOXEL_WIDTH >> 2) - 1},
-	},
-};
-const v2i OUTLINE_CORNERS[] = {
-	(v2i){(VOXEL_WIDTH >> 1) - 1, (VOXEL_WIDTH >> 2)},
-	(v2i){-(VOXEL_WIDTH >> 1), (VOXEL_WIDTH >> 2)},
-};
 
 SDL_Renderer *renderer;
 SDL_Texture *foreground, *background;
@@ -159,68 +135,32 @@ unsigned render_find_void_mask(v3i loc, int player_z, unsigned block_expose_mask
 	// swap XY when camera rotation calls for it
 	if (camera.rotation & 1) { // rotation == 1 || rotation == 3
 		bool swp;
-		BIT_SET_SWAP(void_mask, 0, 1, swp);
+		BIT_SET_SWAP(void_mask, 0, 1, swp)
 	} 
 
 	return void_mask;
 }
 
-/*
-void render_block_outline(v3i loc, unsigned outline_mask, unsigned expose_mask) {
-	int i, j;
-	v2i block_pos;
-	v2i pos;
-
-	// bottom edges
-	block_pos = project_v3i(loc, true);
-
-	for (i = 0; i <= 1; ++i) {
-		if ((outline_mask >> (i + 6)) & 1 && (expose_mask >> i) & 1) {
-			render_aligned_line(v2i_add(block_pos, OUTLINE_TOP_EDGES[i << 1][0]),
-								v2i_add(block_pos, OUTLINE_TOP_EDGES[i << 1][1]));
-		}
-	}
-
-	// top edges
-	block_pos.y -= VOXEL_Z_HEIGHT;
-
-	if (expose_mask >> 2) {
-		for (i = 0; i < 4; ++i) {
-			if ((outline_mask >> i) & 1) {
-				render_aligned_line(v2i_add(block_pos, OUTLINE_TOP_EDGES[i][0]),
-									v2i_add(block_pos, OUTLINE_TOP_EDGES[i][1]));
-			}
-		}
-	}
-
-	// corners
-	for (i = 0; i <= 1; ++i) {
-		if ((outline_mask >> (i + 4)) & 1 && (expose_mask >> i) & 1) {
-			pos = v2i_add(block_pos, OUTLINE_CORNERS[i]);
-
-			for (j = 1; j <= VOXEL_Z_HEIGHT - ((outline_mask >> (i + 6)) & 1); ++j)
-				SDL_RenderDrawPoint(renderer, pos.x, pos.y + j);
-		}
-	}
-}
-*/
-
 void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 	texture_type_e tex_type = block->texture->type;
-	unsigned expose_mask = 0x0;
+	unsigned expose_mask = 0x0, outline_mask = 0x0;
+	unsigned dir_bit;
 
-	// determine expose mask by rotation
+	// determine expose and outline masks by rotation
 	for (int i = 0; i <= 1; ++i) {
-		if (v3i_get(&camera.inc_render, i) > 0)
-			BIT_SET_COND(expose_mask, i, BIT_GET(block->expose_mask, (i << 1) | 1))
-		else
-			BIT_SET_COND(expose_mask, i, BIT_GET(block->expose_mask, i << 1))
+		dir_bit = ((v3i_get(&camera.inc_render, i) > 0) ? 1 : 0);
+
+		BIT_SET_COND(expose_mask, i, BIT_GET(block->expose_mask, (i << 1) | dir_bit))
+		BIT_SET_COND(outline_mask, i, BIT_GET(block->tex_state.outline_mask, (i << 1) | ((~dir_bit) & 1)))
 	}
 
 	// swap XY when camera rotation calls for it
 	if (camera.rotation & 1) { // rotation == 1 || rotation == 3
 		bool swp;
+
 		BIT_SET_SWAP(expose_mask, 0, 1, swp);
+		BIT_SET_SWAP(outline_mask, 0, 1, swp);
+		//BIT_SET_SWAP(outline_mask, 2, 3, swp);
 	} 
 
 	expose_mask |= BIT_GET(block->expose_mask, 4) << 2;
@@ -241,16 +181,8 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 
 	if (tex_type == TEX_VOXEL) {
 		if (expose_mask || void_mask) {
-			//unsigned outline_mask;
-
-			// TODO update mask code for camera rotation
 			render_voxel_texture(block->texture->tex.voxel, project_v3i(loc),
-								 expose_mask, void_mask);
-
-			/*
-			if ((outline_mask = block->tex_state.outline_mask))
-				render_block_outline(loc, outline_mask, expose_mask & ~void_mask);
-			*/
+								 expose_mask, void_mask, outline_mask);
 		}
 	} else if (expose_mask) {
 		// the amount of times I had to type "tex" or "texture" here is hilarious lol

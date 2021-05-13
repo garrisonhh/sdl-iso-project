@@ -15,11 +15,11 @@
 #include "data_structures/list.h"
 #include "pathing.h"
 
-const v3i OUTLINE_EDGE_OFFSETS[4] = {
-	(v3i){ 1,  0, 0},
-	(v3i){-1,  0, 0},
-	(v3i){ 0,  1, 0},
-	(v3i){ 0, -1, 0},
+const v3i OUTLINE_TOP_OFFSETS[4] = {
+	(v3i){-1,  0,  1},
+	(v3i){ 1,  0,  1},
+	(v3i){ 0, -1,  1},
+	(v3i){ 0,  1,  1},
 };
 
 chunk_t *chunk_create() {
@@ -126,37 +126,12 @@ void world_update_masks(world_t *world, v3i loc) {
 			// outline mask
 			mask = 0x0;
 
-			/*
-			// check each of the top edges based on the edge offset
-			for (i = 0; i < 4; ++i)
-				if (world_block_see_through(world, v3i_add(loc, OUTLINE_EDGE_OFFSETS[i])))
-					mask |= 0x1 << i;
+			if (BIT_GET(block->expose_mask, 4))
+				for (i = 0; i < 4; ++i) // TODO check diagonally up
+					if (BIT_GET(block->expose_mask, i)
+					 && world_block_see_through(world, v3i_add(loc, OUTLINE_TOP_OFFSETS[i])))
+						BIT_SET_TRUE(mask, i)
 
-			// check corners
-			neighbor = (v3i){0, -1, 0};
-			diagonal = (v3i){1, -1, 0};
-
-			for (i = 0; i <= 1; ++i) {
-				if (!world_block_see_through(world, v3i_add(loc, diagonal))
-				 || world_block_see_through(world, v3i_add(loc, neighbor))) {
-					mask |= 0x1 << (i + 4);
-				}
-				
-				SWAP(neighbor.x, neighbor.y, swap);
-				SWAP(diagonal.x, diagonal.y, swap);
-			}
-			
-			// check bottom edges
-			diagonal = (v3i){1, 0, -1};
-
-			for (i = 0; i <= 1; ++i) {
-				if (!world_block_see_through(world, v3i_add(loc, diagonal)))
-					mask |= 0x1 << (i + 6);
-				
-				SWAP(diagonal.x, diagonal.y, swap);
-			}
-			*/
-			
 			block->tex_state.outline_mask = mask;
 		}
 	}
