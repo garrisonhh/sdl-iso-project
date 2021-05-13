@@ -28,6 +28,8 @@ v2i v2i_sub(v2i, v2i);
 v2i v2i_mul(v2i, v2i);
 v2i v2i_div(v2i, v2i);
 
+v2d v2d_add(v2d, v2d);
+v2d v2d_sub(v2d, v2d);
 double v2d_dot(v2d, v2d);
 
 v3i v3i_from_v3d(v3d);
