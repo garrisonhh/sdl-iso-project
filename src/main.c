@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
 		this_tick = timeit_get_time();
 
 		world_tick(world, this_tick - last_tick);
-		camera_set_center(world->player->ray.pos);
+		camera_set_pos(world->player->ray.pos);
 
 		ticks[tick_idx++] = this_tick - last_tick;
 		tick_idx %= 32;

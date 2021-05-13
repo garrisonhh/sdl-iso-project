@@ -5,37 +5,41 @@
 #include "render.h"
 #include "utils.h"
 
+const int VOXEL_HALF_W = VOXEL_WIDTH >> 1;
+const int VOXEL_4TH_W = VOXEL_WIDTH >> 2;
+
 // requires camera_init
 camera_t camera = {
-	.pos = (v2i){0, 0},
 	.viewport = (SDL_Rect){0, 0, 0, 0},
 	.rotation = 0,
 };
 
 void camera_update(void);
 
-// project functions are high FPS impact so if the code looks stupid/repetitive
-// that is why lol
+// project functions are high FPS impact and very visually important, so if the
+// code looks stupid/repetitive/weirldy formed that is why lol
+v2i project_v3i(v3i v) {
+	v = camera_rotated_v3i(v);
 
-// used for camera position only
-v2i project_v3d_absolute(v3d v) {
 	return (v2i){
-		((v.x - v.y) * VOXEL_WIDTH) / 2,
-		(((v.x + v.y) * VOXEL_WIDTH) / 4) - (v.z * VOXEL_Z_HEIGHT)
+		((v.x - v.y) * VOXEL_HALF_W) - camera.center.x,
+		((v.x + v.y) * VOXEL_4TH_W) - (v.z * VOXEL_Z_HEIGHT) - camera.center.y
 	};
 }
 
-v2i project_v3i(v3i v) {
-	return project_v3d(v3d_from_v3i(v));
+v2i project_v3d_absolute(v3d v) {
+	v = camera_rotated_v3d(v);
+
+	return (v2i){
+		((v.x - v.y) * VOXEL_WIDTH) / 2.0,
+		(((v.x + v.y) * VOXEL_WIDTH) / 4.0) - (v.z * VOXEL_Z_HEIGHT)
+	};
 }
 
 v2i project_v3d(v3d v) {
-	v = camera_rotated_v3d(v3d_sub(v, camera.center));
+	v2i iso = project_v3d_absolute(v);
 
-	return (v2i){
-		(((v.x - v.y) * VOXEL_WIDTH) / 2) + camera.center_screen.x,
-		(((v.x + v.y) * VOXEL_WIDTH) / 4) - (v.z * VOXEL_Z_HEIGHT) + camera.center_screen.y
-	};
+	return (v2i){iso.x - camera.center.x, iso.y - camera.center.y};
 }
 
 // use to adjust vectors for camera rotation
@@ -124,8 +128,11 @@ v3i camera_reverse_rotated_v3i(v3i v) {
 }
 
 void camera_init() {
+	v3d pos = (v3d){0, 0, 0};
+
 	camera.view_circle.radius = SCREEN_HEIGHT >> 2;
 	camera_set_scale(2);
+	camera_set_pos(pos);
 
 	camera_update();
 }
@@ -134,7 +141,7 @@ void camera_update() {
 	int i;
 	int min_val, max_val;
 
-	v3i center = v3i_from_v3d(camera.center);
+	v3i center = v3i_from_v3d(camera.pos);
 
 	camera.inc_render = (v3i){1, 1, 1};
 
@@ -171,9 +178,9 @@ void camera_set_block_size(int block_size) {
 	camera_update();
 }
 
-void camera_set_center(v3d center) {
-	camera.center = center;
-	camera.pos = v2i_sub(project_v3d_absolute(center), camera.center_screen);
+void camera_set_pos(v3d pos) {
+	camera.pos = pos;
+	camera.center = v2i_sub(project_v3d_absolute(camera.pos), camera.center_screen);
 
 	camera_update();
 }
