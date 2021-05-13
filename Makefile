@@ -1,14 +1,16 @@
+CC = gcc
 OBJS = src/*.c src/*/*.c
-COMPILER_FLAGS_DEBUG = -Wall -g -ffast-math
-COMPILER_FLAGS_BUILD = -O3 -ffast-math
+CFLAGS_DEBUG = -Wall -g
+CFLAGS_BUILD = -O3
+CFLAGS = -ffast-math
 LINKER_FLAGS = -lm -lSDL2 -lSDL2_image -ljson-c
 TARGET = iso
 
-debug:
-	gcc $(COMPILER_FLAGS_DEBUG) $(LINKER_FLAGS) -o $(TARGET) $(OBJS)
-
 build:
-	gcc $(COMPILER_FLAGS_BUILD) $(LINKER_FLAGS) -o $(TARGET) $(OBJS)
+	$(CC) $(CFLAGS_BUILD) $(CFLAGS) $(LINKER_FLAGS) -o $(TARGET) $(OBJS)
+
+debug:
+	$(CC) $(CFLAGS_DEBUG) $(CFLAGS) $(LINKER_FLAGS) -o $(TARGET) $(OBJS)
 
 clean:
 	rm -f $(TARGET)
