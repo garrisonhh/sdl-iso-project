@@ -307,7 +307,7 @@ void generate_tree(world_t *world, v3i loc) {
 void world_generate(world_t *world) {
 	timeit_start();
 
-	if (1) { // debug world
+	if (0) { // debug world
 		size_t grass = block_gen_get_id("grass");
 		size_t dirt = block_gen_get_id("dirt");
 		v3i loc = (v3i){0, 0, 0};

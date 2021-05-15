@@ -48,6 +48,15 @@ void init() {
 	block_gen_load();
 
 	gui_load();
+
+	SDL_RenderPresent(renderer);
+
+	// draw loading text
+	v2i loading_pos = {0, 0};
+	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderClear(renderer);
+	fonts_render_text(FONT_UI, "loading...", loading_pos);
+	SDL_RenderPresent(renderer);
 }
 
 void quit_all() {
@@ -67,7 +76,7 @@ int main(int argc, char *argv[]) {
 	init();
 
 	// world
-	world_t *world = world_create(0);
+	world_t *world = world_create(3);
 	world_generate(world);
 
 	camera_set_block_size(world->block_size);
