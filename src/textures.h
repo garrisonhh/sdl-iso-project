@@ -87,7 +87,7 @@ union texture_state_t {
 };
 typedef union texture_state_t texture_state_t;
 
-extern voxel_tex_t *VOID_VOXEL_TEXTURE;
+extern voxel_tex_t *DARK_VOXEL_TEXTURE;
 
 void textures_load(void);
 void textures_destroy(void);

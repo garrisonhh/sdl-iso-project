@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 	init();
 
 	// world
-	world_t *world = world_create(3);
+	world_t *world = world_create(0);
 	world_generate(world);
 
 	camera_set_block_size(world->block_size);

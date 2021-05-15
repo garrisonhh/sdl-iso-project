@@ -143,31 +143,31 @@ void camera_update() {
 
 	v3i center = v3i_from_v3d(camera.pos);
 
-	camera.inc_render = (v3i){1, 1, 1};
+	camera.render_inc = (v3i){1, 1, 1};
 
 	switch (camera.rotation) {
 		case 1:
-			camera.inc_render.x = -1;
+			camera.render_inc.x = -1;
 			break;
 		case 2:
-			camera.inc_render.x = -1;
-			camera.inc_render.y = -1;
+			camera.render_inc.x = -1;
+			camera.render_inc.y = -1;
 			break;
 		case 3:
-			camera.inc_render.y = -1;
+			camera.render_inc.y = -1;
 			break;
 	}
 
 	for (i = 0; i < 3; ++i) {
 		min_val = MAX(0, v3i_get(&center, i) - camera.render_dist);
-		max_val = MIN(camera.block_size, v3i_get(&center, i) + camera.render_dist);
+		max_val = MIN(camera.block_size - 1, v3i_get(&center, i) + camera.render_dist);
 
-		if (v3i_get(&camera.inc_render, i) > 0) {
-			v3i_set(&camera.min_render, i, min_val);
-			v3i_set(&camera.max_render, i, max_val);
+		if (v3i_get(&camera.render_inc, i) > 0) {
+			v3i_set(&camera.render_start, i, min_val);
+			v3i_set(&camera.render_end, i, max_val);
 		} else { // values swapped
-			v3i_set(&camera.min_render, i, max_val - 1);
-			v3i_set(&camera.max_render, i, min_val - 1);
+			v3i_set(&camera.render_start, i, max_val);
+			v3i_set(&camera.render_end, i, min_val);
 		}
 	}
 }

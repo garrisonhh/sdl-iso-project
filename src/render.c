@@ -18,6 +18,7 @@
 #include "camera.h"
 #include "utils.h"
 #include "world.h"
+#include "world_masks.h"
 
 #define BG_GRAY 31
 #define SHADOW_ALPHA 63
@@ -120,51 +121,7 @@ void render_entity(entity_t *entity) {
 		render_sprite(entity->sprites[i], screen_pos, entity->anim_states[i].cell);
 }
 
-unsigned render_find_void_mask(v3i loc, int player_z, unsigned block_expose_mask) {
-	unsigned void_mask = 0x0;
-
-	// world borders
-	for (int i = 0; i < 3; ++i)
-		if (v3i_get(&loc, i) == v3i_get(&camera.max_render, i) - v3i_get(&camera.inc_render, i))
-			BIT_SET_TRUE(void_mask, i)
-
-	// foreground/background "fog of war"
-	if (loc.z == player_z && !BIT_GET(block_expose_mask, 4))
-		void_mask |= 0x4;
-
-	// swap XY when camera rotation calls for it
-	if (camera.rotation & 1) { // rotation == 1 || rotation == 3
-		bool swp;
-		BIT_SET_SWAP(void_mask, 0, 1, swp)
-	} 
-
-	return void_mask;
-}
-
-void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
-	texture_type_e tex_type = block->texture->type;
-	unsigned expose_mask = 0x0, outline_mask = 0x0;
-	unsigned dir_bit;
-
-	// determine expose and outline masks by rotation
-	for (int i = 0; i <= 1; ++i) {
-		dir_bit = ((v3i_get(&camera.inc_render, i) > 0) ? 1 : 0);
-
-		BIT_SET_COND(expose_mask, i, BIT_GET(block->expose_mask, (i << 1) | dir_bit))
-		BIT_SET_COND(outline_mask, i, BIT_GET(block->tex_state.outline_mask, (i << 1) | ((~dir_bit) & 1)))
-	}
-
-	// swap XY when camera rotation calls for it
-	if (camera.rotation & 1) { // rotation == 1 || rotation == 3
-		bool swp;
-
-		BIT_SET_SWAP(expose_mask, 0, 1, swp);
-		BIT_SET_SWAP(outline_mask, 0, 1, swp);
-		//BIT_SET_SWAP(outline_mask, 2, 3, swp);
-	} 
-
-	expose_mask |= BIT_GET(block->expose_mask, 4) << 2;
-
+v2i render_block_project(v3i loc) {
 	// modify loc so that it is the back center corner of voxel from camera perspective
 	switch (camera.rotation) {
 		case 1:
@@ -179,23 +136,29 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 			break;
 	}
 
+	return project_v3i(loc);
+}
+
+void render_block(world_t *world, block_t *block, v3i loc) {
+	texture_type_e tex_type = block->texture->type;
+
 	if (tex_type == TEX_VOXEL) {
-		if (expose_mask || void_mask) {
-			render_voxel_texture(block->texture->tex.voxel, project_v3i(loc),
-								 expose_mask, void_mask, outline_mask);
-		}
-	} else if (expose_mask) {
+		voxel_masks_t masks = world_voxel_masks(block, loc);
+
+		if (masks.expose || masks.dark)
+			render_voxel_texture(block->texture->tex.voxel, render_block_project(loc), masks);
+	} else if (world_exposed(block)) {
 		// the amount of times I had to type "tex" or "texture" here is hilarious lol
 		switch (tex_type) {
 			case TEX_TEXTURE:
-				render_sdl_texture(block->texture->tex.texture, project_v3i(loc));
+				render_sdl_texture(block->texture->tex.texture, render_block_project(loc));
 				break;
 			case TEX_CONNECTED:
-				render_connected_texture(block->texture->tex.connected, project_v3i(loc),
+				render_connected_texture(block->texture->tex.connected, render_block_project(loc),
 										 block->tex_state.connected_mask);
 				break;
 			case TEX_SHEET:
-				render_sheet_texture(block->texture->tex.sheet, project_v3i(loc),
+				render_sheet_texture(block->texture->tex.sheet, render_block_project(loc),
 									 block->tex_state.cell);
 				break;
 			default:
@@ -206,7 +169,6 @@ void render_block(world_t *world, block_t *block, v3i loc, unsigned void_mask) {
 
 void render_world(world_t *world) {
 	int i;
-	unsigned void_mask;
 	bool render_to_fg, player_blocked;
 	double block_y;
 	ray_t cam_ray;
@@ -222,7 +184,7 @@ void render_world(world_t *world) {
 
 	cam_ray = (ray_t){
 		world->player->ray.pos,
-		PLAYER_VIEW_DIR
+		camera_reverse_rotated_v3d(PLAYER_VIEW_DIR)
 	};
 	cam_ray.pos.z += world->player->size.z / 2;
 	player_blocked = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
@@ -239,7 +201,7 @@ void render_world(world_t *world) {
 	// shadow setup
 	render_generate_shadows(world, &shadows);
 
-	for (loc.z = camera.min_render.z; loc.z != camera.max_render.z; loc.z += camera.inc_render.z) {
+	for (loc.z = camera.render_start.z; loc.z != camera.render_end.z + camera.render_inc.z; loc.z += camera.render_inc.z) {
 		// render shadows
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
 
@@ -255,42 +217,35 @@ void render_world(world_t *world) {
 
 		// render blocks and buckets
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x3F); // block outline color
-		
-		for (loc.y = camera.min_render.y; loc.y != camera.max_render.y; loc.y += camera.inc_render.y) {
-			for (loc.x = camera.min_render.x; loc.x != camera.max_render.x; loc.x += camera.inc_render.x) {
+
+		for (loc.y = camera.render_start.y; loc.y != camera.render_end.y + camera.render_inc.y; loc.y += camera.render_inc.y) {
+			for (loc.x = camera.render_start.x; loc.x != camera.render_end.x + camera.render_inc.x; loc.x += camera.render_inc.x) {
 				world_get_render_loc(world, loc, &block, &bucket);
 
 				if (block != NULL) {
-					if (block->texture->type == TEX_VOXEL)
-						void_mask = render_find_void_mask(loc, player_loc.z, block->expose_mask);
+					if (block->texture->transparent && bucket != NULL) { // draw block sorted between entities
+						// TODO apply camera rotation to this
+						// I think move entity_y and entity_bucket_compare to render.c, and then
+						// calculate block_y with camera taken into account
+						// also unsure what this means for entity sorting, it will have to be done
+						// at least after every rotation
 
-					if (block->texture->transparent) { // draw block sorted between entities
-						if (bucket != NULL) {
-							// TODO apply camera rotation to this
-							// I think move entity_y and entity_bucket_compare to render.c, and then
-							// calculate block_y with camera taken into account
-							// also unsure what this means for entity sorting, it will have to be done
-							// at least after every rotation
+						block_y = (double)(loc.x + loc.y) + 1.0; // 1.0 for (0.5, 0.5) center of block
+						bucket_trav = bucket->root;
 
-							block_y = (double)(loc.x + loc.y) + 1.0; // 1.0 for (0.5, 0.5) center of block
-							bucket_trav = bucket->root;
+						while (bucket_trav != NULL && entity_y(bucket_trav->item) < block_y) {
+							render_entity(bucket_trav->item);
+							bucket_trav = bucket_trav->next;
+						}
 
-							while (bucket_trav != NULL && entity_y(bucket_trav->item) < block_y) {
-								render_entity(bucket_trav->item);
-								bucket_trav = bucket_trav->next;
-							}
-
-							render_block(world, block, loc, void_mask);
-							
-							while (bucket_trav != NULL) {
-								render_entity(bucket_trav->item);
-								bucket_trav = bucket_trav->next;
-							}
-						} else {
-							render_block(world, block, loc, void_mask);
+						render_block(world, block, loc);
+						
+						while (bucket_trav != NULL) {
+							render_entity(bucket_trav->item);
+							bucket_trav = bucket_trav->next;
 						}
 					} else { // draw entities over block regardless
-						render_block(world, block, loc, void_mask);
+						render_block(world, block, loc);
 
 						if (bucket != NULL)
 							LIST_FOREACH(bucket_trav, bucket)
@@ -302,7 +257,7 @@ void render_world(world_t *world) {
 				}
 			}
 		}
-	}	
+	}
 
 	// render target surfaces to window
 	if (render_to_fg) {

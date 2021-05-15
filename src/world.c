@@ -14,13 +14,7 @@
 #include "data_structures/array.h"
 #include "data_structures/list.h"
 #include "pathing.h"
-
-const v3i OUTLINE_TOP_OFFSETS[4] = {
-	(v3i){-1,  0,  1},
-	(v3i){ 1,  0,  1},
-	(v3i){ 0, -1,  1},
-	(v3i){ 0,  1,  1},
-};
+#include "world_masks.h"
 
 chunk_t *chunk_create() {
 	chunk_t *chunk = malloc(sizeof(chunk_t));
@@ -80,60 +74,6 @@ void world_check_chunk(world_t *world, unsigned chunk_index) {
 	 && chunk->num_blocks == 0 && chunk->num_entities == 0) {
 		chunk_destroy(chunk);
 		world->chunks[chunk_index] = NULL;
-	}
-}
-
-bool world_block_see_through(world_t *world, v3i loc) {
-	block_t *block = world_get(world, loc);
-
-	return block == NULL || block->texture->transparent;
-}
-
-void world_update_masks(world_t *world, v3i loc) {
-	block_t *block;
-
-	if ((block = world_get(world, loc)) != NULL) {
-		int i, j;
-		unsigned mask;
-		v3i neighbor;
-
-		// expose mask
-		mask = 0x0;
-
-		for (i = 0; i <= 1; ++i) {
-			neighbor = loc;
-
-			for (j = 0; j <= 1; ++j) {
-				v3i_set(&neighbor, i, v3i_get(&loc, i) + (j ? 1 : -1));
-
-				if (world_block_see_through(world, neighbor))
-					mask |= 0x1 << ((i << 1) | j);
-			}
-		}
-
-		neighbor = loc;
-		++neighbor.z;
-
-		if (world_block_see_through(world, neighbor))
-			mask |= 0x10; // 0x1 << 4;
-
-		block->expose_mask = mask;
-
-		// connect mask
-		// TODO
-
-		if (block->texture->type == TEX_VOXEL) {
-			// outline mask
-			mask = 0x0;
-
-			if (BIT_GET(block->expose_mask, 4))
-				for (i = 0; i < 4; ++i) // TODO check diagonally up
-					if (BIT_GET(block->expose_mask, i)
-					 && world_block_see_through(world, v3i_add(loc, OUTLINE_TOP_OFFSETS[i])))
-						BIT_SET_TRUE(mask, i)
-
-			block->tex_state.outline_mask = mask;
-		}
 	}
 }
 
@@ -367,7 +307,7 @@ void generate_tree(world_t *world, v3i loc) {
 void world_generate(world_t *world) {
 	timeit_start();
 
-	if (0) { // debug world
+	if (1) { // debug world
 		size_t grass = block_gen_get_id("grass");
 		size_t dirt = block_gen_get_id("dirt");
 		v3i loc = (v3i){0, 0, 0};
@@ -378,7 +318,11 @@ void world_generate(world_t *world) {
 			}
 		}
 
+		loc = (v3i){1, 1, 4};
+		world_set_no_update(world, loc, dirt);
 		loc = (v3i){0, 0, 0};
+		world_set_no_update(world, loc, dirt);
+		loc = (v3i){15, 15, 0};
 		world_set_no_update(world, loc, dirt);
 	} else {
 		int noise_val;
@@ -484,11 +428,9 @@ void world_tick(world_t *world, double time) {
 		free(update);
 	}
 
-	LIST_FOREACH(node, world->ticks) {
+	LIST_FOREACH(node, world->ticks)
 		block_tick(node->item, world, time);
-	}
 
-	LIST_FOREACH(node, world->buckets) {
+	LIST_FOREACH(node, world->buckets)
 		world_bucket_z_sort(node->item);
-	}
 }

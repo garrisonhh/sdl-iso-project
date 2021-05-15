@@ -19,7 +19,7 @@ struct camera_t {
 
 	// rendering
 	int render_dist, block_size;
-	v3i min_render, max_render, inc_render; // render_world iteration values
+	v3i render_start, render_end, render_inc; // render_world iteration values
 	int rotation; // 0-3; whether facing N, E, S, W
 };
 typedef struct camera_t camera_t;

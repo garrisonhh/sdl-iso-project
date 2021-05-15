@@ -17,12 +17,8 @@ bool DEBUG = false;
 sprite_t *COMPASS;
 v2i COMPASS_POS, COMPASS_CELL;
 
-// debug vars
-char FPS_COUNTER[16];
-v2i FPS_COUNTER_POS = {0, 0};
-
-char PLAYER_POS[32];
-v2i PLAYER_POS_POS = {0, 8};
+#define NUM_DEBUG_LINES 10
+char DEBUG_LINES[NUM_DEBUG_LINES][64];
 
 // call after render_init
 void gui_init() {
@@ -31,6 +27,9 @@ void gui_init() {
 							SDL_TEXTUREACCESS_TARGET,
 							GUI_WIDTH, GUI_HEIGHT);
 	SDL_SetTextureBlendMode(STATIC_GUI, SDL_BLENDMODE_BLEND);
+
+	for (int i = 0; i < NUM_DEBUG_LINES; ++i)
+			DEBUG_LINES[i][0] = '\0';
 }
 
 // call after textures_load
@@ -41,15 +40,20 @@ void gui_load() {
 }
 
 void gui_update(double fps, world_t *world) {
-	sprintf(FPS_COUNTER, "FPS: %3.1lf", fps);
+	int line = 0;
+
+	sprintf(DEBUG_LINES[line++], "FPS: %3.1lf", fps);
 
 	if (COMPASS_CELL.x != camera.rotation) {
 		COMPASS_CELL.x = camera.rotation;
 		UPDATE_STATIC = true;
 	}
 
-	v3d pos = world->player->ray.pos;
-	sprintf(PLAYER_POS, "POS: %6.2lf %6.2lf %6.2lf", pos.x, pos.y, pos.z);
+	v3d_sprint(DEBUG_LINES[line++], "POS", world->player->ray.pos);
+	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);
+	v3i_sprint(DEBUG_LINES[line++], "RENDER START", camera.render_start);
+	v3i_sprint(DEBUG_LINES[line++], "RENDER END", camera.render_end);
+	v3i_sprint(DEBUG_LINES[line++], "RENDER INC", camera.render_inc);
 }
 
 void gui_render() {
@@ -68,8 +72,13 @@ void gui_render() {
 	SDL_RenderCopy(renderer, STATIC_GUI, NULL, NULL);
 
 	if (DEBUG) {
-		fonts_render_text(FONT_UI, FPS_COUNTER, FPS_COUNTER_POS);
-		fonts_render_text(FONT_UI, PLAYER_POS, PLAYER_POS_POS);
+		v2i line_start = {0, 0};
+
+		for (int i = 0; i < NUM_DEBUG_LINES; ++i) {
+			fonts_render_text(FONT_UI, DEBUG_LINES[i], line_start);
+
+			line_start.y += FONTS[FONT_UI].char_size.y;
+		}
 	}
 }
 

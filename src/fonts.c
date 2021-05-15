@@ -8,12 +8,6 @@
 #include "textures.h"
 #include "vector.h"
 
-struct font_t {
-	SDL_Texture *sheet;
-	v2i char_size, sheet_size;
-};
-typedef struct font_t font_t;
-
 font_t FONTS[1]; // corresponds to font_e
 
 font_t load_font(json_object *font_obj) {

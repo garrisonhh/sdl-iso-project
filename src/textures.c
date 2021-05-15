@@ -15,7 +15,7 @@ texture_t **TEXTURES = NULL;
 size_t NUM_TEXTURES;
 hashmap_t *TEXTURE_MAP;
 
-voxel_tex_t *VOID_VOXEL_TEXTURE;
+voxel_tex_t *DARK_VOXEL_TEXTURE;
 
 // only use when you actually need the surface data
 SDL_Surface *load_sdl_surface(const char *path) {
@@ -311,7 +311,7 @@ void textures_load() {
 	hashmap_destroy(sprite_type_map, true);
 	content_close_file(file_obj);
 
-	VOID_VOXEL_TEXTURE = texture_from_key("void")->tex.voxel;
+	DARK_VOXEL_TEXTURE = texture_from_key("dark")->tex.voxel;
 }
 
 void textures_destroy() {
@@ -349,7 +349,7 @@ void textures_destroy() {
 		free(TEXTURES[i]);
 	}
 
-	VOID_VOXEL_TEXTURE = NULL;
+	DARK_VOXEL_TEXTURE = NULL;
 
 	free(TEXTURES);
 	TEXTURES = NULL;

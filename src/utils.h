@@ -30,8 +30,8 @@
 
 // bitfield ops
 #define BIT_GET(bitfield, index) (((bitfield) >> (index)) & 1)
-#define BIT_SET_TRUE(bitfield, index) {bitfield |= (0x1 << index);}
-#define BIT_SET_FALSE(bitfield, index) {bitfield &= ~(0x1 << index);}
+#define BIT_SET_TRUE(bitfield, index) {bitfield |= (0x1 << (index));}
+#define BIT_SET_FALSE(bitfield, index) {bitfield &= ~(0x1 << (index));}
 
 #define BIT_SET_COND(bitfield, index, cond) {\
 	if (cond) \

@@ -134,6 +134,13 @@ void v3i_print(const char *message, v3i v) {
 	printf("{%d\t%d\t%d}\n", v.x, v.y, v.z);
 }
 
+void v3i_sprint(char *string, const char *message, v3i v) {
+	if (message != NULL)
+		sprintf(string, "%s: (%9d, %9d, %9d)", message, v.x, v.y, v.z);
+	else
+		sprintf(string, "(%9d, %9d, %9d)", v.x, v.y, v.z);
+}
+
 v3d v3d_from_v3i(v3i v) {
 	return (v3d){v.x, v.y, v.z};
 }
@@ -209,4 +216,11 @@ void v3d_print(const char *message, v3d v) {
 	if (message != NULL)
 		printf("%s:\t", message);
 	printf("{%9.4f\t%9.4f\t%9.4f}\n", v.x, v.y, v.z);
+}
+
+void v3d_sprint(char *string, const char *message, v3d v) {
+	if (message != NULL)
+		sprintf(string, "%s: (%9.4f, %9.4f, %9.4f)", message, v.x, v.y, v.z);
+	else
+		sprintf(string, "(%9.4f, %9.4f, %9.4f)", v.x, v.y, v.z);
 }

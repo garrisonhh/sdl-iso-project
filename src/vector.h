@@ -43,6 +43,7 @@ v3i polarity_of_v3d(v3d);
 double v3i_magnitude(v3i);
 double v3i_dot(v3i, v3i);
 void v3i_print(const char *message, v3i v);
+void v3i_sprint(char *string, const char *message, v3i v);
 
 v3d v3d_from_v3i(v3i);
 double v3d_get(v3d *, int);
@@ -56,5 +57,6 @@ double v3d_magnitude(v3d);
 double v3d_dist(v3d, v3d);
 double v3d_dot(v3d, v3d);
 void v3d_print(const char *message, v3d v);
+void v3d_sprint(char *string, const char *message, v3d v);
 
 #endif

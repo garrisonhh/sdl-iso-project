@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <sys/time.h>
+#include "utils.h"
 
 #define TOLERANCE 0.00001
 
@@ -65,7 +66,7 @@ void print_bits(const char *message, unsigned n, size_t bits) {
 		printf("%s:\t", message);
 
 	for (int i = bits - 1; i >= 0; --i)
-		printf("%u", (n >> i) & 1);
+		printf("%u", BIT_GET(n, i));
 
 	printf("\n");
 }

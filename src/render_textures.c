@@ -3,6 +3,7 @@
 #include "render.h"
 #include "vector.h"
 #include "utils.h"
+#include "world_masks.h"
 
 SDL_Rect SDL_TEX_RECT;
 SDL_Rect VOXEL_TEX_RECTS[3];
@@ -17,13 +18,21 @@ const v2i OUTLINES[6][2] = {
 		(v2i){VOXEL_WIDTH - 1, (VOXEL_WIDTH >> 2) - 1}
 	},
 	{ // bottom left
+		(v2i){0, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)},
+		(v2i){(VOXEL_WIDTH >> 1) - 1, VOXEL_HEIGHT - 1}
 	},
 	{ // bottom right
+		(v2i){(VOXEL_WIDTH >> 1), VOXEL_HEIGHT - 1},
+		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)}
 	},
 	{ // left corner
+		(v2i){0, (VOXEL_WIDTH >> 2) - 1},
+		(v2i){0, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)}
 	},
 	{ // right corner
-	},
+		(v2i){VOXEL_WIDTH - 1, (VOXEL_WIDTH >> 2) - 1},
+		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)}
+	}
 };
 
 // workaround for C's weird global constant rules
@@ -125,26 +134,34 @@ SDL_Texture *render_cached_voxel_texture(SDL_Surface *surfaces[3], unsigned expo
 
 // expose and void mask are processed to 3 bit: R-L-T
 // outline mask is processed to 6 bits corresponding to OUTLINES array; see above
-void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos,
-						  unsigned expose_mask, unsigned void_mask, unsigned outline_mask) {
-	expose_mask = (expose_mask & ~void_mask) & 0x7;
+void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, voxel_masks_t masks) {
+	masks.expose = masks.expose & ((~masks.dark) & 0x7);
 
-	if (expose_mask) {
+	if (masks.expose) {
 		SDL_RenderDrawPoint(renderer, pos.x, pos.y);
-		render_sdl_texture(voxel_texture->textures[expose_mask - 1], pos);
+		render_sdl_texture(voxel_texture->textures[masks.expose - 1], pos);
 	}
 
-	if (void_mask)
-		render_sdl_texture(VOID_VOXEL_TEXTURE->textures[void_mask - 1], pos);
+	if (masks.dark)
+		render_sdl_texture(DARK_VOXEL_TEXTURE->textures[masks.dark - 1], pos);
 
-	if (outline_mask) {
+	if (masks.outline) {
+		int i;
 		v2i offset = {
 			pos.x + SDL_TEX_RECT.x,
 			pos.y + SDL_TEX_RECT.y
 		};
 
-		for (int i = 0; i < 2/*6*/; ++i) {
-			if (BIT_GET(outline_mask, i)) {
+		for (i = 0; i < 2; ++i) {
+			if (BIT_GET(masks.outline, i)) {
+				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
+											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
+			}
+		}
+
+		for (i = 2; i < 4; ++i) {
+			// TODO check side face exposure
+			if (BIT_GET(masks.outline, i)) {
 				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
 											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
 			}
