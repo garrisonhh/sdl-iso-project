@@ -19,6 +19,7 @@
 #include "utils.h"
 #include "world.h"
 #include "world_masks.h"
+#include "world_bucket.h"
 
 #define BG_GRAY 31
 #define SHADOW_ALPHA 63
@@ -225,15 +226,16 @@ void render_world(world_t *world) {
 				if (block != NULL) {
 					if (block->texture->transparent && bucket != NULL) { // draw block sorted between entities
 						// TODO apply camera rotation to this
-						// I think move entity_y and entity_bucket_compare to render.c, and then
+						// I think move world_bucket_y and world_bucket_compare to render.c, and then
 						// calculate block_y with camera taken into account
 						// also unsure what this means for entity sorting, it will have to be done
 						// at least after every rotation
 
-						block_y = (double)(loc.x + loc.y) + 1.0; // 1.0 for (0.5, 0.5) center of block
+						block_y = ((double)loc.x + 0.5) * camera.render_inc.x
+							    + ((double)loc.y + 0.5) * camera.render_inc.y;
 						bucket_trav = bucket->root;
 
-						while (bucket_trav != NULL && entity_y(bucket_trav->item) < block_y) {
+						while (bucket_trav != NULL && world_bucket_y(bucket_trav->item) < block_y) {
 							render_entity(bucket_trav->item);
 							bucket_trav = bucket_trav->next;
 						}

@@ -43,6 +43,12 @@ struct world_t {
 };
 typedef struct world_t world_t;
 
+// called from world_bucket functions
+chunk_t *chunk_create();
+void chunk_destroy();
+
+void world_check_chunk(world_t *, unsigned index);
+
 world_t *world_create(unsigned);
 void world_destroy(world_t *);
 
@@ -51,5 +57,6 @@ void world_tick(world_t *, double time);
 void world_spawn(world_t *, entity_t *);
 block_t *world_get(world_t *, v3i loc);
 void world_get_render_loc(world_t *, v3i loc, block_t **block_result, list_t **bucket_result);
+bool world_indices(world_t *world, v3i loc, unsigned *chunk_index, unsigned *block_index);
 
 #endif

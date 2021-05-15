@@ -231,14 +231,6 @@ void entity_follow_path(entity_t *entity, double time) {
 	}
 }
 
-double entity_y(entity_t *entity) {
-	return entity->ray.pos.x + entity->ray.pos.y;
-}
-
-int entity_bucket_compare(const void *a, const void *b) {
-	return (((entity_y(*(entity_t **)a) - entity_y(*(entity_t **)b)) >= 0) ? 1 : -1);
-}
-
 void entity_update_directions(entity_t *entity) {
 	double dir;
 	v3i facing;
