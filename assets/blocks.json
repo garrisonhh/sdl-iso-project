@@ -9,8 +9,9 @@
 		{
 			"name": "leaves"
 		},
+
 		{
-			"name": "log",
+			"name": "tree trunk",
 			"collision": "custom",
 			"bbox": [[0.2, 0.2, 0.2], [0.6, 0.6, 0.6]]
 		},
@@ -19,6 +20,7 @@
 			"collision": "custom",
 			"bbox": [[0.2, 0.2, 0.2], [0.6, 0.6, 0.6]]
 		},
+
 		{
 			"name": "tall grass",
 			"sheet-cell": [0, 0],
@@ -33,6 +35,7 @@
 			"type": "plant",
 			"subtype": "flower"
 		},
+
 		{
 			"name": "small rock",
 			"texture": "rocks",

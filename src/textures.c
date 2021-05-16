@@ -17,6 +17,213 @@ hashmap_t *TEXTURE_MAP;
 
 voxel_tex_t *DARK_VOXEL_TEXTURE;
 
+SDL_Texture *load_sdl_texture(const char *path);
+sprite_t *load_sprite(const char *path, json_object *obj, hashmap_t *sprite_type_map);
+voxel_tex_t* load_voxel_texture(const char *path);
+connected_tex_t *load_connected_texture(const char *path);
+sheet_tex_t *load_sheet_texture(const char *path, json_object *obj);
+
+void textures_load() {
+	int i, j;
+
+	// tex_type map
+	const int num_tex_types = 5;
+	char *tex_type_strings[] = {
+		"texture",
+		"sprite",
+		"voxel",
+		"connected",
+		"sheet",
+	};
+	texture_type_e *tex_type;
+	hashmap_t *tex_type_map = hashmap_create(num_tex_types * 2, false, hash_string);
+
+	for (i = 0; i < num_tex_types; ++i) {
+		tex_type = malloc(sizeof(texture_type_e));
+		*tex_type = (texture_type_e)i;
+		hashmap_set(tex_type_map, tex_type_strings[i], strlen(tex_type_strings[i]), tex_type);
+	}
+
+	// sprite_type map
+	const int num_sprite_types = 4;
+	char *sprite_type_strings[] = {
+		"static",
+		"human-body",
+		"human-back-hands",
+		"human-front-hands",
+	};
+	sprite_type_e *sprite_type;
+	hashmap_t *sprite_type_map = hashmap_create(num_sprite_types * 2, false, hash_string);
+
+	for (i = 0; i < num_sprite_types; ++i) {
+		sprite_type = malloc(sizeof(sprite_type_e));
+		*sprite_type = (sprite_type_e)i;
+		hashmap_set(sprite_type_map, sprite_type_strings[i], strlen(sprite_type_strings[i]), sprite_type);
+	}
+
+	// tags
+	hashmap_t *tags_map = hashmap_create(4, true, hash_string);
+	array_t *tag_arr;
+	const char *tag;
+	int len_tag;
+	size_t cur_tag_id = 0;
+	size_t *tag_id;
+
+	// json texture list
+	json_object *file_obj;
+	array_t *texture_objects;
+
+	file_obj = content_load_file("assets/textures.json");
+	texture_objects = content_array_from_obj(file_obj);
+
+	// set up globals
+	NUM_TEXTURES = texture_objects->size;
+	TEXTURES = malloc(sizeof(texture_t *) * NUM_TEXTURES);
+	TEXTURE_MAP = hashmap_create(NUM_TEXTURES * 2, true, hash_string);
+
+	// load textures
+	json_object *texture_obj;
+	const char *name, *tex_type_name, *rel_path;
+	char file_path[80];
+	size_t *texture_id;
+
+	for (i = 0; i < NUM_TEXTURES; ++i) {
+		TEXTURES[i] = malloc(sizeof(texture_t));
+
+		texture_obj = texture_objects->items[i];
+
+		name = content_get_string(texture_obj, "name");
+
+		// type
+		tex_type_name = content_get_string(texture_obj, "type");
+		tex_type = hashmap_get(tex_type_map, (char *)tex_type_name, strlen(tex_type_name));
+
+		if (tex_type == NULL) {
+			printf("\"%s\" is an unrecognized texture type.\n", tex_type_name);
+			exit(1);
+		}
+
+		TEXTURES[i]->type = *tex_type;
+
+		// file path
+		if (content_has_key(texture_obj, "path"))
+			rel_path = content_get_string(texture_obj, "path");
+		else
+			rel_path = name;
+
+		sprintf(file_path, "assets/%s.png", rel_path);
+
+		// load texture
+		switch (*tex_type) {
+			case TEX_TEXTURE:
+				TEXTURES[i]->tex.texture = load_sdl_texture(file_path);
+				break;
+			case TEX_SPRITE:
+				TEXTURES[i]->tex.sprite = load_sprite(file_path, texture_obj, sprite_type_map);
+				break;
+			case TEX_VOXEL:
+				TEXTURES[i]->tex.voxel = load_voxel_texture(file_path);
+				break;
+			case TEX_CONNECTED:
+				TEXTURES[i]->tex.connected = load_connected_texture(file_path);
+				break;
+			case TEX_SHEET:
+				TEXTURES[i]->tex.sheet = load_sheet_texture(file_path, texture_obj);
+				break;
+		}
+
+		// transparency
+		if (*tex_type == TEX_VOXEL || *tex_type == TEX_SPRITE)
+			TEXTURES[i]->transparent = false;
+		else
+			TEXTURES[i]->transparent = content_get_bool(texture_obj, "transparent");
+
+		// connected tags
+		if (content_has_key(texture_obj, "connected-tags")) {
+			tag_arr = content_get_array(texture_obj, "connected-tags");
+
+			TEXTURES[i]->num_tags = tag_arr->size;
+			TEXTURES[i]->tags = malloc(sizeof(size_t) * TEXTURES[i]->num_tags);
+
+			for (j = 0; j < TEXTURES[i]->num_tags; ++j) {
+				tag = json_object_get_string(tag_arr->items[j]);
+				len_tag = strlen(tag);
+
+				if (hashmap_contains(tags_map, (char *)tag, len_tag)) {
+					TEXTURES[i]->tags[j] = *(size_t *)hashmap_get(tags_map, (char *)tag, len_tag);
+				} else {
+					tag_id = malloc(sizeof(size_t));
+					*tag_id = cur_tag_id++;
+					hashmap_set(tags_map, (char *)tag, len_tag, tag_id);
+
+					TEXTURES[i]->tags[j] = *tag_id;
+				}
+			}
+		} else {
+			TEXTURES[i]->num_tags = 0;
+			TEXTURES[i]->tags = NULL;
+		}
+
+		// save to array and hashmap
+		texture_id = malloc(sizeof(size_t));
+		*texture_id = i;
+		hashmap_set(TEXTURE_MAP, (char *)name, strlen(name), texture_id);
+	}
+
+	// clean up and exit
+	array_destroy(texture_objects, false);
+	hashmap_destroy(tags_map, true);
+	hashmap_destroy(tex_type_map, true);
+	hashmap_destroy(sprite_type_map, true);
+	content_close_file(file_obj);
+
+	DARK_VOXEL_TEXTURE = texture_from_key("dark")->tex.voxel;
+}
+
+void textures_destroy() {
+	int j;
+
+	for (size_t i = 0; i < NUM_TEXTURES; i++) {
+		switch (TEXTURES[i]->type) {
+			case TEX_TEXTURE:
+				SDL_DestroyTexture(TEXTURES[i]->tex.texture);
+				break;
+			case TEX_SPRITE:
+				SDL_DestroyTexture(TEXTURES[i]->tex.sprite->sheet);
+				free(TEXTURES[i]->tex.sprite->anim_lengths);
+				free(TEXTURES[i]->tex.sprite);
+				break;
+			case TEX_VOXEL:
+				for (j = 0; j < 7; ++j)
+					SDL_DestroyTexture(TEXTURES[i]->tex.voxel->textures[j]);
+				free(TEXTURES[i]->tex.voxel);
+				break;
+			case TEX_CONNECTED:
+				for (j = 0; j < 6; ++j)
+					SDL_DestroyTexture(TEXTURES[i]->tex.connected->directions[j]);
+				SDL_DestroyTexture(TEXTURES[i]->tex.connected->center);
+				free(TEXTURES[i]->tex.connected);
+				break;
+			case TEX_SHEET:
+				SDL_DestroyTexture(TEXTURES[i]->tex.sheet->sheet);
+				free(TEXTURES[i]->tex.sheet);
+				break;
+		}
+		
+		if (TEXTURES[i]->num_tags)
+			free(TEXTURES[i]->tags);
+
+		free(TEXTURES[i]);
+	}
+
+	DARK_VOXEL_TEXTURE = NULL;
+
+	free(TEXTURES);
+	TEXTURES = NULL;
+	hashmap_destroy(TEXTURE_MAP, true);
+	TEXTURE_MAP = NULL;
+}
+
 // only use when you actually need the surface data
 SDL_Surface *load_sdl_surface(const char *path) {
 	SDL_Surface *surface, *converted;
@@ -141,35 +348,37 @@ voxel_tex_t* load_voxel_texture(const char *path) {
 	return voxel_tex;
 }
 
-/* TODO deprecated until connected tags are added. also rewrite this crap
 connected_tex_t *load_connected_texture(const char *path) {
-	char base_path[100];
-	char top_path[100], bottom_path[100];
-	char front_path[100], back_path[100];
+	int i;
 
-	strcpy(base_path, path);
-	strcpy(top_path, path);
-	strcpy(bottom_path, path);
-	strcpy(front_path, path);
-	strcpy(back_path, path);
-
-	strcat(base_path, "_base.png");
-	strcat(top_path, "_top.png");
-	strcat(bottom_path, "_bottom.png");
-	strcat(front_path, "_front.png");
-	strcat(back_path, "_back.png");
-
+	// textures
 	connected_tex_t *connected_tex = malloc(sizeof(connected_tex_t));
 
-	connected_tex->base = load_sdl_texture(base_path);
-	connected_tex->top = load_sdl_texture(top_path);
-	connected_tex->bottom = load_sdl_texture(bottom_path);
-	connected_tex->front = load_sdl_texture(front_path);
-	connected_tex->back = load_sdl_texture(back_path);
+	SDL_Surface *sheet = load_sdl_surface(path);
+	SDL_Surface *surface;
+	SDL_Texture *texture;
+	SDL_Rect src_rect = {0, 0, VOXEL_WIDTH, VOXEL_HEIGHT};
+
+	for (i = 0; i < 7; ++i) {
+		surface = SDL_CreateRGBSurfaceWithFormat(0, VOXEL_WIDTH, VOXEL_HEIGHT, 32, RENDER_FORMAT);
+
+		SDL_BlitSurface(sheet, &src_rect, surface, NULL);
+
+		texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+		if (i == 6)
+			connected_tex->center = texture;
+		else
+			connected_tex->directions[i] = texture;
+
+		SDL_FreeSurface(surface);
+		src_rect.x += VOXEL_WIDTH;
+	}
+
+	SDL_FreeSurface(sheet);
 
 	return connected_tex;
 }
-*/
 
 sheet_tex_t *load_sheet_texture(const char *path, json_object *obj) {
 	sheet_tex_t *sheet_tex = malloc(sizeof(sheet_tex_t));
@@ -187,174 +396,6 @@ sheet_tex_t *load_sheet_texture(const char *path, json_object *obj) {
 	sheet_tex->sheet_size = v2i_div(image_size, cell_size);
 
 	return sheet_tex;
-}
-
-void textures_load() {
-	int i;
-
-	// tex_type map
-	const int num_tex_types = 5;
-	char *tex_type_strings[] = {
-		"texture",
-		"sprite",
-		"voxel",
-		"connected", // TODO connected tags
-		"sheet",
-	};
-	texture_type_e *tex_type;
-	hashmap_t *tex_type_map = hashmap_create(num_tex_types * 2, false, hash_string);
-
-	for (i = 0; i < num_tex_types; ++i) {
-		tex_type = malloc(sizeof(texture_type_e));
-		*tex_type = (texture_type_e)i;
-		hashmap_set(tex_type_map, tex_type_strings[i], strlen(tex_type_strings[i]), tex_type);
-	}
-
-	// sprite_type map
-	const int num_sprite_types = 4;
-	char *sprite_type_strings[] = {
-		"static",
-		"human-body",
-		"human-back-hands",
-		"human-front-hands",
-	};
-	sprite_type_e *sprite_type;
-	hashmap_t *sprite_type_map = hashmap_create(num_sprite_types * 2, false, hash_string);
-
-	for (i = 0; i < num_sprite_types; ++i) {
-		sprite_type = malloc(sizeof(sprite_type_e));
-		*sprite_type = (sprite_type_e)i;
-		hashmap_set(sprite_type_map, sprite_type_strings[i], strlen(sprite_type_strings[i]), sprite_type);
-	}
-
-	// json texture list
-	json_object *file_obj;
-	array_t *texture_objects;
-
-	file_obj = content_load_file("assets/textures.json");
-	texture_objects = content_array_from_obj(file_obj);
-
-	// set up globals
-	NUM_TEXTURES = texture_objects->size;
-	TEXTURES = malloc(sizeof(texture_t *) * NUM_TEXTURES);
-	TEXTURE_MAP = hashmap_create(NUM_TEXTURES * 2, true, hash_string);
-
-	// load textures
-	json_object *texture_obj;
-	const char *name, *tex_type_name, *rel_path;
-	char file_path[80];
-	bool transparent;
-	size_t *texture_id;
-
-	for (i = 0; i < NUM_TEXTURES; ++i) {
-		TEXTURES[i] = malloc(sizeof(texture_t));
-
-		texture_obj = texture_objects->items[i];
-
-		name = content_get_string(texture_obj, "name");
-
-		// type
-		tex_type_name = content_get_string(texture_obj, "type");
-		tex_type = hashmap_get(tex_type_map, (char *)tex_type_name, strlen(tex_type_name));
-
-		if (tex_type == NULL) {
-			printf("\"%s\" is an unrecognized texture type.\n", tex_type_name);
-			exit(1);
-		}
-
-		// file path
-		if (content_has_key(texture_obj, "path"))
-			rel_path = content_get_string(texture_obj, "path");
-		else
-			rel_path = name;
-
-		sprintf(file_path, "assets/%s.png", rel_path);
-
-		// load texture
-		switch (*tex_type) {
-			case TEX_TEXTURE:
-				TEXTURES[i]->tex.texture = load_sdl_texture(file_path);
-				break;
-			case TEX_SPRITE:
-				TEXTURES[i]->tex.sprite = load_sprite(file_path, texture_obj, sprite_type_map);
-				break;
-			case TEX_VOXEL:
-				TEXTURES[i]->tex.voxel = load_voxel_texture(file_path);
-				break;
-			case TEX_CONNECTED:
-				printf("connected textures are not currently implemented.\n");
-				exit(1);
-				break;
-			case TEX_SHEET:
-				TEXTURES[i]->tex.sheet = load_sheet_texture(file_path, texture_obj);
-				break;
-		}
-
-		// transparency
-		if (*tex_type == TEX_VOXEL || *tex_type == TEX_SPRITE)
-			transparent = false;
-		else
-			transparent = content_get_bool(texture_obj, "transparent");
-
-		// save to array and hashmap
-		TEXTURES[i]->type = *tex_type;
-		TEXTURES[i]->transparent = transparent;
-
-		texture_id = malloc(sizeof(size_t));
-		*texture_id = i;
-		hashmap_set(TEXTURE_MAP, (char *)name, strlen(name), texture_id);
-	}
-
-	// clean up and exit
-	array_destroy(texture_objects, false);
-	hashmap_destroy(tex_type_map, true);
-	hashmap_destroy(sprite_type_map, true);
-	content_close_file(file_obj);
-
-	DARK_VOXEL_TEXTURE = texture_from_key("dark")->tex.voxel;
-}
-
-void textures_destroy() {
-	int j;
-
-	for (size_t i = 0; i < NUM_TEXTURES; i++) {
-		switch (TEXTURES[i]->type) {
-			case TEX_TEXTURE:
-				SDL_DestroyTexture(TEXTURES[i]->tex.texture);
-				break;
-			case TEX_SPRITE:
-				SDL_DestroyTexture(TEXTURES[i]->tex.sprite->sheet);
-				free(TEXTURES[i]->tex.sprite->anim_lengths);
-				free(TEXTURES[i]->tex.sprite);
-				break;
-			case TEX_VOXEL:
-				for (j = 0; j < 7; ++j)
-					SDL_DestroyTexture(TEXTURES[i]->tex.voxel->textures[j]);
-				free(TEXTURES[i]->tex.voxel);
-				break;
-			case TEX_CONNECTED:
-				SDL_DestroyTexture(TEXTURES[i]->tex.connected->base);
-				SDL_DestroyTexture(TEXTURES[i]->tex.connected->top);
-				SDL_DestroyTexture(TEXTURES[i]->tex.connected->bottom);
-				SDL_DestroyTexture(TEXTURES[i]->tex.connected->front);
-				SDL_DestroyTexture(TEXTURES[i]->tex.connected->back);
-				free(TEXTURES[i]->tex.connected);
-				break;
-			case TEX_SHEET:
-				SDL_DestroyTexture(TEXTURES[i]->tex.sheet->sheet);
-				free(TEXTURES[i]->tex.sheet);
-				break;
-		}
-
-		free(TEXTURES[i]);
-	}
-
-	DARK_VOXEL_TEXTURE = NULL;
-
-	free(TEXTURES);
-	TEXTURES = NULL;
-	hashmap_destroy(TEXTURE_MAP, true);
-	TEXTURE_MAP = NULL;
 }
 
 texture_t *texture_from_key(const char *key) {

@@ -39,6 +39,8 @@
 	else \
 		BIT_SET_FALSE(bitfield, index) \
 }
+#define BIT_SET_FLIP(bitfield, index) BIT_SET_COND(bitfield, index, !BIT_GET(bitfield, index))
+
 // swp is bool/unsigned/int
 #define BIT_SET_SWAP(bitfield, index1, index2, swp) {\
 	swp = BIT_GET(bitfield, index1);\

@@ -202,21 +202,21 @@ void world_destroy(world_t *world) {
 	free(world);
 }
 
-// TODO this is bad code and doesn't produce very interesting results
+// TODO better tree generation
 void generate_tree(world_t *world, v3i loc) {
-	size_t log, leaves;
+	size_t trunk, leaves;
 	int max_v, x, y, i;
 	double radius;
 	v3i leaf_loc;
 
-	log = block_gen_get_id("log");
+	trunk = block_gen_get_id("tree trunk");
 	leaves = block_gen_get_id("leaves");
 
 	max_v = 3 + rand() % 2;
 
 	for (i = 0; i < max_v + 5; i++) {
 		if (i < max_v)
-			world_set_no_update(world, loc, log);
+			world_set_no_update(world, loc, trunk);
 
 		radius = 2.5;
 		radius = i > max_v ? MIN((5 + max_v) - i, radius) : radius;
@@ -244,7 +244,7 @@ void world_generate(world_t *world) {
 
 	if (0) { // debug world
 		size_t grass = block_gen_get_id("grass");
-		size_t dirt = block_gen_get_id("dirt");
+		size_t trunk = block_gen_get_id("tree trunk");
 		v3i loc = (v3i){0, 0, 0};
 
 		for (loc.x = 0; loc.x < world->block_size; ++loc.x) {
@@ -253,12 +253,15 @@ void world_generate(world_t *world) {
 			}
 		}
 
-		loc = (v3i){1, 1, 4};
-		world_set_no_update(world, loc, dirt);
-		loc = (v3i){0, 0, 0};
-		world_set_no_update(world, loc, dirt);
-		loc = (v3i){15, 15, 0};
-		world_set_no_update(world, loc, dirt);
+		loc.z = 1;
+		for (loc.x = 1; loc.x <= 2; ++loc.x) {
+			for (loc.y = 1; loc.y <= 4; ++loc.y) {
+				for (loc.z = 1; loc.z <= 3; ++loc.z) {
+					world_set_no_update(world, loc, trunk);
+				}
+			}
+		}
+
 	} else {
 		int noise_val;
 		v2d noise_pos;

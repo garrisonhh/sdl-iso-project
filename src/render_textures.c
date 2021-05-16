@@ -170,30 +170,23 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, voxel_masks_t mas
 }
 
 void render_connected_texture(connected_tex_t *connected_tex, v2i pos, unsigned connected_mask) {
+	int i;
 	SDL_Rect draw_rect = SDL_TEX_RECT;
-	SDL_Texture *textures[6] = {
-		connected_tex->bottom, connected_tex->top,
-		connected_tex->back, connected_tex->front,
-		connected_tex->back, connected_tex->front,
-	};
-	int i, j;
 
 	draw_rect.x += pos.x;
 	draw_rect.y += pos.y;
 
-	SDL_RenderCopy(renderer, connected_tex->base, NULL, &draw_rect);
+	SDL_RenderCopy(renderer, connected_tex->center, NULL, &draw_rect);
 
-	for (i = 0; i <= 1; i++) {
-		for (j = 0; j < 6; j += 2) {
-			if ((connected_mask >> (i + j)) & 1) {
-				if ((i + j) == 2 || (i + j) == 5)
-					SDL_RenderCopyEx(renderer, textures[i + j], NULL, &draw_rect,
-									 0, NULL, SDL_FLIP_HORIZONTAL);
-				else
-					SDL_RenderCopy(renderer, textures[i + j], NULL, &draw_rect);
-			}
-		}
-	}
+	// negative dirs
+	for (i = 0; i < 6; i += 2)
+		if (BIT_GET(connected_mask, i))
+			SDL_RenderCopy(renderer, connected_tex->directions[i], NULL, &draw_rect);
+
+	// positive dirs
+	for (i = 1; i < 6; i += 2)
+		if (BIT_GET(connected_mask, i))
+			SDL_RenderCopy(renderer, connected_tex->directions[i], NULL, &draw_rect);
 }
 
 void render_sheet_texture(sheet_tex_t *sheet_tex, v2i pos, v2i cell) {

@@ -39,17 +39,24 @@
 	},
 	{
 		"name": "dirt",
-		"type": "voxel"
+		"type": "voxel",
+		"connected-tags": ["dirt"]
 	},
 	{
 		"name": "grass",
+		"type": "voxel",
+		"connected-tags": ["grass"]
+	},
+	{
+		"name": "stone",
 		"type": "voxel"
 	},
 
 	{
 		"name": "leaves",
 		"type": "texture",
-		"transparent": true
+		"transparent": true,
+		"connected-tags": ["leaves"]
 	},
 	{
 		"name": "log",
@@ -60,6 +67,14 @@
 		"name": "bush",
 		"type": "texture",
 		"transparent": true
+	},
+
+	{
+		"name": "tree trunk",
+		"path": "tree_trunk",
+		"type": "connected",
+		"transparent": true,
+		"connected-tags": ["tree_trunk", "leaves", "dirt", "grass"]
 	},
 
 	{

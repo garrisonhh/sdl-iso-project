@@ -156,7 +156,7 @@ void render_block(world_t *world, block_t *block, v3i loc) {
 				break;
 			case TEX_CONNECTED:
 				render_connected_texture(block->texture->tex.connected, render_block_project(loc),
-										 block->tex_state.connected_mask);
+										 world_connected_mask(block));
 				break;
 			case TEX_SHEET:
 				render_sheet_texture(block->texture->tex.sheet, render_block_project(loc),

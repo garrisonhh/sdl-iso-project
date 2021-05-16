@@ -31,6 +31,20 @@ bool world_block_see_through(world_t *world, v3i loc) {
 	return block == NULL || block->texture->transparent;
 }
 
+bool world_blocks_connect(block_t *block, block_t *other) {
+	if (!block->texture->num_tags || !other->texture->num_tags)
+		return false;
+
+	int i, j;
+
+	for (i = 0; i < block->texture->num_tags; ++i)
+		for (j = 0; j < other->texture->num_tags; ++j)
+			if (block->texture->tags[i] == other->texture->tags[j])
+				return true;
+
+	return false;
+}
+
 void world_update_masks(world_t *world, v3i loc) {
 	block_t *block;
 
@@ -60,10 +74,25 @@ void world_update_masks(world_t *world, v3i loc) {
 
 		block->expose_mask = expose_mask;
 
-		// connect mask
-		// TODO
+		if (block->texture->type == TEX_CONNECTED) {
+			// connected mask
+			unsigned connected_mask = 0x0;
+			block_t *other;
 
-		if (block->texture->type == TEX_VOXEL) {
+			for (i = 0; i < 3; ++i) {
+				neighbor = loc;
+
+				for (j = 0; j <= 1; ++j) {
+					v3i_set(&neighbor, i, v3i_get(&loc, i) + (j ? 1 : -1));
+
+					if ((other = world_get(world, neighbor)) != NULL)
+						if (world_blocks_connect(block, other))
+							BIT_SET_TRUE(connected_mask, (i << 1) | j);
+				}
+			}
+
+			block->tex_state.connected_mask = connected_mask;
+		} else if (block->texture->type == TEX_VOXEL) {
 			// outline mask
 			unsigned outline_mask = 0x0;
 
@@ -139,4 +168,28 @@ voxel_masks_t world_voxel_masks(block_t *block, v3i loc) {
 	} 
 
 	return masks;
+}
+
+unsigned world_connected_mask(block_t *block) {
+	unsigned connected_mask = block->tex_state.connected_mask;
+	bool swp;
+
+	switch (camera.rotation) {
+		case 1:
+			BIT_SET_SWAP(connected_mask, 0, 2, swp);
+			BIT_SET_SWAP(connected_mask, 1, 3, swp);
+			BIT_SET_SWAP(connected_mask, 2, 3, swp);
+			break;
+		case 2:
+			BIT_SET_SWAP(connected_mask, 0, 1, swp);
+			BIT_SET_SWAP(connected_mask, 2, 3, swp);
+			break;
+		case 3:
+			BIT_SET_SWAP(connected_mask, 0, 2, swp);
+			BIT_SET_SWAP(connected_mask, 1, 3, swp);
+			BIT_SET_SWAP(connected_mask, 0, 1, swp);
+			break;
+	}
+
+	return connected_mask;
 }

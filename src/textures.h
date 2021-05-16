@@ -44,14 +44,14 @@ struct sprite_t {
 typedef struct sprite_t sprite_t;
 
 struct voxel_tex_t {
-	// SDL_Texture *top, *side;
-	// cache indexed by (block->expose_mask - 1)
+	// indexed by (block->expose_mask - 1)
 	SDL_Texture *textures[7];
 };
 typedef struct voxel_tex_t voxel_tex_t;
 
 struct connected_tex_t {
-	SDL_Texture *base, *top, *bottom, *front, *back;
+	SDL_Texture *directions[6];
+	SDL_Texture *center;
 };
 typedef struct connected_tex_t connected_tex_t;
 
@@ -64,6 +64,8 @@ typedef struct sheet_tex_t sheet_tex_t;
 struct texture_t {
 	texture_type_e type;
 	bool transparent;
+	size_t *tags;
+	size_t num_tags;
 
 	union texture_ptr {
 		SDL_Texture *texture;
