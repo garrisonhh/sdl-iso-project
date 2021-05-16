@@ -95,40 +95,6 @@ void *hashmap_get(hashmap_t *hmap, void *key, size_t size_key) {
 	return (bucket != NULL ? bucket->value : NULL);
 }
 
-void *hashmap_remove(hashmap_t *hmap, void *key, size_t size_key) {
-	hash_t hash;
-	hashbucket_t *trav, *last;
-	void *value;
-	bool match;
-
-	hash = hash_key(hmap, key, size_key);
-	trav = hmap->buckets[hash];
-	last = NULL;
-	value = NULL;
-	match = false;
-
-	while (trav != NULL && !(match = (size_key == trav->size_key && !memcmp(key, trav->key, size_key)))) {
-		last = trav;
-		trav = trav->overflow;
-	}
-
-	if (match) {
-		value = trav->value;
-
-		if (last == NULL)
-			hmap->buckets[hash] = hashbucket_destroy(trav, false);
-		else
-			last->overflow = hashbucket_destroy(trav, false);
-
-		hmap->size--;
-
-		if (hmap->rehashes && hmap->size < (hmap->max_size >> 2) && hmap->size > hmap->min_size)
-			hashmap_rehash(hmap, false);
-	}
-
-	return value;
-}
-
 hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
 	hash_t hash;
 	hashbucket_t *bucket, *trav;
@@ -169,6 +135,43 @@ hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
 	return hash;
 }
 
+bool hashmap_contains(hashmap_t *hmap, void *key, size_t size_key) {
+	return hashmap_get_pair(hmap, key, size_key) != NULL;
+}
+
+void *hashmap_remove(hashmap_t *hmap, void *key, size_t size_key) {
+	hash_t hash;
+	hashbucket_t *trav, *last;
+	void *value;
+	bool match;
+
+	hash = hash_key(hmap, key, size_key);
+	trav = hmap->buckets[hash];
+	last = NULL;
+	value = NULL;
+	match = false;
+
+	while (trav != NULL && !(match = (size_key == trav->size_key && !memcmp(key, trav->key, size_key)))) {
+		last = trav;
+		trav = trav->overflow;
+	}
+
+	if (match) {
+		value = trav->value;
+
+		if (last == NULL)
+			hmap->buckets[hash] = hashbucket_destroy(trav, false);
+		else
+			last->overflow = hashbucket_destroy(trav, false);
+
+		hmap->size--;
+
+		if (hmap->rehashes && hmap->size < (hmap->max_size >> 2) && hmap->size > hmap->min_size)
+			hashmap_rehash(hmap, false);
+	}
+
+	return value;
+}
 void **hashmap_values(hashmap_t *hmap) {
 	void **values;
 	hashbucket_t *trav;
