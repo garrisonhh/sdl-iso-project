@@ -68,17 +68,20 @@ void render_quit() {
 	background = NULL;
 }
 
-void render_generate_shadows(world_t *world, array_t *(*shadows)[world->block_size]) {
+array_t **render_generate_shadows(world_t *world) {
 	int z, i;
 	entity_t *entity;
 	block_t *block;
 	circle_t *shadow;
 	v3d shadow_pos;
 	v3i shadow_loc;
+	array_t **shadows;
+
+	shadows = malloc(sizeof(array_t *) * world->block_size);
 
 	// generate *shadows and z sort
 	for (z = 0; z < world->block_size; z++)
-		(*shadows)[z] = NULL;
+		shadows[z] = NULL;
 
 	for (i = 0; i < world->entities->size; i++) {
 		entity = world->entities->items[i];
@@ -100,26 +103,39 @@ void render_generate_shadows(world_t *world, array_t *(*shadows)[world->block_si
 		if (shadow_loc.z >= 0 && shadow_loc.z < world->block_size) {
 			shadow = malloc(sizeof(circle_t));
 			shadow->loc = project_v3d(shadow_pos);
-			shadow->radius = entity->sprites[0]->size.x >> 1;
+			shadow->radius = entity->sprites[0]->tex.sprite->size.x >> 1;
 
-			if ((*shadows)[shadow_loc.z] == NULL)
-				(*shadows)[shadow_loc.z] = array_create(2);
+			if (shadows[shadow_loc.z] == NULL)
+				shadows[shadow_loc.z] = array_create(2);
 
-			array_add((*shadows)[shadow_loc.z], shadow);
+			array_add(shadows[shadow_loc.z], shadow);
 		}
 	}
+
+	return shadows;
 }
 
-void render_entity(entity_t *entity) {
+// generates entity->num_sprites packets
+render_packet_t **render_gen_entity_packets(entity_t *entity) {
 	v3d entity_pos;
 	v2i screen_pos;
+	render_packet_t **packets;
 
 	entity_pos = entity->ray.pos;
 	entity_pos.z -= entity->size.z / 2;
 	screen_pos = project_v3d(entity_pos);
 
-	for (size_t i = 0; i < entity->num_sprites; ++i)
-		render_sprite(entity->sprites[i], screen_pos, entity->anim_states[i].cell);
+	packets = malloc(sizeof(render_packet_t *) * entity->num_sprites);
+
+	for (int i = 0; i < entity->num_sprites; ++i) {
+		packets[i] = malloc(sizeof(render_packet_t));
+
+		packets[i]->pos = screen_pos;
+		packets[i]->texture = entity->sprites[i];
+		packets[i]->state.anim = entity->anim_states[i];
+	}
+
+	return packets;
 }
 
 v2i render_block_project(v3i loc) {
@@ -140,141 +156,117 @@ v2i render_block_project(v3i loc) {
 	return project_v3i(loc);
 }
 
-void render_block(world_t *world, block_t *block, v3i loc) {
-	texture_type_e tex_type = block->texture->type;
+// check result for NULL
+render_packet_t *render_gen_block_packet(world_t *world, block_t *block, v3i loc) {
+	render_packet_t *packet = NULL;
 
-	if (tex_type == TEX_VOXEL) {
-		voxel_masks_t masks = world_voxel_masks(block, loc);
+	if (block->texture->type == TEX_VOXEL) {
+		packet = malloc(sizeof(render_packet_t));
 
-		if (masks.expose || masks.dark)
-			render_voxel_texture(block->texture->tex.voxel, render_block_project(loc), masks);
+		packet->pos = render_block_project(loc);
+		packet->texture = block->texture;
+		packet->state.voxel_masks = world_voxel_masks(block, loc);
 	} else if (world_exposed(block)) {
-		// the amount of times I had to type "tex" or "texture" here is hilarious lol
-		switch (tex_type) {
-			case TEX_TEXTURE:
-				render_sdl_texture(block->texture->tex.texture, render_block_project(loc));
-				break;
-			case TEX_CONNECTED:
-				render_connected_texture(block->texture->tex.connected, render_block_project(loc),
-										 world_connected_mask(block));
-				break;
-			case TEX_SHEET:
-				render_sheet_texture(block->texture->tex.sheet, render_block_project(loc),
-									 block->tex_state.cell);
-				break;
-			default:
-				break;
-		}
+		packet = malloc(sizeof(render_packet_t));
+
+		packet->pos = render_block_project(loc);
+		packet->texture = block->texture;
+		packet->state.tex = block->tex_state;
+	}
+
+	return packet;
+}
+
+void render_info_add_entity(render_info_t *info, entity_t *entity) {
+	if (entity->num_sprites) {
+		render_packet_t **packets = render_gen_entity_packets(entity);
+
+		for (int i = 0; i < entity->num_sprites; ++i)
+			array_add(info->packets, packets[i]);
+
+		free(packets);
 	}
 }
 
-void render_world(world_t *world) {
-	int i;
-	bool render_to_fg, player_blocked;
+void render_info_add_block(render_info_t *info, world_t *world, block_t *block, v3i loc) {
+	array_add(info->packets, render_gen_block_packet(world, block, loc));
+}
+
+render_info_t *render_gen_info(world_t *world) {
 	double block_y;
 	ray_t cam_ray;
 	block_t *block;
 	list_t *bucket;
 	list_node_t *bucket_trav;
-	v3i loc, player_loc;
-	array_t *shadows[world->block_size];
-
-	// player_loc + raycasting for foregrounding
-	render_to_fg = false;
-	player_loc = v3i_from_v3d(world->player->ray.pos);
+	v3i loc;
+	render_info_t *info;
 
 	cam_ray = (ray_t){
 		world->player->ray.pos,
 		camera_reverse_rotated_v3d(PLAYER_VIEW_DIR)
 	};
 	cam_ray.pos.z += world->player->size.z / 2;
-	player_blocked = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
 
-	// render targets
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
-	SDL_SetRenderTarget(renderer, foreground);
-	SDL_RenderClear(renderer);
-
-	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
-	SDL_SetRenderTarget(renderer, background);
-	SDL_RenderClear(renderer);
-
-	// shadow setup
-	render_generate_shadows(world, &shadows);
+	info = malloc(sizeof(render_info_t));
+	info->packets = array_create(256); // TODO better estimate of num packets?
+	info->camera_z = v3i_from_v3d(world->player->ray.pos).z;
+	info->camera_blocked = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
 
 	for (loc.z = camera.render_start.z; loc.z != camera.render_end.z + camera.render_inc.z; loc.z += camera.render_inc.z) {
-		// render shadows
-		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
-
-		if (shadows[loc.z] != NULL)
-			for (i = 0; i < shadows[loc.z]->size; i++)
-				render_iso_circle(*(circle_t *)shadows[loc.z]->items[i]);
-
-		// change to foreground when ready
-		if (player_blocked && !render_to_fg && loc.z > player_loc.z) {
-			SDL_SetRenderTarget(renderer, foreground);
-			render_to_fg = true;
-		}
-
 		// render blocks and buckets
-		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x3F); // block outline color
-
 		for (loc.y = camera.render_start.y; loc.y != camera.render_end.y + camera.render_inc.y; loc.y += camera.render_inc.y) {
 			for (loc.x = camera.render_start.x; loc.x != camera.render_end.x + camera.render_inc.x; loc.x += camera.render_inc.x) {
 				world_get_render_loc(world, loc, &block, &bucket);
 
 				if (block != NULL) {
 					if (block->texture->transparent && bucket != NULL) { // draw block sorted between entities
-						// TODO apply camera rotation to this
-						// I think move world_bucket_y and world_bucket_compare to render.c, and then
-						// calculate block_y with camera taken into account
-						// also unsure what this means for entity sorting, it will have to be done
-						// at least after every rotation
-
 						block_y = ((double)loc.x + 0.5) * camera.render_inc.x
 							    + ((double)loc.y + 0.5) * camera.render_inc.y;
 						bucket_trav = bucket->root;
 
 						while (bucket_trav != NULL && world_bucket_y(bucket_trav->item) < block_y) {
-							render_entity(bucket_trav->item);
+							render_info_add_entity(info, bucket_trav->item);
 							bucket_trav = bucket_trav->next;
 						}
 
-						render_block(world, block, loc);
+						render_info_add_block(info, world, block, loc);
 						
 						while (bucket_trav != NULL) {
-							render_entity(bucket_trav->item);
+							render_info_add_entity(info, bucket_trav->item);
 							bucket_trav = bucket_trav->next;
 						}
 					} else { // draw entities over block regardless
-						render_block(world, block, loc);
+						render_info_add_block(info, world, block, loc);
 
 						if (bucket != NULL)
 							LIST_FOREACH(bucket_trav, bucket)
-								render_entity(bucket_trav->item);
+								render_info_add_entity(info, bucket_trav->item);
 					}
 				} else if (bucket != NULL) {
 					LIST_FOREACH(bucket_trav, bucket)
-						render_entity(bucket_trav->item);
+						render_info_add_entity(info, bucket_trav->item);
 				}
 			}
 		}
 	}
 
-	// render target surfaces to window
-	if (render_to_fg) {
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-		render_iso_circle(camera.view_circle);
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+	return info;
+}
+
+// also destroys info
+void render_from_info(render_info_t *info) {
+	if (info != NULL) { // info will only be NULL on the very first frame
+		size_t i;
+
+		// TODO move this elsewhere?
+		SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
+		SDL_RenderClear(renderer);
+
+		for (i = 0; i < info->packets->size; ++i) {
+			render_render_packet(info->packets->items[i]);
+		}
+
+		array_destroy(info->packets, true);
+		free(info);
 	}
-
-	SDL_SetRenderTarget(renderer, NULL);
-	SDL_RenderCopy(renderer, background, &camera.viewport, NULL);
-	SDL_RenderCopy(renderer, foreground, &camera.viewport, NULL);
-
-	// destroy shadows
-	for (loc.z = 0; loc.z < world->block_size; loc.z++)
-		if (shadows[loc.z] != NULL)
-			array_destroy(shadows[loc.z], true);
 }

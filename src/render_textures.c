@@ -4,6 +4,7 @@
 #include "vector.h"
 #include "utils.h"
 #include "world_masks.h"
+#include "render_textures.h"
 
 SDL_Rect SDL_TEX_RECT;
 SDL_Rect VOXEL_TEX_RECTS[3];
@@ -66,6 +67,27 @@ void render_textures_init() {
 	};
 
 	memcpy(VOXEL_TEX_RECTS, voxel_tex_rects_tmp, sizeof voxel_tex_rects_tmp);
+}
+
+void render_render_packet(render_packet_t *packet) {
+	switch (packet->texture->type) {
+		case TEX_TEXTURE:
+			render_sdl_texture(packet->texture->tex.texture, packet->pos);
+			break;
+		case TEX_SPRITE:
+			render_sprite(packet->texture->tex.sprite, packet->pos, packet->state.anim.cell);
+			break;
+		case TEX_VOXEL:
+			render_voxel_texture(packet->texture->tex.voxel, packet->pos, packet->state.voxel_masks);
+			break;
+		case TEX_CONNECTED:
+			render_connected_texture(packet->texture->tex.connected, packet->pos,
+									 packet->state.tex.connected_mask);
+			break;
+		case TEX_SHEET:
+			render_sheet_texture(packet->texture->tex.sheet, packet->pos, packet->state.tex.cell);
+			break;
+	}
 }
 
 void render_sdl_texture(SDL_Texture *texture, v2i pos) {

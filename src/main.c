@@ -103,6 +103,8 @@ int main(int argc, char *argv[]) {
 	// loop
 	bool quit = false;
 
+	render_info_t *render_info = NULL;
+
 	while (!quit) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
@@ -187,7 +189,9 @@ int main(int argc, char *argv[]) {
 		gui_update(1.0 / (tick_avg / 32), world);
 
 		// draw frame
-		render_world(world);
+		render_info = render_gen_info(world);
+
+		render_from_info(render_info);
 		gui_render();
 		SDL_RenderPresent(renderer);
 	}

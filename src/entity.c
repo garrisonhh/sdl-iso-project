@@ -15,7 +15,7 @@
 
 void entity_update_directions(entity_t *);
 
-entity_t *entity_create(sprite_t **sprites, size_t num_sprites, v3d pos, v3d size) {
+entity_t *entity_create(texture_t **sprites, size_t num_sprites, v3d pos, v3d size) {
 	entity_t *entity = malloc(sizeof(entity_t));
 
 	entity->sprites = sprites;
@@ -27,9 +27,10 @@ entity_t *entity_create(sprite_t **sprites, size_t num_sprites, v3d pos, v3d siz
 		entity->anim_states[i].state = 0.0;
 	}
 
-	entity->last_dir = (v3d){0.0, 1.0, 0.0};
 	entity->dir_xy = DIR_FRONT;
 	entity->dir_z = DIR_LEVEL;
+
+	entity->last_dir = (v3d){0.0, 1.0, 0.0};
 
 	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
 	entity->size = size;
@@ -297,7 +298,7 @@ void entity_tick(entity_t *entity, world_t *world, double time) {
 
 	// animation state
 	for (i = 0; i < entity->num_sprites; ++i) {
-		sprite = entity->sprites[i];
+		sprite = entity->sprites[i]->tex.sprite;
 		anim_state = &entity->anim_states[i];
 
 		switch (sprite->type) {

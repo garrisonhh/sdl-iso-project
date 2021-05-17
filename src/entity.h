@@ -12,10 +12,10 @@ typedef struct world_t world_t;
 
 struct entity_t {
 	// sprites + animations
-	sprite_t **sprites;
+	texture_t **sprites;
+	animation_t *anim_states;
 	size_t num_sprites;
 
-	animation_t *anim_states;
 	v3d last_dir;
 	dir_xy_e dir_xy;
 	dir_z_e dir_z;
@@ -30,7 +30,7 @@ struct entity_t {
 };
 typedef struct entity_t entity_t;
 
-entity_t *entity_create(sprite_t **sprites, size_t num_sprites, v3d pos, v3d size);
+entity_t *entity_create(texture_t **sprites, size_t num_sprites, v3d pos, v3d size);
 void entity_destroy(entity_t *);
 
 void entity_add_path(entity_t *, list_t *);
