@@ -5,6 +5,19 @@
 #include "vector.h"
 #include "camera.h"
 
+const int EXPOSE_ROT_BITS[4][3] = {
+	{1, 3, 4},
+	{3, 0, 4},
+	{0, 2, 4},
+	{2, 1, 4}
+};
+const int OUTLINE_ROT_BITS[4][6] = {
+	{0, 2, 7, 5, 10, 9},
+	{2, 1, 4, 7, 8, 11},
+	{1, 3, 6, 4, 9, 10},
+	{3, 0, 5, 6, 11, 8},
+};
+
 const v3i OUTLINE_TOP_OFFSETS[4] = {
 	(v3i){-1,  0,  1},
 	(v3i){ 1,  0,  1},
@@ -137,12 +150,8 @@ void world_update_masks(world_t *world, v3i loc) {
 
 // checks if block is exposed at current camera rotation
 bool world_exposed(block_t *block) {
-	unsigned dir_bit;
-
-	for (int  i = 0; i <= 1; ++i) {
-		dir_bit = ((v3i_get(&camera.render_inc, i) > 0) ? 1 : 0);
-
-		if (BIT_GET(block->expose_mask, (i << 1) | dir_bit))
+	for (int i = 0; i < 3; ++i) {
+		if (BIT_GET(block->expose_mask, EXPOSE_ROT_BITS[camera.rotation][i]))
 			return true;
 	}
 
@@ -152,48 +161,30 @@ bool world_exposed(block_t *block) {
 // generates rotated and trimmed voxel mask data for render_voxel_texture
 voxel_masks_t world_voxel_masks(block_t *block, v3i loc) {
 	int i;
-	unsigned dir_bit;
 	voxel_masks_t masks = {0x0, 0x0, 0x0};
 
-	// expose and outline
-	for (i = 0; i <= 1; ++i) {
-		dir_bit = ((v3i_get(&camera.render_inc, i) > 0) ? 1 : 0);
-
-		if (BIT_GET(block->expose_mask, (i << 1) | dir_bit))
+	// expose
+	for (i = 0; i < 3; ++i)
+		if (BIT_GET(block->expose_mask, EXPOSE_ROT_BITS[camera.rotation][i]))
 			BIT_SET_TRUE(masks.expose, i);
 
-		if (BIT_GET(block->tex_state.outline_mask, (i << 1) | ((~dir_bit) & 1)))
+	// outline
+	for (i = 0; i < 6; ++i)
+		if (BIT_GET(block->tex_state.outline_mask, OUTLINE_ROT_BITS[camera.rotation][i]))
 			BIT_SET_TRUE(masks.outline, i);
 
-		if (BIT_GET(block->tex_state.outline_mask, ((i << 1) | dir_bit) + 4))
-			BIT_SET_TRUE(masks.outline, 3 - i);
-
+	// dark
+	for (i = 0; i < 3; ++i)
 		if (v3i_get(&loc, i) == v3i_get(&camera.render_end, i))
 			BIT_SET_TRUE(masks.dark, i);
-	}
-
-	masks.expose |= BIT_GET(block->expose_mask, 4) << 2;
 
 	if (loc.z == (int)camera.pos.z && !BIT_GET(masks.expose, 2))
 		masks.dark |= 0x4;
 
-	// swap XY when camera rotation calls for it
-	if (camera.rotation & 1) { // rotation == 1 || rotation == 3
+	if (camera.rotation & 1) {
 		bool swp;
-
-		BIT_SET_SWAP(masks.expose, 0, 1, swp);
-		BIT_SET_SWAP(masks.outline, 0, 1, swp);
-		BIT_SET_SWAP(masks.outline, 2, 3, swp);
 		BIT_SET_SWAP(masks.dark, 0, 1, swp);
 	}
-
-	/*
-	if (BIT_GET(block->tex_state.outline_mask, 9))
-		BIT_SET_TRUE(masks.outline, 5);
-
-	if (BIT_GET(block->tex_state.outline_mask, 10))
-		BIT_SET_TRUE(masks.outline, 4);
-	*/
 
 	return masks;
 }
