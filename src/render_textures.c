@@ -26,12 +26,12 @@ const v2i OUTLINES[6][2] = {
 		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)}
 	},
 	{ // left corner
-		(v2i){0, (VOXEL_WIDTH >> 2) - 1},
-		(v2i){0, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)}
+		(v2i){0, VOXEL_WIDTH >> 2},
+		(v2i){0, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 1}
 	},
 	{ // right corner
-		(v2i){VOXEL_WIDTH - 1, (VOXEL_WIDTH >> 2) - 1},
-		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)}
+		(v2i){VOXEL_WIDTH - 1, VOXEL_WIDTH >> 2},
+		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 1}
 	}
 };
 
@@ -159,7 +159,7 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, voxel_masks_t mas
 			}
 		}
 
-		for (i = 2; i < 4; ++i) {
+		for (i = 2; i < 6; ++i) {
 			// TODO check side face exposure
 			if (BIT_GET(masks.outline, i)) {
 				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,

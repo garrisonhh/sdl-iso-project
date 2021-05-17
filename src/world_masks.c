@@ -95,6 +95,7 @@ void world_update_masks(world_t *world, v3i loc) {
 		} else if (block->texture->type == TEX_VOXEL) {
 			// outline mask
 			unsigned outline_mask = 0x0;
+			bool corner;
 
 			if (BIT_GET(block->expose_mask, 4)) // +Z bit
 				for (i = 0; i < 4; ++i)
@@ -107,6 +108,27 @@ void world_update_masks(world_t *world, v3i loc) {
 					if (BIT_GET(block->expose_mask, i))
 						if (world_block_see_through(world, v3i_add(loc, OUTLINE_BOT_OFFSETS[i])))
 							BIT_SET_TRUE(outline_mask, i + 4);
+
+			for (i = 0; i < 4; ++i) {
+				corner = true;
+
+				for (j = 0; j < 3; ++j) {
+					neighbor = v3i_add(loc, OUTLINE_CORNER_OFFSETS[i]);
+
+					if (j & 0x1)
+						neighbor.x = loc.x;
+					else if (j & 0x2)
+						neighbor.y = loc.y;
+
+					if (!world_block_see_through(world, neighbor)) {
+						corner = false;
+						break;
+					}
+				}
+
+				if (corner)
+					BIT_SET_TRUE(outline_mask, i + 8);
+			}
 
 			block->tex_state.outline_mask = outline_mask;
 		}
@@ -143,10 +165,8 @@ voxel_masks_t world_voxel_masks(block_t *block, v3i loc) {
 		if (BIT_GET(block->tex_state.outline_mask, (i << 1) | ((~dir_bit) & 1)))
 			BIT_SET_TRUE(masks.outline, i);
 
-		/*
-		if (BIT_GET(block->tex_state.outline_mask, ((i << 1) + 4) | dir_bit))
-			BIT_SET_TRUE(masks.outline, i + 2);
-		*/
+		if (BIT_GET(block->tex_state.outline_mask, ((i << 1) | dir_bit) + 4))
+			BIT_SET_TRUE(masks.outline, 3 - i);
 
 		if (v3i_get(&loc, i) == v3i_get(&camera.render_end, i))
 			BIT_SET_TRUE(masks.dark, i);
@@ -163,9 +183,17 @@ voxel_masks_t world_voxel_masks(block_t *block, v3i loc) {
 
 		BIT_SET_SWAP(masks.expose, 0, 1, swp);
 		BIT_SET_SWAP(masks.outline, 0, 1, swp);
-		//BIT_SET_SWAP(masks.outline, 2, 3, swp);
+		BIT_SET_SWAP(masks.outline, 2, 3, swp);
 		BIT_SET_SWAP(masks.dark, 0, 1, swp);
-	} 
+	}
+
+	/*
+	if (BIT_GET(block->tex_state.outline_mask, 9))
+		BIT_SET_TRUE(masks.outline, 5);
+
+	if (BIT_GET(block->tex_state.outline_mask, 10))
+		BIT_SET_TRUE(masks.outline, 4);
+	*/
 
 	return masks;
 }

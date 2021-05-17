@@ -210,7 +210,7 @@ void generate_tree(world_t *world, v3i loc) {
 	v3i leaf_loc;
 
 	trunk = block_gen_get_id("tree trunk");
-	leaves = block_gen_get_id("leaves");
+	leaves = block_gen_get_id("dirt"); // TODO change back
 
 	max_v = 3 + rand() % 2;
 
