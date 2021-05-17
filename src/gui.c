@@ -51,9 +51,9 @@ void gui_update(double fps, world_t *world) {
 
 	v3d_sprint(DEBUG_LINES[line++], "POS", world->player->ray.pos);
 	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);
-	v3i_sprint(DEBUG_LINES[line++], "RENDER START", camera.render_start);
-	v3i_sprint(DEBUG_LINES[line++], "RENDER END", camera.render_end);
-	v3i_sprint(DEBUG_LINES[line++], "RENDER INC", camera.render_inc);
+	v3i_sprint(DEBUG_LINES[line++], "RENDER START", camera.rndr_start);
+	v3i_sprint(DEBUG_LINES[line++], "RENDER END", camera.rndr_end);
+	v3i_sprint(DEBUG_LINES[line++], "RENDER INC", camera.rndr_inc);
 }
 
 void gui_render() {

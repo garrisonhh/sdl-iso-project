@@ -18,8 +18,8 @@ struct camera_t {
 	circle_t view_circle;
 
 	// rendering
-	int render_dist, block_size;
-	v3i render_start, render_end, render_inc; // render_world iteration values
+	int rndr_dist, block_size;
+	v3i rndr_start, rndr_end, rndr_inc; // render iteration values
 	int rotation; // 0-3; whether facing N, E, S, W
 };
 typedef struct camera_t camera_t;

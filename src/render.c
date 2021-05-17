@@ -208,20 +208,26 @@ render_info_t *render_gen_info(world_t *world) {
 	cam_ray.pos.z += world->player->size.z / 2;
 
 	info = malloc(sizeof(render_info_t));
+
 	info->packets = array_create(256); // TODO better estimate of num packets?
-	info->camera_z = v3i_from_v3d(world->player->ray.pos).z;
+
+	info->camera_z = v3i_from_v3d(camera.pos).z;
 	info->camera_blocked = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
 
-	for (loc.z = camera.render_start.z; loc.z != camera.render_end.z + camera.render_inc.z; loc.z += camera.render_inc.z) {
+	info->viewport = camera.viewport;
+
+	for (loc.z = 0; loc.z < world->block_size; ++loc.z) {
 		// render blocks and buckets
-		for (loc.y = camera.render_start.y; loc.y != camera.render_end.y + camera.render_inc.y; loc.y += camera.render_inc.y) {
-			for (loc.x = camera.render_start.x; loc.x != camera.render_end.x + camera.render_inc.x; loc.x += camera.render_inc.x) {
+		loc.y = camera.rndr_start.y;
+		for (; loc.y != camera.rndr_end.y + camera.rndr_inc.y; loc.y += camera.rndr_inc.y) {
+			loc.x = camera.rndr_start.x;
+			for (; loc.x != camera.rndr_end.x + camera.rndr_inc.x; loc.x += camera.rndr_inc.x) {
 				world_get_render_loc(world, loc, &block, &bucket);
 
 				if (block != NULL) {
 					if (block->texture->transparent && bucket != NULL) { // draw block sorted between entities
-						block_y = ((double)loc.x + 0.5) * camera.render_inc.x
-							    + ((double)loc.y + 0.5) * camera.render_inc.y;
+						block_y = ((double)loc.x + 0.5) * camera.rndr_inc.x
+							    + ((double)loc.y + 0.5) * camera.rndr_inc.y;
 						bucket_trav = bucket->root;
 
 						while (bucket_trav != NULL && world_bucket_y(bucket_trav->item) < block_y) {
@@ -265,7 +271,7 @@ void render_from_info(render_info_t *info) {
 		render_render_packet(info->packets->items[i]);
 
 	SDL_SetRenderTarget(renderer, NULL);
-	SDL_RenderCopy(renderer, background, &camera.viewport, NULL);
+	SDL_RenderCopy(renderer, background, &info->viewport, NULL);
 
 	for (i = 0; i < info->packets->size; ++i)
 		free(info->packets->items[i]);

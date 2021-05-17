@@ -143,31 +143,31 @@ void camera_update() {
 
 	v3i center = v3i_from_v3d(camera.pos);
 
-	camera.render_inc = (v3i){1, 1, 1};
+	camera.rndr_inc = (v3i){1, 1, 1};
 
 	switch (camera.rotation) {
 		case 1:
-			camera.render_inc.x = -1;
+			camera.rndr_inc.x = -1;
 			break;
 		case 2:
-			camera.render_inc.x = -1;
-			camera.render_inc.y = -1;
+			camera.rndr_inc.x = -1;
+			camera.rndr_inc.y = -1;
 			break;
 		case 3:
-			camera.render_inc.y = -1;
+			camera.rndr_inc.y = -1;
 			break;
 	}
 
 	for (i = 0; i < 3; ++i) {
-		min_val = MAX(0, v3i_get(&center, i) - camera.render_dist);
-		max_val = MIN(camera.block_size - 1, v3i_get(&center, i) + camera.render_dist);
+		min_val = MAX(0, v3i_get(&center, i) - camera.rndr_dist);
+		max_val = MIN(camera.block_size - 1, v3i_get(&center, i) + camera.rndr_dist);
 
-		if (v3i_get(&camera.render_inc, i) > 0) {
-			v3i_set(&camera.render_start, i, min_val);
-			v3i_set(&camera.render_end, i, max_val);
+		if (v3i_get(&camera.rndr_inc, i) > 0) {
+			v3i_set(&camera.rndr_start, i, min_val);
+			v3i_set(&camera.rndr_end, i, max_val);
 		} else { // values swapped
-			v3i_set(&camera.render_start, i, max_val);
-			v3i_set(&camera.render_end, i, min_val);
+			v3i_set(&camera.rndr_start, i, max_val);
+			v3i_set(&camera.rndr_end, i, min_val);
 		}
 	}
 }
@@ -189,7 +189,7 @@ void camera_set_scale(int scale) {
 	camera.scale = CLAMP(scale, 1, 16);
 
 	// when I add variable window sizes this constant will need to be a variable
-	camera.render_dist = 64 / camera.scale;
+	camera.rndr_dist = 64 / camera.scale;
 
 	camera.viewport.w = SCREEN_WIDTH / camera.scale;
 	camera.viewport.h = SCREEN_HEIGHT / camera.scale;

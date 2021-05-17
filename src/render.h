@@ -33,10 +33,13 @@ typedef struct render_packet_t render_packet_t;
 
 struct render_info_t {
 	// array_t of array_t of malloc'd render_packet_t ptrs
+	// TODO split z levels so shadows can be added back in
 	array_t *packets;
 
 	bool camera_blocked;
 	int camera_z;
+
+	SDL_Rect viewport;
 };
 typedef struct render_info_t render_info_t;
 
@@ -45,6 +48,5 @@ void render_quit(void);
 
 render_info_t *render_gen_info(world_t *world);
 void render_from_info(render_info_t *);
-//void render_world(world_t *);
 
 #endif
