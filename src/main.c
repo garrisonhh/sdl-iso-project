@@ -1,5 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_thread.h>
+#include <SDL2/SDL_mutex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -17,6 +19,13 @@
 #include "fonts.h"
 
 SDL_Window *window = NULL;
+
+bool QUIT = false;
+
+// threaded stuff
+SDL_sem *MAIN_DONE, *RENDER_DONE;
+render_info_t *RENDER_INFO = NULL;
+SDL_mutex *RENDER_INFO_LOCK;
 
 void init() {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -39,7 +48,11 @@ void init() {
 		printf("SDL_image could not initialize:\n%s\n", IMG_GetError());
 		exit(1);
 	}
-	
+
+	MAIN_DONE = SDL_CreateSemaphore(0);
+	RENDER_DONE = SDL_CreateSemaphore(1);
+	RENDER_INFO_LOCK = SDL_CreateMutex();
+
 	render_init(window);
 	gui_init();
 
@@ -72,6 +85,23 @@ void quit_all() {
 	SDL_Quit();
 }
 
+int render(void *arg) {
+	while (!QUIT) {
+		SDL_SemWait(MAIN_DONE);
+
+		SDL_LockMutex(RENDER_INFO_LOCK);
+		render_from_info(RENDER_INFO);
+		SDL_UnlockMutex(RENDER_INFO_LOCK);
+
+		gui_render();
+		SDL_RenderPresent(renderer);
+
+		SDL_SemPost(RENDER_DONE);
+	}
+
+	return 0;
+}
+
 int main(int argc, char *argv[]) {
 	init();
 
@@ -100,21 +130,26 @@ int main(int argc, char *argv[]) {
 	v3d move;
 	bool jump = false;
 
-	// loop
-	bool quit = false;
+	// threading
+	SDL_Thread *render_thread = SDL_CreateThread(render, "Rendering", NULL);
 
-	render_info_t *render_info = NULL;
+	if (render_thread == NULL) {
+		printf("thread failed.\n");
+		exit(1);
+	}
 
-	while (!quit) {
+	render_info_t *next_render_info;
+
+	while (!QUIT) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_QUIT:
-					quit = true;
+					QUIT = true;
 					break;
 				case SDL_KEYDOWN:
 					switch (event.key.keysym.sym) { // nothing wrong with this. very normal code.
 						case SDLK_ESCAPE:
-							quit = true;
+							QUIT = true;
 							break;
 						case SDLK_BACKQUOTE:
 							gui_toggle_debug();
@@ -188,13 +223,19 @@ int main(int argc, char *argv[]) {
 
 		gui_update(1.0 / (tick_avg / 32), world);
 
-		// draw frame
-		render_info = render_gen_info(world);
+		// update info
+		next_render_info = render_gen_info(world);
 
-		render_from_info(render_info);
-		gui_render();
-		SDL_RenderPresent(renderer);
+		SDL_SemWait(RENDER_DONE);
+
+		SDL_LockMutex(RENDER_INFO_LOCK);
+		RENDER_INFO = next_render_info;
+		SDL_UnlockMutex(RENDER_INFO_LOCK);
+
+		SDL_SemPost(MAIN_DONE);
 	}
+
+	SDL_WaitThread(render_thread, NULL);
 
 	world_destroy(world);
 	quit_all();

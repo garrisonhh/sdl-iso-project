@@ -255,18 +255,21 @@ render_info_t *render_gen_info(world_t *world) {
 
 // also destroys info
 void render_from_info(render_info_t *info) {
-	if (info != NULL) { // info will only be NULL on the very first frame
-		size_t i;
+	size_t i;
 
-		// TODO move this elsewhere?
-		SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
-		SDL_RenderClear(renderer);
+	SDL_SetRenderTarget(renderer, background);
+	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
+	SDL_RenderClear(renderer);
 
-		for (i = 0; i < info->packets->size; ++i) {
-			render_render_packet(info->packets->items[i]);
-		}
+	for (i = 0; i < info->packets->size; ++i)
+		render_render_packet(info->packets->items[i]);
 
-		array_destroy(info->packets, true);
-		free(info);
-	}
+	SDL_SetRenderTarget(renderer, NULL);
+	SDL_RenderCopy(renderer, background, &camera.viewport, NULL);
+
+	for (i = 0; i < info->packets->size; ++i)
+		free(info->packets->items[i]);
+
+	array_destroy(info->packets, false);
+	free(info);
 }
