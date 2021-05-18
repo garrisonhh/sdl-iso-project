@@ -168,7 +168,7 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, voxel_masks_t mas
 		render_sdl_texture(DARK_VOXEL_TEXTURE->textures[masks.dark - 1], pos);
 
 	if (masks.outline) {
-		int i;
+		int i, corner_offset;
 		v2i offset = {
 			pos.x + SDL_TEX_RECT.x,
 			pos.y + SDL_TEX_RECT.y
@@ -181,11 +181,18 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, voxel_masks_t mas
 			}
 		}
 
-		for (i = 2; i < 6; ++i) {
-			// TODO check side face exposure
-			if (BIT_GET(masks.outline, i)) {
+		for (i = 2; i < 4; ++i) {
+			if (BIT_GET(masks.expose, 3 - i) & BIT_GET(masks.outline, i)) {
 				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
 											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
+			}
+		}
+
+		for (i = 4; i < 6; ++i) {
+			if (BIT_GET(masks.expose, 5 - i) & BIT_GET(masks.outline, i)) {
+				corner_offset = BIT_GET(masks.outline, i - 2);
+				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
+											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y + 1 - corner_offset);
 			}
 		}
 	}
