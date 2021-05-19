@@ -67,20 +67,19 @@ void render_quit() {
 	background = NULL;
 }
 
-array_t **render_generate_shadows(world_t *world) {
-	int z, i;
+void render_info_gen_shadows(render_info_t *info, world_t *world) {
+	size_t i, arr_idx;
 	entity_t *entity;
 	block_t *block;
 	circle_t *shadow;
 	v3d shadow_pos;
 	v3i shadow_loc;
-	array_t **shadows;
 
-	shadows = malloc(sizeof(array_t *) * world->block_size);
+	info->shadows = malloc(sizeof(array_t *) * info->z_levels);
 
 	// generate *shadows and z sort
-	for (z = 0; z < world->block_size; z++)
-		shadows[z] = NULL;
+	for (i = 0; i < info->z_levels; i++)
+		info->shadows[i] = NULL;
 
 	for (i = 0; i < world->entities->size; i++) {
 		entity = world->entities->items[i];
@@ -96,22 +95,20 @@ array_t **render_generate_shadows(world_t *world) {
 			shadow_loc.z--;
 		}
 
-		shadow_loc.z++;
-		shadow_pos.z = shadow_loc.z;
+		shadow_pos.z = shadow_loc.z + 1;
+		arr_idx = shadow_loc.z - camera.rndr_start.z;
 
-		if (shadow_loc.z >= 0 && shadow_loc.z < world->block_size) {
+		if (arr_idx < info->z_levels) {
 			shadow = malloc(sizeof(circle_t));
 			shadow->loc = project_v3d(shadow_pos);
 			shadow->radius = entity->sprites[0]->tex.sprite->size.x >> 1;
 
-			if (shadows[shadow_loc.z] == NULL)
-				shadows[shadow_loc.z] = array_create(2);
+			if (info->shadows[arr_idx] == NULL)
+				info->shadows[arr_idx] = array_create(2);
 
-			array_add(shadows[shadow_loc.z], shadow);
+			array_add(info->shadows[arr_idx], shadow);
 		}
 	}
-
-	return shadows;
 }
 
 // generates entity->num_sprites packets
@@ -180,22 +177,23 @@ render_packet_t *render_gen_block_packet(world_t *world, block_t *block, v3i loc
 	return packet;
 }
 
-void render_info_add_entity(render_info_t *info, entity_t *entity) {
+void render_info_add_entity(array_t *packet_arr, entity_t *entity) {
 	if (entity->num_sprites) {
 		render_packet_t **packets = render_gen_entity_packets(entity);
 
 		for (int i = 0; i < entity->num_sprites; ++i)
-			array_add(info->packets, packets[i]);
+			array_add(packet_arr, packets[i]);
 
 		free(packets);
 	}
 }
 
-void render_info_add_block(render_info_t *info, world_t *world, block_t *block, v3i loc) {
-	array_add(info->packets, render_gen_block_packet(world, block, loc));
+void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, v3i loc) {
+	array_add(packet_arr, render_gen_block_packet(world, block, loc));
 }
 
 render_info_t *render_gen_info(world_t *world) {
+	int i;
 	double block_y;
 	ray_t cam_ray;
 	block_t *block;
@@ -203,6 +201,7 @@ render_info_t *render_gen_info(world_t *world) {
 	list_node_t *bucket_trav;
 	v3i loc;
 	render_info_t *info;
+	array_t *level;
 
 	cam_ray = (ray_t){
 		world->player->ray.pos,
@@ -212,14 +211,22 @@ render_info_t *render_gen_info(world_t *world) {
 
 	info = malloc(sizeof(render_info_t));
 
-	info->packets = array_create(256); // TODO better estimate of num packets?
+	info->z_levels = camera.rndr_end.z - camera.rndr_start.z + 1;
+	info->packets = malloc(sizeof(array_t *) * info->z_levels);
 
-	info->camera_z = v3i_from_v3d(camera.pos).z;
-	info->camera_blocked = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
+	for (i = 0; i < info->z_levels; ++i)
+		info->packets[i] = array_create((camera.rndr_dist + 1) * (camera.rndr_dist + 1));
 
-	info->viewport = camera.viewport;
+	info->cam_blocked = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
+	info->cam_z = v3i_from_v3d(camera.pos).z;
+	info->cam_viewport = camera.viewport;
 
-	for (loc.z = camera.rndr_start.z; loc.z <= camera.rndr_end.z; ++loc.z) {
+	render_info_gen_shadows(info, world);
+
+	for (i = 0; i < info->z_levels; ++i) {
+		level = info->packets[i];
+		loc.z = camera.rndr_start.z + i;
+
 		// render blocks and buckets
 		loc.y = camera.rndr_start.y;
 		for (; loc.y != camera.rndr_end.y + camera.rndr_inc.y; loc.y += camera.rndr_inc.y) {
@@ -234,26 +241,26 @@ render_info_t *render_gen_info(world_t *world) {
 						bucket_trav = bucket->root;
 
 						while (bucket_trav != NULL && world_bucket_y(bucket_trav->item) < block_y) {
-							render_info_add_entity(info, bucket_trav->item);
+							render_info_add_entity(level, bucket_trav->item);
 							bucket_trav = bucket_trav->next;
 						}
 
-						render_info_add_block(info, world, block, loc);
+						render_info_add_block(level, world, block, loc);
 						
 						while (bucket_trav != NULL) {
-							render_info_add_entity(info, bucket_trav->item);
+							render_info_add_entity(level, bucket_trav->item);
 							bucket_trav = bucket_trav->next;
 						}
 					} else { // draw entities over block regardless
-						render_info_add_block(info, world, block, loc);
+						render_info_add_block(level, world, block, loc);
 
 						if (bucket != NULL)
 							LIST_FOREACH(bucket_trav, bucket)
-								render_info_add_entity(info, bucket_trav->item);
+								render_info_add_entity(level, bucket_trav->item);
 					}
 				} else if (bucket != NULL) {
 					LIST_FOREACH(bucket_trav, bucket)
-						render_info_add_entity(info, bucket_trav->item);
+						render_info_add_entity(level, bucket_trav->item);
 				}
 			}
 		}
@@ -264,21 +271,37 @@ render_info_t *render_gen_info(world_t *world) {
 
 // also destroys info
 void render_from_info(render_info_t *info) {
-	size_t i;
+	size_t i, j;
 
 	SDL_SetRenderTarget(renderer, background);
-	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
+	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF); // background
 	SDL_RenderClear(renderer);
 
-	for (i = 0; i < info->packets->size; ++i)
-		render_render_packet(info->packets->items[i]);
+	for (i = 0; i < info->z_levels; ++i) {
+		// packets
+		SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0x7F); // outline
+
+		for (j = 0; j < info->packets[i]->size; ++j)
+			render_render_packet(info->packets[i]->items[j]);
+
+		array_destroy(info->packets[i], true);
+
+		// shadows
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
+	
+		if (info->shadows[i] != NULL) {
+			for (j = 0; j < info->shadows[i]->size; ++j)
+				render_iso_circle(*(circle_t *)info->shadows[i]->items[j]);
+
+			array_destroy(info->shadows[i], true);
+		}
+	}
+
+	free(info->packets);
+	free(info->shadows);
 
 	SDL_SetRenderTarget(renderer, NULL);
-	SDL_RenderCopy(renderer, background, &info->viewport, NULL);
+	SDL_RenderCopy(renderer, background, &info->cam_viewport, NULL);
 
-	for (i = 0; i < info->packets->size; ++i)
-		free(info->packets->items[i]);
-
-	array_destroy(info->packets, false);
 	free(info);
 }

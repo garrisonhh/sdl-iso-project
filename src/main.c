@@ -89,9 +89,7 @@ int render(void *arg) {
 		SDL_SemWait(MAIN_DONE);
 
 		SDL_LockMutex(RENDER_INFO_LOCK);
-
 		render_from_info(RENDER_INFO);
-
 		SDL_UnlockMutex(RENDER_INFO_LOCK);
 
 		gui_render();
