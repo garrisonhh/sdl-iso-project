@@ -3,10 +3,10 @@
 
 #include <SDL2/SDL.h>
 #include <stdbool.h>
-#include "world.h"
-#include "world_masks.h"
-#include "textures.h"
-#include "animation.h"
+#include "../world.h"
+#include "../world_masks.h"
+#include "../textures.h"
+#include "../animation.h"
 
 #define RENDER_FORMAT SDL_PIXELFORMAT_RGBA8888
 

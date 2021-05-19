@@ -1,10 +1,10 @@
 #include <SDL2/SDL.h>
 #include "textures.h"
 #include "render.h"
-#include "vector.h"
-#include "utils.h"
-#include "world_masks.h"
-#include "render_textures.h"
+#include "../vector.h"
+#include "../utils.h"
+#include "../world_masks.h"
+#include "../textures.h"
 
 SDL_Rect SDL_TEX_RECT;
 SDL_Rect VOXEL_TEX_RECTS[3];

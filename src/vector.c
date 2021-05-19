@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "vector.h"
-#include "render.h"
+#include "render/render.h"
 
 v2i v2i_from_v2d(v2d v) {
 	return (v2i){

@@ -2,9 +2,9 @@
 #define RENDER_TEXTURES_H
 
 #include <SDL2/SDL.h>
-#include "vector.h"
 #include "render.h"
-#include "world_masks.h"
+#include "../vector.h"
+#include "../world_masks.h"
 
 void render_textures_init(void);
 

@@ -7,16 +7,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "content.h"
-#include "render.h"
+#include "render/render.h"
+#include "render/gui.h"
+#include "render/fonts.h"
 #include "camera.h"
 #include "world.h"
 #include "player.h"
 #include "utils.h"
 #include "textures.h"
 #include "block_gen.h"
-#include "gui.h"
-#include "fonts.h"
 
 SDL_Window *window = NULL;
 

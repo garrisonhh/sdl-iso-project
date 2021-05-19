@@ -1,8 +1,7 @@
 #include <stdbool.h>
+#include "camera.h"
 #include "world.h"
 #include "vector.h"
-#include "camera.h"
-#include "render.h"
 #include "utils.h"
 
 const int VOXEL_HALF_W = VOXEL_WIDTH >> 1;

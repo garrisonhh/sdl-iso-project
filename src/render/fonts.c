@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "fonts.h"
-#include "content.h"
 #include "render.h"
-#include "textures.h"
-#include "vector.h"
+#include "../content.h"
+#include "../textures.h"
+#include "../vector.h"
 
 font_t FONTS[1]; // corresponds to font_e
 

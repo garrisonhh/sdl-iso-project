@@ -1,11 +1,11 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include "render.h"
-#include "textures.h"
-#include "render_textures.h"
 #include "fonts.h"
-#include "camera.h"
-#include "world.h"
+#include "textures.h"
+#include "../camera.h"
+#include "../textures.h"
+#include "../world.h"
 
 const int GUI_WIDTH = SCREEN_WIDTH >> 2;
 const int GUI_HEIGHT = SCREEN_HEIGHT >> 2;

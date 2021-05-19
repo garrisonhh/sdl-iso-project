@@ -5,9 +5,9 @@
 #include <string.h>
 #include "vector.h"
 #include "content.h"
-#include "render.h"
+#include "render/render.h"
 #include "textures.h"
-#include "render_textures.h"
+#include "render/textures.h"
 #include "data_structures/hashmap.h"
 #include "data_structures/hash_functions.h"
 

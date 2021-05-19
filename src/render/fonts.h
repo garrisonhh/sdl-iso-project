@@ -1,7 +1,7 @@
 #ifndef FONTS_H
 #define FONTS_H
 
-#include "vector.h"
+#include "../vector.h"
 
 enum font_e {
 	FONT_UI = 0,
