@@ -45,12 +45,14 @@ void textures_load() {
 	}
 
 	// sprite_type map
-	const int num_sprite_types = 4;
+	const int num_sprite_types = 6;
 	char *sprite_type_strings[] = {
 		"static",
 		"human-body",
 		"human-back-hands",
 		"human-front-hands",
+		"human-back-tool",
+		"human-front-tool",
 	};
 	sprite_type_e *sprite_type;
 	hashmap_t *sprite_type_map = hashmap_create(num_sprite_types * 2, false, hash_string);

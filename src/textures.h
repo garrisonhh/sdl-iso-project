@@ -25,6 +25,8 @@ enum sprite_type_e {
 	SPRITE_HUMAN_BODY = 1,
 	SPRITE_HUMAN_BACK_HANDS = 2,
 	SPRITE_HUMAN_FRONT_HANDS = 3,
+	SPRITE_HUMAN_BACK_TOOL = 4,
+	SPRITE_HUMAN_FRONT_TOOL = 5,
 };
 typedef enum sprite_type_e sprite_type_e;
 

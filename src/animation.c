@@ -70,3 +70,7 @@ void anim_human_hands(entity_t *entity, animation_t *state) {
 	if (state->cell.y != pose)
 		anim_state_set(state, pose);
 }
+
+void anim_human_tool(entity_t *entity, animation_t *state) {
+	// TODO
+}

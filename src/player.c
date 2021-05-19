@@ -17,7 +17,7 @@ entity_t *player_create() {
 	sprites[1] = texture_from_key("harry_body");
 	sprites[2] = texture_from_key("harry_front");
 
-	player = entity_create(sprites, num_sprites, pos, size);
+	player = entity_create(ENTITY_HUMAN, sprites, num_sprites, pos, size);
 
 	return player;
 }

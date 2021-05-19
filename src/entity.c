@@ -15,8 +15,18 @@
 
 void entity_update_directions(entity_t *);
 
-entity_t *entity_create(texture_t **sprites, size_t num_sprites, v3d pos, v3d size) {
+entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_sprites, v3d pos, v3d size) {
 	entity_t *entity = malloc(sizeof(entity_t));
+
+	entity->type = type;
+
+	switch (entity->type) {
+		case ENTITY_HUMAN:
+			entity->state.human = human_create();
+			break;
+		default:
+			break;
+	}
 
 	entity->sprites = sprites;
 	entity->num_sprites = num_sprites;
@@ -36,20 +46,21 @@ entity_t *entity_create(texture_t **sprites, size_t num_sprites, v3d pos, v3d si
 	entity->size = size;
 	entity->center = v3d_scale(entity->size, 0.5);
 
-	entity->on_ground = false;
-	entity->path = list_create();
-
 	entity_update_directions(entity); // sets dir_xy and dir_z
 
 	return entity;
 }
 
 void entity_destroy(entity_t *entity) {
+	switch (entity->type) {
+		case ENTITY_HUMAN:
+			human_destroy(entity->state.human);
+		default:
+			break;
+	}
+
 	free(entity->sprites);
 	free(entity->anim_states);
-
-	list_destroy(entity->path, true);
-
 	free(entity);
 }
 
@@ -184,6 +195,7 @@ void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time
 	entity->ray.pos = v3d_add(entity->ray.pos, movement.dir);
 }
 
+/*
 void entity_add_path(entity_t *entity, list_t *path) {
 	list_merge(entity->path, path);
 }
@@ -231,6 +243,7 @@ void entity_follow_path(entity_t *entity, double time) {
 			printf("PATH DONE!\n");
 	}
 }
+*/
 
 void entity_update_directions(entity_t *entity) {
 	double dir;
@@ -296,7 +309,7 @@ void entity_tick(entity_t *entity, world_t *world, double time) {
 	entity->last_dir.z = entity->ray.dir.z;
 	entity_update_directions(entity);
 
-	// animation state
+	// animation
 	for (i = 0; i < entity->num_sprites; ++i) {
 		sprite = entity->sprites[i]->tex.sprite;
 		anim_state = &entity->anim_states[i];
@@ -311,6 +324,12 @@ void entity_tick(entity_t *entity, world_t *world, double time) {
 			case SPRITE_HUMAN_FRONT_HANDS:
 				anim_human_hands(entity, anim_state);
 				break;
+			case SPRITE_HUMAN_BACK_TOOL:
+				// TODO
+				break;
+			case SPRITE_HUMAN_FRONT_TOOL:
+				// TODO
+				break;
 		}
 
 		if (sprite->anim_lengths[anim_state->cell.y] > 1) {
@@ -323,10 +342,7 @@ void entity_tick(entity_t *entity, world_t *world, double time) {
 		}
 	}
 
-	// think (modify state)
-	entity_follow_path(entity, time);
-
-	// act (apply changes)
+	// movement
 	if (!entity->on_ground)
 		entity->ray.dir.z += GRAVITY * time;
 
