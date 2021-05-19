@@ -40,13 +40,9 @@ entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_spri
 	entity->dir_xy = DIR_FRONT;
 	entity->dir_z = DIR_LEVEL;
 
-	entity->last_dir = (v3d){0.0, 1.0, 0.0};
-
 	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
 	entity->size = size;
 	entity->center = v3d_scale(entity->size, 0.5);
-
-	entity_update_directions(entity); // sets dir_xy and dir_z
 
 	return entity;
 }
@@ -245,102 +241,41 @@ void entity_follow_path(entity_t *entity, double time) {
 }
 */
 
-void entity_update_directions(entity_t *entity) {
-	double dir;
-	v3i facing;
+// for render_packets TODO
+array_t *entity_sprites(entity_t *entity) {
+	array_t *sprites = NULL;
 
-	for (int i = 0; i < 3; ++i) {
-		dir = v3d_get(&entity->last_dir, i);
+	switch (entity->type) {
+		case ENTITY_BASE:
+			sprites = array_create(entity->num_sprites);
+			
+			for (size_t i = 0; i < entity->num_sprites; ++i)
+				array_add(sprites, entity->sprites[i]);
 
-		if (d_close(dir, 0.0))
-			v3i_set(&facing, i, 0);
-		else if (dir > 0.0)
-			v3i_set(&facing, i, 1);
-		else
-			v3i_set(&facing, i, -1);
+			return sprites;
+		case ENTITY_HUMAN:
+			sprites = entity_human_sprites(entity);
 	}
 
-	facing = camera_rotated_v3i(facing);
-
-	if (facing.z < 0)
-		entity->dir_z = DIR_DOWN;
-	else if (facing.z > 0)
-		entity->dir_z = DIR_UP;
-	else
-		entity->dir_z = DIR_LEVEL;
-
-	if (facing.y < 0) {
-		if (facing.x < 0)
-			entity->dir_xy = DIR_BACK_LEFT;
-		else if (facing.x > 0)
-			entity->dir_xy = DIR_BACK_RIGHT;
-		else
-			entity->dir_xy = DIR_BACK;
-	} else if (facing.y > 0) {
-		if (facing.x < 0)
-			entity->dir_xy = DIR_FRONT_LEFT;
-		else if (facing.x > 0)
-			entity->dir_xy = DIR_FRONT_RIGHT;
-		else
-			entity->dir_xy = DIR_FRONT;
-	} else {
-		if (facing.x < 0)
-			entity->dir_xy = DIR_LEFT;
-		else if (facing.x > 0)
-			entity->dir_xy = DIR_RIGHT;
-	}
+	return sprites;
 }
 
 void entity_tick(entity_t *entity, world_t *world, double time) {
-	int i;
 	array_t *block_colls;
-	sprite_t *sprite;
-	animation_t *anim_state;
 
 	time = MIN(time, 0.1); // super slow physics ticks means broken physics
 
-	// sprite state
-	// sprite 2d direction
-	if (!d_close(fabs(entity->ray.dir.x) + fabs(entity->ray.dir.y), 0)) {
-		entity->last_dir.x = entity->ray.dir.x - entity->ray.dir.y;
-		entity->last_dir.y = entity->ray.dir.x + entity->ray.dir.y;
+	// entity state
+	switch (entity->type) {
+		case ENTITY_BASE:
+			break;
+		case ENTITY_HUMAN:
+			entity_human_tick(entity, time);
+			break;
 	}
 
-	entity->last_dir.z = entity->ray.dir.z;
-	entity_update_directions(entity);
-
-	// animation
-	for (i = 0; i < entity->num_sprites; ++i) {
-		sprite = entity->sprites[i]->tex.sprite;
-		anim_state = &entity->anim_states[i];
-
-		switch (sprite->type) {
-			case SPRITE_STATIC:
-				break;
-			case SPRITE_HUMAN_BODY:
-				anim_human_body(entity, anim_state);
-				break;
-			case SPRITE_HUMAN_BACK_HANDS:
-			case SPRITE_HUMAN_FRONT_HANDS:
-				anim_human_hands(entity, anim_state);
-				break;
-			case SPRITE_HUMAN_BACK_TOOL:
-				// TODO
-				break;
-			case SPRITE_HUMAN_FRONT_TOOL:
-				// TODO
-				break;
-		}
-
-		if (sprite->anim_lengths[anim_state->cell.y] > 1) {
-			anim_state->state += time * ANIMATION_FPS;
-
-			if (anim_state->state > sprite->anim_lengths[anim_state->cell.y])
-				anim_state->state -= (double)sprite->anim_lengths[anim_state->cell.y];
-
-			anim_state->cell.x = (int)anim_state->state;
-		}
-	}
+	// sprite/animation state
+	anim_entity_tick(entity, time);
 
 	// movement
 	if (!entity->on_ground)

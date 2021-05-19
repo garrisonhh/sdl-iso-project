@@ -32,7 +32,6 @@ struct animation_t {
 };
 typedef struct animation_t animation_t;
 
-void anim_human_body(entity_t *, animation_t *);
-void anim_human_hands(entity_t *, animation_t *);
+void anim_entity_tick(entity_t *, double time);
 
 #endif

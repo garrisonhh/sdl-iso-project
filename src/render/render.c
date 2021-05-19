@@ -123,7 +123,7 @@ render_packet_t **render_gen_entity_packets(entity_t *entity) {
 
 	packets = malloc(sizeof(render_packet_t *) * entity->num_sprites);
 
-	for (int i = 0; i < entity->num_sprites; ++i) {
+	for (size_t i = 0; i < entity->num_sprites; ++i) {
 		packets[i] = malloc(sizeof(render_packet_t));
 
 		packets[i]->pos = screen_pos;

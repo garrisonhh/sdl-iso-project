@@ -17,21 +17,17 @@ enum entity_type_e {
 };
 typedef enum entity_type_e entity_type_e;
 
-/*
- * "entity" in this context basically means a physics object with a sprite
- */
+// "entity" in this context basically means a physics object with a sprite
 struct entity_t {
 	entity_type_e type;
-	union typed_state {
+	union entity_state {
 		human_t *human;
 	} state;
 
-	// sprites + animations
+	// sprites + animations (managed mostly by animation.*)
 	texture_t **sprites;
 	animation_t *anim_states;
 	size_t num_sprites;
-
-	v3d last_dir;
 	dir_xy_e dir_xy;
 	dir_z_e dir_z;
 
@@ -39,7 +35,7 @@ struct entity_t {
 	ray_t ray;
 	v3d size, center;
 
-	bool on_ground; // TODO should this be part of a typed_state struct?
+	bool on_ground; // TODO should this be part of entity_state structs?
 };
 typedef struct entity_t entity_t;
 
