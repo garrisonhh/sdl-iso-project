@@ -23,7 +23,7 @@ bool QUIT = false;
 
 // threaded stuff
 SDL_sem *MAIN_DONE, *RENDER_DONE;
-render_info_t *RENDER_INFO = NULL;
+render_info_t *RENDER_INFO;
 SDL_mutex *RENDER_INFO_LOCK;
 
 void init() {
@@ -89,7 +89,9 @@ int render(void *arg) {
 		SDL_SemWait(MAIN_DONE);
 
 		SDL_LockMutex(RENDER_INFO_LOCK);
+
 		render_from_info(RENDER_INFO);
+
 		SDL_UnlockMutex(RENDER_INFO_LOCK);
 
 		gui_render();
@@ -112,7 +114,8 @@ int main(int argc, char *argv[]) {
 
 	// time
 	double last_tick = timeit_get_time(), this_tick = 0;
-	double ticks[32];
+	const int num_ticks = 128;
+	double ticks[num_ticks];
 	double tick_avg;
 	int tick_idx = 0;
 	int i;
@@ -214,7 +217,7 @@ int main(int argc, char *argv[]) {
 		camera_set_pos(world->player->ray.pos);
 
 		ticks[tick_idx++] = this_tick - last_tick;
-		tick_idx %= 32;
+		tick_idx %= num_ticks;
 		tick_avg = 0;
 
 		for (i = 0; i < 32; ++i)

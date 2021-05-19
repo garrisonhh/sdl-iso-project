@@ -39,7 +39,6 @@
 	else \
 		BIT_SET_FALSE(bitfield, index) \
 }
-#define BIT_SET_FLIP(bitfield, index) BIT_SET_COND(bitfield, index, !BIT_GET(bitfield, index))
 
 // swp is bool/unsigned/int
 #define BIT_SET_SWAP(bitfield, index1, index2, swp) {\
@@ -47,6 +46,10 @@
 	BIT_SET_COND(bitfield, index1, BIT_GET(bitfield, index2));\
 	BIT_SET_COND(bitfield, index2, swp);\
 }
+
+#define BIT_FLIP(num) ((~num) & 1)
+
+#define D_ROUND(d) ((int)(d + 0.5l))
 
 bool d_close(double a, double b);
 void timeit_start(void);

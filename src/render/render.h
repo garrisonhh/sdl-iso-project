@@ -27,6 +27,7 @@ struct render_packet_t {
 		texture_state_t tex;
 		animation_t anim;
 		voxel_masks_t voxel_masks;
+		unsigned connected_mask: 6;
 	} state;
 };
 typedef struct render_packet_t render_packet_t;

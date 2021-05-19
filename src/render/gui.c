@@ -1,11 +1,13 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
+#include <math.h>
 #include "render.h"
 #include "fonts.h"
 #include "textures.h"
 #include "../camera.h"
 #include "../textures.h"
 #include "../world.h"
+#include "../utils.h"
 
 const int GUI_WIDTH = SCREEN_WIDTH >> 2;
 const int GUI_HEIGHT = SCREEN_HEIGHT >> 2;
@@ -42,7 +44,7 @@ void gui_load() {
 void gui_update(double fps, world_t *world) {
 	int line = 0;
 
-	sprintf(DEBUG_LINES[line++], "FPS: %3.1lf", fps);
+	sprintf(DEBUG_LINES[line++], "FPS: %3d", D_ROUND(fps));
 
 	if (COMPASS_CELL.x != camera.rotation) {
 		COMPASS_CELL.x = camera.rotation;
@@ -51,9 +53,7 @@ void gui_update(double fps, world_t *world) {
 
 	v3d_sprint(DEBUG_LINES[line++], "POS", world->player->ray.pos);
 	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);
-	v3i_sprint(DEBUG_LINES[line++], "RENDER START", camera.rndr_start);
-	v3i_sprint(DEBUG_LINES[line++], "RENDER END", camera.rndr_end);
-	v3i_sprint(DEBUG_LINES[line++], "RENDER INC", camera.rndr_inc);
+	sprintf(DEBUG_LINES[line++], "RNDR DIST: %i", camera.rndr_dist);
 }
 
 void gui_render() {

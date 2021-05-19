@@ -185,10 +185,7 @@ void camera_set_pos(v3d pos) {
 }
 
 void camera_set_scale(int scale) {
-	camera.scale = CLAMP(scale, 1, 16);
-
-	// when I add variable window sizes this constant will need to be a variable
-	camera.rndr_dist = 64 / camera.scale;
+	camera.scale = CLAMP(scale, 2, 16);
 
 	camera.viewport.w = SCREEN_WIDTH / camera.scale;
 	camera.viewport.h = SCREEN_HEIGHT / camera.scale;
@@ -199,6 +196,8 @@ void camera_set_scale(int scale) {
 	};
 
 	camera.view_circle.loc = camera.center_screen;
+
+	camera.rndr_dist = (camera.viewport.w / VOXEL_WIDTH) + (int)camera.pos.z;
 
 	camera_update();
 }

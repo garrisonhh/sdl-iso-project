@@ -170,7 +170,11 @@ render_packet_t *render_gen_block_packet(world_t *world, block_t *block, v3i loc
 
 		packet->pos = render_block_project(loc);
 		packet->texture = block->texture;
-		packet->state.tex = block->tex_state;
+
+		if (block->texture->type == TEX_CONNECTED)
+			packet->state.connected_mask = world_connected_mask(block);
+		else
+			packet->state.tex = block->tex_state;
 	}
 
 	return packet;
@@ -215,7 +219,7 @@ render_info_t *render_gen_info(world_t *world) {
 
 	info->viewport = camera.viewport;
 
-	for (loc.z = 0; loc.z < world->block_size; ++loc.z) {
+	for (loc.z = camera.rndr_start.z; loc.z <= camera.rndr_end.z; ++loc.z) {
 		// render blocks and buckets
 		loc.y = camera.rndr_start.y;
 		for (; loc.y != camera.rndr_end.y + camera.rndr_inc.y; loc.y += camera.rndr_inc.y) {

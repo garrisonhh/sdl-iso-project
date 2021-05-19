@@ -81,8 +81,7 @@ void render_render_packet(render_packet_t *packet) {
 			render_voxel_texture(packet->texture->tex.voxel, packet->pos, packet->state.voxel_masks);
 			break;
 		case TEX_CONNECTED:
-			render_connected_texture(packet->texture->tex.connected, packet->pos,
-									 packet->state.tex.connected_mask);
+			render_connected_texture(packet->texture->tex.connected, packet->pos, packet->state.connected_mask);
 			break;
 		case TEX_SHEET:
 			render_sheet_texture(packet->texture->tex.sheet, packet->pos, packet->state.tex.cell);
