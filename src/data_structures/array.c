@@ -7,6 +7,7 @@ array_t *array_create(size_t initial_size) {
 	
 	array->size = 0;
 	array->max_size = initial_size;
+	array->min_size = initial_size;
 	array->items = malloc(sizeof(void *) * array->max_size);
 
 	return array;
@@ -39,7 +40,9 @@ void array_remove(array_t *array, void *item) {
 				array->items[j - 1] = array->items[j];
 			array->size--;
 
-			if (array->max_size > 4 && array->size < array->max_size >> 1) {
+			if (array->max_size > array->min_size
+			 && array->max_size > 4
+			 && array->size < array->max_size >> 1) {
 				array->max_size >>= 1;
 				array->items = realloc(array->items, sizeof(void *) * array->max_size);
 			}

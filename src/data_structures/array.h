@@ -5,7 +5,7 @@
 
 struct array_t {
 	void **items;
-	size_t max_size, size;
+	size_t max_size, size, min_size;
 };
 typedef struct array_t array_t;
 
