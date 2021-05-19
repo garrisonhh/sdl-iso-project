@@ -196,6 +196,7 @@ void camera_set_scale(int scale) {
 	};
 
 	camera.view_circle.loc = camera.center_screen;
+	camera.view_circle.radius = camera.viewport.w >> 2;
 
 	camera.rndr_dist = (camera.viewport.w / VOXEL_WIDTH) + (int)camera.pos.z;
 

@@ -217,8 +217,11 @@ render_info_t *render_gen_info(world_t *world) {
 	for (i = 0; i < info->z_levels; ++i)
 		info->packets[i] = array_create((camera.rndr_dist + 1) * (camera.rndr_dist + 1));
 
-	info->cam_blocked = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
-	info->cam_z = v3i_from_v3d(camera.pos).z;
+	if (raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL))
+		info->z_split = (int)camera.pos.z - camera.rndr_start.z;
+	else
+		info->z_split = 0;
+
 	info->cam_viewport = camera.viewport;
 
 	render_info_gen_shadows(info, world);
@@ -295,13 +298,29 @@ void render_from_info(render_info_t *info) {
 
 			array_destroy(info->shadows[i], true);
 		}
+
+		if (info->z_split && i == info->z_split) {
+			SDL_SetRenderTarget(renderer, foreground);
+			SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
+			SDL_RenderClear(renderer);
+		}
 	}
 
 	free(info->packets);
 	free(info->shadows);
 
+	if (info->z_split) {
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+		SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
+		render_iso_circle(camera.view_circle);
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+	}
+
 	SDL_SetRenderTarget(renderer, NULL);
 	SDL_RenderCopy(renderer, background, &info->cam_viewport, NULL);
+
+	if (info->z_split)
+		SDL_RenderCopy(renderer, foreground, &info->cam_viewport, NULL);
 
 	free(info);
 }
