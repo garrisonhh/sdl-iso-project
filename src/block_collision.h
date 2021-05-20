@@ -9,7 +9,6 @@ enum block_coll_e {
 	BLOCK_COLL_NONE,		// block does not collide
 	BLOCK_COLL_DEFAULT_BOX, // block is a normal full block
 	BLOCK_COLL_CUSTOM_BOX,  // block uses a custom bbox
-	BLOCK_COLL_CHOPPED_BOX, // block is a full block chopped by a plane
 };
 typedef enum block_coll_e block_coll_e;
 
@@ -17,7 +16,6 @@ typedef enum block_coll_e block_coll_e;
 struct block_coll_data_t {
 	block_coll_e coll_type;
 	bbox_t *bbox;
-	ray_t *plane;
 };
 typedef struct block_coll_data_t block_coll_data_t;
 

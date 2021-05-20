@@ -125,42 +125,6 @@ ray_t entity_collide_bbox(entity_t *entity, ray_t movement, bbox_t block_bbox) {
 	return movement;
 }
 
-// returns resolved entity movement ray
-// NOTE: chopped box collision is still wonky at best, while it is super cool. idk whether
-// it actually makes sense in the scope of alpha 1.0 at least, it is consuming more time than I want it
-// to and generally poses a lot of technical challenges in a lot of areas. future versions, sure lets
-// come back to the idea
-ray_t entity_collide_chopped_bbox(entity_t *entity, ray_t movement, bbox_t block_bbox, block_collidable_t *block_coll) {
-	ray_t plane;
-	v3d intersect, resolved_dir;
-	bool behind_plane, intersects_plane;
-
-	plane = *block_coll->coll_data->plane;
-	plane.pos = v3d_add(plane.pos, v3d_from_v3i(block_coll->loc));
-	plane.pos = v3d_add(plane.pos, v3d_mul(entity->center, v3d_from_v3i(polarity_of_v3d(plane.dir))));
-
-	intersects_plane = ray_intersects_plane(movement, plane, &intersect, &resolved_dir, &behind_plane);
-
-	if (behind_plane) {
-		if (intersects_plane && inside_bbox(block_bbox, intersect)) { // ray collides with plane inside the box
-			if (plane.dir.z > 0 && !d_close(plane.dir.z, 0)) { // plane is facing upwards (it can be stood upon)
-				entity->on_ground = true;
-
-				if (resolved_dir.z <= 0 || d_close(resolved_dir.z, 0)) {
-					entity->ray.dir.z = 0;
-					resolved_dir.z = 0;
-				}
-			}
-
-			movement.dir = resolved_dir;
-		} else { // ray may collide with box but not on the face of the plane
-			movement = entity_collide_bbox(entity, movement, block_bbox);
-		}
-	}
-
-	return movement;
-}
-
 void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time) {
 	ray_t movement;
 	bbox_t block_bbox;
@@ -180,17 +144,8 @@ void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time
 		block_bbox.pos = v3d_sub(block_bbox.pos, entity->center);
 		block_bbox.size = v3d_add(block_bbox.size, entity->size);
 
-		switch (block_coll->coll_data->coll_type) {
-			case (BLOCK_COLL_CHOPPED_BOX):
-				movement = entity_collide_chopped_bbox(entity, movement, block_bbox, block_coll);
-				break;
-			case (BLOCK_COLL_CUSTOM_BOX):
-			case (BLOCK_COLL_DEFAULT_BOX):
-				movement = entity_collide_bbox(entity, movement, block_bbox);
-				break;
-			case (BLOCK_COLL_NONE):
-				break;
-		}
+		if (block_coll->coll_data->coll_type != BLOCK_COLL_NONE)
+			movement = entity_collide_bbox(entity, movement, block_bbox);
 	}
 
 	entity->ray.pos = v3d_add(entity->ray.pos, movement.dir);

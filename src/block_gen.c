@@ -85,11 +85,9 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 		coll_data->coll_type = BLOCK_COLL_DEFAULT_BOX;
 	}
 
-	coll_data->bbox = NULL;
-	coll_data->plane = NULL;
-
 	switch (coll_data->coll_type) {
 		case BLOCK_COLL_NONE:
+			coll_data->bbox = NULL;
 			break;
 		case BLOCK_COLL_DEFAULT_BOX:
 			coll_data->bbox = &BLOCK_DEFAULT_BOX;
@@ -97,9 +95,6 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 		case BLOCK_COLL_CUSTOM_BOX:
 			coll_data->bbox = malloc(sizeof(bbox_t));
 			*coll_data->bbox = content_get_bbox(block_obj, "bbox");
-			break;
-		case BLOCK_COLL_CHOPPED_BOX:
-			exit(1);
 			break;
 	}
 
@@ -150,7 +145,6 @@ void block_gen_load() {
 		"none",
 		"default",
 		"custom",
-		// "chopped" is not in current development scope
 	};
 	block_coll_e *coll_type;
 	hashmap_t *coll_type_map = hashmap_create(num_coll_types * 2, false, hash_string);
