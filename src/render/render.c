@@ -269,7 +269,19 @@ render_info_t *render_gen_info(world_t *world) {
 	return info;
 }
 
-// also destroys info
+void render_info_destroy(render_info_t *info) {
+	for (size_t i = 0; i < info->z_levels; ++i) {
+		array_destroy(info->packets[i], true);
+
+		if (info->shadows[i] != NULL)
+			array_destroy(info->shadows[i], true);
+	}
+
+	free(info->packets);
+	free(info->shadows);
+	free(info);
+}
+
 void render_from_info(render_info_t *info) {
 	size_t i, j;
 
@@ -284,17 +296,13 @@ void render_from_info(render_info_t *info) {
 		for (j = 0; j < info->packets[i]->size; ++j)
 			render_render_packet(info->packets[i]->items[j]);
 
-		array_destroy(info->packets[i], true);
 
 		// shadows
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
 	
-		if (info->shadows[i] != NULL) {
+		if (info->shadows[i] != NULL)
 			for (j = 0; j < info->shadows[i]->size; ++j)
 				render_iso_circle(*(circle_t *)info->shadows[i]->items[j]);
-
-			array_destroy(info->shadows[i], true);
-		}
 
 		if (info->z_split && i == info->z_split) {
 			SDL_SetRenderTarget(renderer, foreground);
@@ -302,9 +310,6 @@ void render_from_info(render_info_t *info) {
 			SDL_RenderClear(renderer);
 		}
 	}
-
-	free(info->packets);
-	free(info->shadows);
 
 	if (info->z_split) {
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
@@ -318,6 +323,4 @@ void render_from_info(render_info_t *info) {
 
 	if (info->z_split)
 		SDL_RenderCopy(renderer, foreground, &info->cam_viewport, NULL);
-
-	free(info);
 }

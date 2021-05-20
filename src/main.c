@@ -24,7 +24,7 @@ bool QUIT = false;
 
 // threaded stuff
 SDL_sem *MAIN_DONE, *RENDER_DONE;
-render_info_t *RENDER_INFO;
+render_info_t *RENDER_INFO, *LAST_INFO;
 SDL_mutex *RENDER_INFO_LOCK;
 
 void init() {
@@ -91,6 +91,7 @@ int render(void *arg) {
 		SDL_LockMutex(RENDER_INFO_LOCK);
 
 		render_from_info(RENDER_INFO);
+		LAST_INFO = RENDER_INFO;
 		RENDER_INFO = NULL;
 
 		SDL_UnlockMutex(RENDER_INFO_LOCK);
@@ -183,6 +184,9 @@ int main(int argc, char *argv[]) {
 
 		SDL_UnlockMutex(RENDER_INFO_LOCK);
 		SDL_SemPost(MAIN_DONE);
+
+		if (LAST_INFO != NULL)
+			render_info_destroy(LAST_INFO);
 	}
 
 	SDL_WaitThread(render_thread, NULL);

@@ -46,6 +46,8 @@ void render_init(SDL_Window *);
 void render_quit(void);
 
 render_info_t *render_gen_info(world_t *world);
+void render_info_destroy(render_info_t *);
+
 void render_from_info(render_info_t *);
 
 #endif
