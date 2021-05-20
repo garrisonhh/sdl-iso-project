@@ -15,7 +15,7 @@
 
 void entity_update_directions(entity_t *);
 
-entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_sprites, v3d pos, v3d size) {
+entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_sprites, v3d size) {
 	entity_t *entity = malloc(sizeof(entity_t));
 
 	entity->type = type;
@@ -43,7 +43,7 @@ entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_spri
 	entity->dir_xy = DIR_FRONT;
 	entity->dir_z = DIR_LEVEL;
 
-	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
+	entity->ray = (ray_t){(v3d){0, 0, 0}, (v3d){0, 0, 0}};
 	entity->size = size;
 	entity->center = v3d_scale(entity->size, 0.5);
 

@@ -42,6 +42,49 @@ void chunk_destroy(chunk_t *chunk) {
 	free(chunk);
 }
 
+// sizes are a power of 2
+world_t *world_create(unsigned size_power) {
+	world_t *world = malloc(sizeof(world_t));
+
+	world->size_power = size_power;
+	world->size = 1 << world->size_power;
+	world->block_size = world->size << 4;
+
+	world->chunk_mask = world->size - 1;
+	world->num_chunks = 1 << (world->size_power * 3);
+	world->chunks = malloc(sizeof(chunk_t *) * world->num_chunks);
+
+	for (int i = 0; i < world->num_chunks; i++)
+	 	world->chunks[i] = NULL; //world->chunks[i] = chunk_create();
+
+	world->mask_updates = list_create();
+	world->ticks = list_create();
+	world->buckets = list_create();
+
+	world->entities = array_create(2);
+
+	return world;
+}
+
+void world_destroy(world_t *world) {
+	size_t i;
+
+	for (i = 0; i < world->num_chunks; ++i)
+		if (world->chunks[i] != NULL)
+			chunk_destroy(world->chunks[i]);
+	
+	for (i = 0; i < world->entities->size; ++i)
+		entity_destroy(world->entities->items[i]);
+
+	list_destroy(world->mask_updates, true);
+	list_destroy(world->ticks, false);
+	array_destroy(world->entities, false);
+	path_network_destroy(world->path_net);
+
+	free(world->chunks);
+	free(world);
+}
+
 // if you just want to access a block, use world_get() unless you're REALLY going for optimization,
 // it is very safe and doesn't have any hidden gotchas
 bool world_indices(world_t *world, v3i loc, unsigned *chunk_result, unsigned *block_result) {
@@ -151,55 +194,10 @@ void world_set(world_t *world, v3i loc, size_t block_id) {
 	}
 }
 
-void world_spawn(world_t *world, entity_t *entity) {
+void world_spawn(world_t *world, entity_t *entity, v3d pos) {
+	entity->ray.pos = pos;
 	world_bucket_add(world, v3i_from_v3d(entity->ray.pos), entity);
 	array_add(world->entities, entity);
-}
-
-// sizes are a power of 2
-world_t *world_create(unsigned size_power) {
-	world_t *world = malloc(sizeof(world_t));
-
-	world->size_power = size_power;
-	world->size = 1 << world->size_power;
-	world->block_size = world->size << 4;
-
-	world->chunk_mask = world->size - 1;
-	world->num_chunks = 1 << (world->size_power * 3);
-	world->chunks = malloc(sizeof(chunk_t *) * world->num_chunks);
-
-	for (int i = 0; i < world->num_chunks; i++)
-	 	world->chunks[i] = NULL; //world->chunks[i] = chunk_create();
-
-	world->mask_updates = list_create();
-	world->ticks = list_create();
-	world->buckets = list_create();
-
-	world->player = player_create();
-	world->entities = array_create(2);
-
-	world_spawn(world, world->player);
-
-	return world;
-}
-
-void world_destroy(world_t *world) {
-	size_t i;
-
-	for (i = 0; i < world->num_chunks; ++i)
-		if (world->chunks[i] != NULL)
-			chunk_destroy(world->chunks[i]);
-	
-	for (i = 0; i < world->entities->size; ++i)
-		entity_destroy(world->entities->items[i]);
-
-	list_destroy(world->mask_updates, true);
-	list_destroy(world->ticks, false);
-	array_destroy(world->entities, false);
-	path_network_destroy(world->path_net);
-
-	free(world->chunks);
-	free(world);
 }
 
 // TODO better tree generation

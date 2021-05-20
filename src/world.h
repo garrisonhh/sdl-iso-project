@@ -28,9 +28,7 @@ struct world_t {
 	list_t *mask_updates; // malloc'd v3i *
 	list_t *ticks; // block_t *
 	list_t *buckets;
-
 	array_t *entities;
-	entity_t *player;
 
 	path_network_t *path_net;
 
@@ -54,7 +52,7 @@ void world_destroy(world_t *);
 
 void world_generate(world_t *);
 void world_tick(world_t *, double time);
-void world_spawn(world_t *, entity_t *);
+void world_spawn(world_t *, entity_t *, v3d pos);
 block_t *world_get(world_t *, v3i loc);
 void world_get_render_loc(world_t *, v3i loc, block_t **block_result, list_t **bucket_result);
 bool world_indices(world_t *world, v3i loc, unsigned *chunk_index, unsigned *block_index);

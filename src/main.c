@@ -105,29 +105,20 @@ int render(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
-	size_t i;
-
 	init();
 
-	// world
-	world_t *world = world_create(3);
+	// init game stuff
+	world_t *world = world_create(4);
+
 	world_generate(world);
 
+	player_init(world);
 	camera_set_block_size(world->block_size);
 
-	// time
-	mytimer_t *timer = mytimer_create(256);
+	// game loop vars
+	size_t i;
 
-	// controls TODO move control code to player.c
 	SDL_Event event;
-	const uint8_t *kb_state = SDL_GetKeyboardState(NULL);
-	v3i move_inputs;
-	const v3d move_down = {1, 1, 0};
-	const v3d move_right = {1, -1, 0};
-	v3d move;
-	bool jump = false;
-
-	// threading
 	SDL_Thread *render_thread = SDL_CreateThread(render, "Rendering", NULL);
 
 	if (render_thread == NULL) {
@@ -138,22 +129,22 @@ int main(int argc, char *argv[]) {
 	render_info_t *next_render_info;
 	int packets;
 
+	mytimer_t *timer = mytimer_create(256);
+
 	while (!QUIT) {
+		// player-specific controls should be handled through player_tick
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_QUIT:
 					QUIT = true;
 					break;
 				case SDL_KEYDOWN:
-					switch (event.key.keysym.sym) { // nothing wrong with this. very normal code.
+					switch (event.key.keysym.sym) {
 						case SDLK_ESCAPE:
 							QUIT = true;
 							break;
 						case SDLK_BACKQUOTE:
 							gui_toggle_debug();
-							break;
-						case SDLK_SPACE:
-							jump = true;
 							break;
 						case SDLK_e:
 							camera_rotate(true);
@@ -162,15 +153,6 @@ int main(int argc, char *argv[]) {
 							camera_rotate(false);
 							break;
 					}
-
-					break;
-				case SDL_KEYUP:
-					switch (event.key.keysym.sym) {
-						case SDLK_SPACE:
-							jump = false;
-							break;
-					}
-
 					break;
 				case SDL_MOUSEWHEEL:
 					camera_change_scale(event.wheel.y > 0);
@@ -178,50 +160,23 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		// movement
-		move_inputs = (v3i){0, 0, 0};
-		if (kb_state[SDL_SCANCODE_W])
-			move_inputs.y--;
-		if (kb_state[SDL_SCANCODE_S])
-			move_inputs.y++;
-		if (kb_state[SDL_SCANCODE_A])
-			move_inputs.x--;
-		if (kb_state[SDL_SCANCODE_D])
-			move_inputs.x++;
-
-		move = v3d_add(
-			v3d_scale(move_right, move_inputs.x),
-			v3d_scale(move_down, move_inputs.y)
-		);
-
-		if (move_inputs.x || move_inputs.y)
-			move = v3d_scale(move, PLAYER_SPEED / fabs(v3d_magnitude(move)));
-
-		move = camera_reverse_rotated_v3d(move);
-
-		world->player->ray.dir.x = move.x;
-		world->player->ray.dir.y = move.y;
-
-		if (jump && world->player->on_ground)
-			world->player->ray.dir.z += 9.0;
-
-		// tick
 		mytimer_tick(timer);
 
+		player_tick();
 		world_tick(world, mytimer_get_tick(timer));
-		camera_set_pos(world->player->ray.pos);
 
-		// update
+		// update render info + gui
+		camera_set_pos(player_get_pos());
 		next_render_info = render_gen_info(world);
 
 		packets = 0;
 		for (i = 0; i < next_render_info->z_levels; ++i)
 			packets += next_render_info->packets[i]->size;
 
+		SDL_SemWait(RENDER_DONE);
+
 		gui_update(mytimer_get_fps(timer), packets, world);
 
-		// write to shared RENDER_INFO pointer
-		SDL_SemWait(RENDER_DONE);
 		SDL_LockMutex(RENDER_INFO_LOCK);
 
 		RENDER_INFO = next_render_info;

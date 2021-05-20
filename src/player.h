@@ -1,10 +1,12 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "entity.h"
+#include "vector.h"
 
-#define PLAYER_SPEED 6
+typedef struct world_t world_t;
 
-entity_t *player_create(void);
+void player_init(world_t *);
+void player_tick(void);
+v3d player_get_pos(void);
 
 #endif

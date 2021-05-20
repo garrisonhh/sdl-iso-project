@@ -5,6 +5,7 @@
 #include "fonts.h"
 #include "textures.h"
 #include "../camera.h"
+#include "../player.h"
 #include "../textures.h"
 #include "../world.h"
 #include "../utils.h"
@@ -51,7 +52,7 @@ void gui_update(double fps, int packets, world_t *world) {
 		UPDATE_STATIC = true;
 	}
 
-	v3d_sprint(DEBUG_LINES[line++], "POS", world->player->ray.pos);
+	v3d_sprint(DEBUG_LINES[line++], "POS", player_get_pos());
 	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);
 	sprintf(DEBUG_LINES[line++], "RNDR DIST: %i", camera.rndr_dist);
 	sprintf(DEBUG_LINES[line++], "PACKETS: %i", packets);

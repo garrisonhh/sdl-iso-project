@@ -11,7 +11,7 @@ int world_bucket_compare(const void *a, const void *b) {
 
 void world_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 	unsigned chunk_index, block_index;
-	
+
 	if (!world_indices(world, loc, &chunk_index, &block_index)) {
 		printf("adding to out of bounds entity bucket.\n");
 		exit(1);

@@ -9,9 +9,7 @@
 #include "primitives.h"
 #include "gui.h"
 #include "../camera.h"
-#include "../data_structures/array.h"
-#include "../data_structures/hashmap.h"
-#include "../data_structures/list.h"
+#include "../player.h"
 #include "../textures.h"
 #include "../vector.h"
 #include "../raycast.h"
@@ -19,6 +17,9 @@
 #include "../world.h"
 #include "../world_masks.h"
 #include "../world_bucket.h"
+#include "../data_structures/array.h"
+#include "../data_structures/hashmap.h"
+#include "../data_structures/list.h"
 
 #define BG_GRAY 31
 #define SHADOW_ALPHA 63
@@ -200,10 +201,10 @@ render_info_t *render_gen_info(world_t *world) {
 	array_t *level;
 
 	cam_ray = (ray_t){
-		world->player->ray.pos,
+		player_get_pos(),
 		camera_reverse_rotated_v3d(PLAYER_VIEW_DIR)
 	};
-	cam_ray.pos.z += world->player->size.z / 2;
+	cam_ray.pos.z += 1.0;
 
 	info = malloc(sizeof(render_info_t));
 
