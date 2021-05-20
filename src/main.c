@@ -13,6 +13,7 @@
 #include "camera.h"
 #include "world.h"
 #include "player.h"
+#include "mytimer.h"
 #include "utils.h"
 #include "textures.h"
 #include "block_gen.h"
@@ -104,6 +105,8 @@ int render(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
+	size_t i;
+
 	init();
 
 	// world
@@ -113,15 +116,7 @@ int main(int argc, char *argv[]) {
 	camera_set_block_size(world->block_size);
 
 	// time
-	double last_tick = timeit_get_time(), this_tick = 0;
-	const int num_ticks = 128;
-	double ticks[num_ticks];
-	double tick_avg;
-	int tick_idx = 0;
-	int i;
-
-	for (i = 0; i < 32; ++i)
-		ticks[i] = 0;
+	mytimer_t *timer = mytimer_create(256);
 
 	// controls TODO move control code to player.c
 	SDL_Event event;
@@ -136,7 +131,7 @@ int main(int argc, char *argv[]) {
 	SDL_Thread *render_thread = SDL_CreateThread(render, "Rendering", NULL);
 
 	if (render_thread == NULL) {
-		printf("thread failed.\n");
+		printf("spawning render thread failed.\n");
 		exit(1);
 	}
 
@@ -211,18 +206,10 @@ int main(int argc, char *argv[]) {
 			world->player->ray.dir.z += 9.0;
 
 		// tick
-		last_tick = this_tick;
-		this_tick = timeit_get_time();
+		mytimer_tick(timer);
 
-		world_tick(world, this_tick - last_tick);
+		world_tick(world, mytimer_get_tick(timer));
 		camera_set_pos(world->player->ray.pos);
-
-		ticks[tick_idx++] = this_tick - last_tick;
-		tick_idx %= num_ticks;
-		tick_avg = 0;
-
-		for (i = 0; i < 32; ++i)
-			tick_avg += ticks[i];
 
 		// update
 		next_render_info = render_gen_info(world);
@@ -231,8 +218,9 @@ int main(int argc, char *argv[]) {
 		for (i = 0; i < next_render_info->z_levels; ++i)
 			packets += next_render_info->packets[i]->size;
 
-		gui_update(1.0 / (tick_avg / 32), packets, world);
+		gui_update(mytimer_get_fps(timer), packets, world);
 
+		// write to shared RENDER_INFO pointer
 		SDL_SemWait(RENDER_DONE);
 		SDL_LockMutex(RENDER_INFO_LOCK);
 

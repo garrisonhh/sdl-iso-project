@@ -1,6 +1,5 @@
 #include <stdbool.h>
 #include "camera.h"
-#include "world.h"
 #include "vector.h"
 #include "utils.h"
 
