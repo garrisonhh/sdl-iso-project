@@ -12,14 +12,19 @@ font_t FONTS[1]; // corresponds to font_e
 
 font_t load_font(json_object *font_obj) {
 	char font_path[100] = "assets/";
+	v2i char_size, sheet_size;
+	SDL_Texture *sheet;
 
 	strcat(font_path, content_get_string(font_obj, "path"));
 
-	return (font_t){
-		.sheet = load_sdl_texture(font_path),
-		.char_size = content_get_v2i(font_obj, "char-size"),
-		.sheet_size = content_get_v2i(font_obj, "sheet-size")
-	};
+	sheet = load_sdl_texture(font_path);
+	char_size = content_get_v2i(font_obj, "char-size");
+	
+	SDL_QueryTexture(sheet, NULL, NULL, &sheet_size.x, &sheet_size.y);
+
+	sheet_size = v2i_div(sheet_size, char_size);
+
+	return (font_t){sheet, char_size, sheet_size};
 }
 
 void fonts_load() {

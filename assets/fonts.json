@@ -1,7 +1,6 @@
 {
 	"ui": {
 		"path": "fonts/CGA8x8thick.png",
-		"char-size": [8, 8],
-		"sheet-size": [16, 16]
+		"char-size": [8, 8]
 	}
 }
