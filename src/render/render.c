@@ -152,8 +152,18 @@ v2i render_block_project(v3i loc) {
 	return project_v3i(loc);
 }
 
-// check result for NULL
-render_packet_t *render_gen_block_packet(world_t *world, block_t *block, v3i loc) {
+void render_info_add_entity(array_t *packet_arr, entity_t *entity) {
+	if (entity->num_sprites) {
+		render_packet_t **packets = render_gen_entity_packets(entity);
+
+		for (int i = 0; i < entity->num_sprites; ++i)
+			array_add(packet_arr, packets[i]);
+
+		free(packets);
+	}
+}
+
+void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, v3i loc) {
 	render_packet_t *packet = NULL;
 
 	if (block->texture->type == TEX_VOXEL) {
@@ -174,22 +184,8 @@ render_packet_t *render_gen_block_packet(world_t *world, block_t *block, v3i loc
 			packet->state.tex = block->tex_state;
 	}
 
-	return packet;
-}
-
-void render_info_add_entity(array_t *packet_arr, entity_t *entity) {
-	if (entity->num_sprites) {
-		render_packet_t **packets = render_gen_entity_packets(entity);
-
-		for (int i = 0; i < entity->num_sprites; ++i)
-			array_add(packet_arr, packets[i]);
-
-		free(packets);
-	}
-}
-
-void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, v3i loc) {
-	array_add(packet_arr, render_gen_block_packet(world, block, loc));
+	if (packet != NULL)
+		array_add(packet_arr, packet);
 }
 
 render_info_t *render_gen_info(world_t *world) {

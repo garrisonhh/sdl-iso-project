@@ -59,17 +59,16 @@ bool anim_entity_walking(entity_t *entity) {
 void anim_entity_update_directions(entity_t *entity) {
 	double dir;
 	v3i facing;
-	v3d last_dir;
 
 	if (!d_close(fabs(entity->ray.dir.x) + fabs(entity->ray.dir.y), 0)) {
-		last_dir.x = entity->ray.dir.x - entity->ray.dir.y;
-		last_dir.y = entity->ray.dir.x + entity->ray.dir.y;
+		entity->last_dir.x = entity->ray.dir.x - entity->ray.dir.y;
+		entity->last_dir.y = entity->ray.dir.x + entity->ray.dir.y;
 	}
 
-	last_dir.z = entity->ray.dir.z;
+	entity->last_dir.z = entity->ray.dir.z;
 
 	for (int i = 0; i < 3; ++i) {
-		dir = v3d_get(&last_dir, i);
+		dir = v3d_get(&entity->last_dir, i);
 
 		if (d_close(dir, 0.0))
 			v3i_set(&facing, i, 0);

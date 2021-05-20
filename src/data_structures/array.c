@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include "array.h"
@@ -26,6 +27,11 @@ void array_add(array_t *array, void *item) {
 	if (array->size == array->max_size) {
 		array->max_size <<= 1;
 		array->items = realloc(array->items, sizeof(void *) * array->max_size);
+
+		if (array->items == NULL) {
+			printf("array expansion realloc failed.\n");
+			exit(1);
+		}
 	}
 
 	array->items[array->size++] = item;

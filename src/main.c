@@ -87,9 +87,11 @@ void quit_all() {
 int render(void *arg) {
 	while (!QUIT) {
 		SDL_SemWait(MAIN_DONE);
-
 		SDL_LockMutex(RENDER_INFO_LOCK);
+
 		render_from_info(RENDER_INFO);
+		RENDER_INFO = NULL;
+
 		SDL_UnlockMutex(RENDER_INFO_LOCK);
 
 		gui_render();
@@ -139,6 +141,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	render_info_t *next_render_info;
+	int packets;
 
 	while (!QUIT) {
 		while (SDL_PollEvent(&event)) {
@@ -221,17 +224,21 @@ int main(int argc, char *argv[]) {
 		for (i = 0; i < 32; ++i)
 			tick_avg += ticks[i];
 
-		gui_update(1.0 / (tick_avg / 32), world);
-
-		// update info
+		// update
 		next_render_info = render_gen_info(world);
 
+		packets = 0;
+		for (i = 0; i < next_render_info->z_levels; ++i)
+			packets += next_render_info->packets[i]->size;
+
+		gui_update(1.0 / (tick_avg / 32), packets, world);
+
 		SDL_SemWait(RENDER_DONE);
-
 		SDL_LockMutex(RENDER_INFO_LOCK);
-		RENDER_INFO = next_render_info;
-		SDL_UnlockMutex(RENDER_INFO_LOCK);
 
+		RENDER_INFO = next_render_info;
+
+		SDL_UnlockMutex(RENDER_INFO_LOCK);
 		SDL_SemPost(MAIN_DONE);
 	}
 

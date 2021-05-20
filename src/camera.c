@@ -185,7 +185,7 @@ void camera_set_pos(v3d pos) {
 }
 
 void camera_set_scale(int scale) {
-	camera.scale = CLAMP(scale, 2, 16);
+	camera.scale = CLAMP(scale, 1, 16);
 
 	camera.viewport.w = SCREEN_WIDTH / camera.scale;
 	camera.viewport.h = SCREEN_HEIGHT / camera.scale;
@@ -198,7 +198,7 @@ void camera_set_scale(int scale) {
 	camera.view_circle.loc = camera.center_screen;
 	camera.view_circle.radius = camera.viewport.w >> 2;
 
-	camera.rndr_dist = (camera.viewport.w / VOXEL_WIDTH) + (int)camera.pos.z;
+	camera.rndr_dist = camera.viewport.w / VOXEL_WIDTH;
 
 	camera_update();
 }

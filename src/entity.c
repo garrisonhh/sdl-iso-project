@@ -37,12 +37,15 @@ entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_spri
 		entity->anim_states[i].state = 0.0;
 	}
 
+	entity->last_dir = (v3d){0, 1, 0};
 	entity->dir_xy = DIR_FRONT;
 	entity->dir_z = DIR_LEVEL;
 
 	entity->ray = (ray_t){pos, (v3d){0.0, 0.0, 0.0}};
 	entity->size = size;
 	entity->center = v3d_scale(entity->size, 0.5);
+
+	entity->on_ground = false;
 
 	return entity;
 }

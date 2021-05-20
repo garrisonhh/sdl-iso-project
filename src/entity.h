@@ -28,6 +28,8 @@ struct entity_t {
 	texture_t **sprites;
 	animation_t *anim_states;
 	size_t num_sprites;
+
+	v3d last_dir;
 	dir_xy_e dir_xy;
 	dir_z_e dir_z;
 

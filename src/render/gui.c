@@ -41,7 +41,7 @@ void gui_load() {
 	COMPASS_CELL = (v2i){0, 0};
 }
 
-void gui_update(double fps, world_t *world) {
+void gui_update(double fps, int packets, world_t *world) {
 	int line = 0;
 
 	sprintf(DEBUG_LINES[line++], "FPS: %3d", D_ROUND(fps));
@@ -54,6 +54,7 @@ void gui_update(double fps, world_t *world) {
 	v3d_sprint(DEBUG_LINES[line++], "POS", world->player->ray.pos);
 	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);
 	sprintf(DEBUG_LINES[line++], "RNDR DIST: %i", camera.rndr_dist);
+	sprintf(DEBUG_LINES[line++], "PACKETS: %i", packets);
 }
 
 void gui_render() {
