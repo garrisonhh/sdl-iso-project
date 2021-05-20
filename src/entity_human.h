@@ -20,7 +20,7 @@ typedef struct human_t human_t;
 human_t *human_create(void);
 void human_destroy(human_t *);
 
-entity_t *entity_human_create();
+entity_t *entity_human_create(v3d pos);
 
 void entity_human_tick(entity_t *, double time);
 array_t *entity_human_sprites(entity_t *);

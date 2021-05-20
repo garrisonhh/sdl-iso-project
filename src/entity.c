@@ -28,8 +28,10 @@ entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_spri
 			break;
 	}
 
-	entity->sprites = sprites;
 	entity->num_sprites = num_sprites;
+	entity->sprites = malloc(sizeof(texture_t *) * entity->num_sprites);
+	memcpy(entity->sprites, sprites, sizeof(texture_t *) * num_sprites);
+
 	entity->anim_states = malloc(sizeof(animation_t) * num_sprites);
 
 	for (size_t i = 0; i < entity->num_sprites; ++i) {
