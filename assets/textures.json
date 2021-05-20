@@ -50,61 +50,64 @@
 
 	{
 		"name": "dark",
+		"path": "blocks/dark",
 		"type": "voxel"
 	},
 	{
 		"name": "dirt",
+		"path": "blocks/dirt",
 		"type": "voxel",
-		"connected-tags": ["dirt"]
+		"connected-tags": ["tree_trunk"]
 	},
 	{
 		"name": "grass",
+		"path": "blocks/grass",
 		"type": "voxel",
-		"connected-tags": ["grass"]
+		"connected-tags": ["tree_trunk"]
 	},
 	{
 		"name": "stone",
+		"path": "blocks/stone",
 		"type": "voxel"
 	},
 
 	{
 		"name": "leaves",
+		"path": "blocks/leaves",
 		"type": "texture",
 		"transparent": true,
-		"connected-tags": ["leaves"]
-	},
-	{
-		"name": "log",
-		"type": "texture",
-		"transparent": true
+		"connected-tags": ["tree_trunk"]
 	},
 	{
 		"name": "bush",
+		"path": "blocks/bush",
 		"type": "texture",
 		"transparent": true
 	},
 
 	{
 		"name": "tree trunk",
-		"path": "tree_trunk",
+		"path": "blocks/tree_trunk",
 		"type": "connected",
 		"transparent": true,
-		"connected-tags": ["tree_trunk", "leaves", "dirt", "grass"]
+		"connected-tags": ["tree_trunk"]
 	},
 
 	{
 		"name": "tall grass",
-		"path": "tall_grass",
+		"path": "blocks/tall_grass",
 		"type": "sheet",
 		"transparent": true
 	},
 	{
 		"name": "flower",
+		"path": "blocks/flower",
 		"type": "sheet",
 		"transparent": true
 	},
 	{
 		"name": "rocks",
+		"path": "blocks/rocks",
 		"type": "sheet",
 		"transparent": true
 	}
