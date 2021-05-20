@@ -206,7 +206,6 @@ void block_gen_load() {
 	WALL_COLL_DATA = (block_coll_data_t){
 		.coll_type = BLOCK_COLL_DEFAULT_BOX,
 		.bbox = &BLOCK_DEFAULT_BOX,
-		.plane = NULL
 	};
 }
 
@@ -214,8 +213,6 @@ void block_gen_destroy() {
 	for (size_t i = 0; i < NUM_BLOCKS; i++) {
 		if (BLOCK_COLL_DATA[i]->bbox != NULL && BLOCK_COLL_DATA[i]->bbox != &BLOCK_DEFAULT_BOX)
 			free(BLOCK_COLL_DATA[i]->bbox);
-		if (BLOCK_COLL_DATA[i]->plane != NULL)
-			free(BLOCK_COLL_DATA[i]->plane);
 
 		free(BLOCK_COLL_DATA[i]);
 		block_destroy(BLOCKS[i]);
