@@ -96,7 +96,7 @@ void textures_load() {
 
 	// load textures
 	json_object *texture_obj;
-	const char *name, *tex_type_name, *rel_path;
+	const char *name, *tex_type_name;
 	char file_path[80];
 	size_t *texture_id;
 
@@ -119,12 +119,7 @@ void textures_load() {
 		TEXTURES[i]->type = *tex_type;
 
 		// file path
-		if (content_has_key(texture_obj, "path"))
-			rel_path = content_get_string(texture_obj, "path");
-		else
-			rel_path = name;
-
-		sprintf(file_path, "assets/%s.png", rel_path);
+		sprintf(file_path, "assets/%s", content_get_string(texture_obj, "path"));
 
 		// load texture
 		switch (*tex_type) {
