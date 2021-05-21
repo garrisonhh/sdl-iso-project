@@ -28,11 +28,11 @@ const v2i OUTLINES[6][2] = {
 	},
 	{ // left corner
 		(v2i){0, VOXEL_WIDTH >> 2},
-		(v2i){0, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 2}
+		(v2i){0, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 1}
 	},
 	{ // right corner
 		(v2i){VOXEL_WIDTH - 1, VOXEL_WIDTH >> 2},
-		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 2}
+		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 1}
 	}
 };
 

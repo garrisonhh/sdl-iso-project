@@ -71,7 +71,7 @@ void anim_entity_update_directions(entity_t *entity) {
 
 		if (d_close(dir, 0.0))
 			v3i_set(&facing, i, 0);
-		else if (dir > 0.0)
+		else if (dir > 0)
 			v3i_set(&facing, i, 1);
 		else
 			v3i_set(&facing, i, -1);

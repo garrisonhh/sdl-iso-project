@@ -5,6 +5,8 @@
 #include "vector.h"
 #include "textures.h"
 
+#define ANIMATION_FPS 12.0
+
 typedef struct entity_t entity_t;
 typedef struct animation_t animation_t;
 

@@ -9,10 +9,14 @@ human_t *human_create() {
 	human->hands[0] = texture_from_key("harry_back");
 	human->hands[1] = texture_from_key("harry_front");
 
+	human->tool = NULL;
+
+	/*
 	human->tool = malloc(sizeof(tool_t));
 
 	human->tool->sprites[0] = texture_from_key("axe_back");
 	human->tool->sprites[1] = texture_from_key("axe_front");
+	*/
 
 	human->using_tool = false;
 
@@ -37,7 +41,7 @@ void entity_human_tick(entity_t *entity, double time) {
 	human_t *human = entity->state.human;
 
 	if (human->tool == NULL) {
-		anim_tick(entity, human->hands[0], &entity->anim_state, time);
+		anim_tick(entity, human->hands[0], &human->anim_state, time);
 	} else {
 		anim_tick(entity, human->tool->sprites[0], &human->anim_state, time);
 
