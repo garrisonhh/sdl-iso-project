@@ -25,7 +25,7 @@
 #define SHADOW_ALPHA 63
 
 const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
-const v3d PLAYER_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
+const v3d CAMERA_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
 
 SDL_Renderer *renderer;
 SDL_Texture *foreground, *background;
@@ -199,10 +199,10 @@ render_info_t *render_gen_info(world_t *world) {
 	array_t *level;
 
 	cam_ray = (ray_t){
-		player_get_pos(),
-		camera_reverse_rotated_v3d(PLAYER_VIEW_DIR)
+		camera.pos,
+		camera_reverse_rotated_v3d(CAMERA_VIEW_DIR)
 	};
-	cam_ray.pos.z += 1.0;
+	cam_ray.pos.z += 0.5;
 
 	info = malloc(sizeof(render_info_t));
 

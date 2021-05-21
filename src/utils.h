@@ -13,6 +13,8 @@
 #define M_PI (3.14159265358979323846)
 #endif
 
+#define FLOAT_TOLERANCE 0.000001
+
 #define MAX(a, b) (a > b ? a : b)
 #define MIN(a, b) (a < b ? a : b)
 #define CLAMP(x, a, b) (MAX(MIN(x, b), a))

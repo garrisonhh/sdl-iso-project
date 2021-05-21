@@ -16,7 +16,8 @@ typedef struct tool_t tool_t;
 struct human_t {
 	texture_t *hands[2];
 	tool_t *tool;
-	animation_t anim_state; // shared between tools/hands
+	animation_t anim_state; // shared between both tool/hand sprites
+	bool using_tool;
 };
 typedef struct human_t human_t;
 
@@ -26,5 +27,7 @@ void human_destroy(human_t *);
 entity_t *entity_human_create();
 
 void entity_human_tick(entity_t *, double time);
+
+void entity_human_use_tool(entity_t *);
 
 #endif

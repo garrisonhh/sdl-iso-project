@@ -1,6 +1,7 @@
 #ifndef ANIMATION_H
 #define ANIMATION_H
 
+#include <stdbool.h>
 #include "vector.h"
 #include "textures.h"
 
@@ -30,6 +31,7 @@ typedef enum dir_z_e dir_z_e;
 struct animation_t {
 	v2i cell;
 	double state;
+	bool done;
 };
 typedef struct animation_t animation_t;
 

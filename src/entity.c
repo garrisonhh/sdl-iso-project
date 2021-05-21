@@ -77,11 +77,11 @@ void entity_tick(entity_t *entity, world_t *world, double time) {
 }
 
 v2i entity_screen_pos(entity_t *entity) {
-	v3d entity_pos = entity->ray.pos;
+	v3d pos = entity->ray.pos;
 
-	entity_pos.z -= entity->size.z / 2;
+	pos.z -= entity->center.z;
 
-	return project_v3d(entity_pos);
+	return project_v3d(pos);
 }
 
 void entity_add_sprite_packet(array_t *packets, v2i pos, texture_t *sprite, animation_t *anim_state) {

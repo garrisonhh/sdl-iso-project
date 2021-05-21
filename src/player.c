@@ -21,12 +21,12 @@ void player_init(world_t *world) {
 }
 
 void player_tick() {
+	// movement
 	v3d move = {0, 0, 0};
 	bool up = KEYBOARD[SDL_SCANCODE_W];
 	bool down = KEYBOARD[SDL_SCANCODE_S];
 	bool left = KEYBOARD[SDL_SCANCODE_A];
 	bool right = KEYBOARD[SDL_SCANCODE_D];
-	bool jump = KEYBOARD[SDL_SCANCODE_SPACE];
 
 	if (up) {
 		if (!down)
@@ -50,8 +50,15 @@ void player_tick() {
 	PLAYER->ray.dir.x = move.x;
 	PLAYER->ray.dir.y = move.y;
 
+	// jump
+	bool jump = KEYBOARD[SDL_SCANCODE_SPACE];
+
 	if (PLAYER->on_ground && jump)
 		PLAYER->ray.dir.z += HUMAN_JUMP_VELOCITY;
+}
+
+void player_use_tool() { // called from event loop
+	entity_human_use_tool(PLAYER);
 }
 
 v3d player_get_pos() {

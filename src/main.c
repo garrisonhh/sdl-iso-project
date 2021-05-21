@@ -132,7 +132,6 @@ int main(int argc, char *argv[]) {
 	mytimer_t *timer = mytimer_create(256);
 
 	while (!QUIT) {
-		// player-specific controls should be handled through player_tick
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_QUIT:
@@ -152,6 +151,10 @@ int main(int argc, char *argv[]) {
 						case SDLK_q:
 							camera_rotate(false);
 							break;
+						case SDLK_RETURN:
+							player_use_tool();
+							break;
+
 					}
 					break;
 				case SDL_MOUSEWHEEL:

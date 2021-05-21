@@ -5,15 +5,13 @@
 #include <sys/time.h>
 #include "utils.h"
 
-#define TOLERANCE 0.00001
-
 struct timeval LAST_TIMEIT = {
 	.tv_sec = 0, 
 	.tv_usec = 0
 };
 
 bool d_close(double a, double b) {
-	return fabs(a - b) < TOLERANCE;
+	return fabs(a - b) < FLOAT_TOLERANCE;
 }
 
 void timeit_start() {

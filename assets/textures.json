@@ -19,7 +19,7 @@
 		"name": "harry_back",
 		"path": "harry/harry_back",
 		"type": "sprite",
-		"sprite-type": "human-back-hands",
+		"sprite-type": "human-hands",
 		"sprite-size": [13, 19],
 		"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
 	},
@@ -27,7 +27,7 @@
 		"name": "harry_front",
 		"path": "harry/harry_front",
 		"type": "sprite",
-		"sprite-type": "human-front-hands",
+		"sprite-type": "human-hands",
 		"sprite-size": [13, 19],
 		"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
 	},
@@ -35,16 +35,16 @@
 		"name": "axe_back",
 		"path": "tools/axe_back",
 		"type": "sprite",
-		"sprite-type": "human-back-tool",
-		"sprite-size": [13, 19],
+		"sprite-type": "human-tool",
+		"sprite-size": [19, 19],
 		"anim-lengths": [1, 1, 1, 1, 3, 3, 3, 3]
 	},
 	{
 		"name": "axe_front",
 		"path": "tools/axe_front",
 		"type": "sprite",
-		"sprite-type": "human-front-tool",
-		"sprite-size": [13, 19],
+		"sprite-type": "human-tool",
+		"sprite-size": [19, 19],
 		"anim-lengths": [1, 1, 1, 1, 3, 3, 3, 3]
 	},
 

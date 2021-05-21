@@ -23,10 +23,8 @@ typedef enum texture_type_e texture_type_e;
 enum sprite_type_e {
 	SPRITE_STATIC = 0,
 	SPRITE_HUMAN_BODY = 1,
-	SPRITE_HUMAN_BACK_HANDS = 2,
-	SPRITE_HUMAN_FRONT_HANDS = 3,
-	SPRITE_HUMAN_BACK_TOOL = 4,
-	SPRITE_HUMAN_FRONT_TOOL = 5,
+	SPRITE_HUMAN_HANDS = 2,
+	SPRITE_HUMAN_TOOL = 3,
 };
 typedef enum sprite_type_e sprite_type_e;
 

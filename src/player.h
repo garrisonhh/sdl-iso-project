@@ -6,7 +6,10 @@
 typedef struct world_t world_t;
 
 void player_init(world_t *);
+
 void player_tick(void);
+
+void player_use_tool(void);
 v3d player_get_pos(void);
 
 #endif
