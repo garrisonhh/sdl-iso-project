@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "fonts.h"
-#include "render.h"
+#include "../render.h"
 #include "../content.h"
 #include "../textures.h"
 #include "../vector.h"

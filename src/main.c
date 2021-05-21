@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "render/render.h"
+#include "render.h"
 #include "render/gui.h"
 #include "render/fonts.h"
 #include "camera.h"
@@ -22,10 +22,9 @@ SDL_Window *window = NULL;
 
 bool QUIT = false;
 
-// threaded stuff
 SDL_sem *MAIN_DONE, *RENDER_DONE;
-render_info_t *RENDER_INFO, *LAST_INFO;
 SDL_mutex *RENDER_INFO_LOCK;
+render_info_t *RENDER_INFO, *LAST_INFO;
 
 void init() {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {

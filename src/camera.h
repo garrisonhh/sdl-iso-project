@@ -3,7 +3,7 @@
 
 #include "SDL2/SDL.h"
 #include "world.h"
-#include "render/render.h"
+#include "render.h"
 #include "render/primitives.h"
 
 struct camera_t {

@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#include "render.h"
 #include "primitives.h"
+#include "../render.h"
 #include "../vector.h"
 
 // bresenham's circle algo adapted from https://web.engr.oregonstate.edu/~sllu/bcircle.pdf

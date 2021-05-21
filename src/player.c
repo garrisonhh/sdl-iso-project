@@ -44,16 +44,14 @@ void player_tick() {
 
 	if (!d_close(v3d_magnitude(move), 0)) {
 		move = camera_reverse_rotated_v3d(v3d_normalize(move));
-
-		// TODO human walk speed
-		move = v3d_scale(move, 4.0);
+		move = v3d_scale(move, HUMAN_WALK_VELOCITY);
 	}
 
 	PLAYER->ray.dir.x = move.x;
 	PLAYER->ray.dir.y = move.y;
 
 	if (PLAYER->on_ground && jump)
-		PLAYER->ray.dir.z += 7.0; // TODO human jump height
+		PLAYER->ray.dir.z += HUMAN_JUMP_VELOCITY;
 }
 
 v3d player_get_pos() {

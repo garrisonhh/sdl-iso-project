@@ -3,10 +3,9 @@
 
 #include <SDL2/SDL.h>
 #include <stdbool.h>
-#include "../world.h"
-#include "../world_masks.h"
-#include "../textures.h"
-#include "../animation.h"
+#include "textures.h"
+#include "world_masks.h"
+#include "animation.h"
 
 #define RENDER_FORMAT SDL_PIXELFORMAT_RGBA8888
 
@@ -18,6 +17,8 @@
 extern const int VOXEL_Z_HEIGHT;
 
 extern SDL_Renderer *renderer;
+
+typedef struct world_t world_t;
 
 struct render_packet_t {
 	v2i pos;

@@ -5,21 +5,21 @@
 #include <stdbool.h>
 #include <math.h>
 #include "render.h"
+#include "render/textures.h"
+#include "render/primitives.h"
+#include "render/gui.h"
+#include "camera.h"
+#include "player.h"
 #include "textures.h"
-#include "primitives.h"
-#include "gui.h"
-#include "../camera.h"
-#include "../player.h"
-#include "../textures.h"
-#include "../vector.h"
-#include "../raycast.h"
-#include "../utils.h"
-#include "../world.h"
-#include "../world_masks.h"
-#include "../world_bucket.h"
-#include "../data_structures/array.h"
-#include "../data_structures/hashmap.h"
-#include "../data_structures/list.h"
+#include "vector.h"
+#include "raycast.h"
+#include "utils.h"
+#include "world.h"
+#include "world_masks.h"
+#include "world_bucket.h"
+#include "data_structures/array.h"
+#include "data_structures/hashmap.h"
+#include "data_structures/list.h"
 
 #define BG_GRAY 31
 #define SHADOW_ALPHA 63
@@ -112,7 +112,6 @@ void render_info_gen_shadows(render_info_t *info, world_t *world) {
 	}
 }
 
-// generates entity->num_sprites packets
 render_packet_t **render_gen_entity_packets(entity_t *entity) {
 	v3d entity_pos;
 	v2i screen_pos;
@@ -135,6 +134,17 @@ render_packet_t **render_gen_entity_packets(entity_t *entity) {
 	return packets;
 }
 
+void render_info_add_entity(array_t *packet_arr, entity_t *entity) {
+	if (entity->num_sprites) {
+		render_packet_t **packets = render_gen_entity_packets(entity);
+
+		for (int i = 0; i < entity->num_sprites; ++i)
+			array_add(packet_arr, packets[i]);
+
+		free(packets);
+	}
+}
+
 v2i render_block_project(v3i loc) {
 	// modify loc so that it is the back center corner of voxel from camera perspective
 	switch (camera.rotation) {
@@ -151,17 +161,6 @@ v2i render_block_project(v3i loc) {
 	}
 
 	return project_v3i(loc);
-}
-
-void render_info_add_entity(array_t *packet_arr, entity_t *entity) {
-	if (entity->num_sprites) {
-		render_packet_t **packets = render_gen_entity_packets(entity);
-
-		for (int i = 0; i < entity->num_sprites; ++i)
-			array_add(packet_arr, packets[i]);
-
-		free(packets);
-	}
 }
 
 void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, v3i loc) {

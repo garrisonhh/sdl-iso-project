@@ -1,9 +1,9 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <math.h>
-#include "render.h"
 #include "fonts.h"
 #include "textures.h"
+#include "../render.h"
 #include "../camera.h"
 #include "../player.h"
 #include "../textures.h"

@@ -6,6 +6,7 @@
 #include "textures.h"
 #include "block_collision.h"
 #include "block_types/plant.h"
+#include "render.h"
 
 typedef struct world_t world_t;
 
