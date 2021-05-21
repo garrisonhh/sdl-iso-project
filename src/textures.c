@@ -202,8 +202,7 @@ void textures_destroy() {
 				free(TEXTURES[i]->tex.sprite);
 				break;
 			case TEX_VOXEL:
-				for (j = 0; j < 7; ++j)
-					SDL_DestroyTexture(TEXTURES[i]->tex.voxel->textures[j]);
+				SDL_DestroyTexture(TEXTURES[i]->tex.voxel->texture);
 				free(TEXTURES[i]->tex.voxel);
 				break;
 			case TEX_CONNECTED:
@@ -346,8 +345,7 @@ voxel_tex_t* load_voxel_texture(const char *path) {
 		SDL_BlitSurface(surfaces[1], &src_rect, surfaces[0], &dst_rect);
 	}
 
-	for (unsigned i = 1; i < 8; ++i)
-		voxel_tex->textures[i - 1] = render_cached_voxel_texture(surfaces, i);
+	voxel_tex->texture = render_cached_voxel_texture(surfaces);
 
 	for (int i = 0; i < 3; ++i)
 		SDL_FreeSurface(surfaces[i]);
@@ -357,6 +355,7 @@ voxel_tex_t* load_voxel_texture(const char *path) {
 	return voxel_tex;
 }
 
+// TODO draw to a single texture
 connected_tex_t *load_connected_texture(const char *path) {
 	int i;
 

@@ -42,8 +42,8 @@ struct sprite_t {
 typedef struct sprite_t sprite_t;
 
 struct voxel_tex_t {
-	// indexed by (block->expose_mask - 1)
-	SDL_Texture *textures[7];
+	// 7 textures drawn onto a single map, indexed by (block->expose_mask - 1)
+	SDL_Texture *texture;
 };
 typedef struct voxel_tex_t voxel_tex_t;
 

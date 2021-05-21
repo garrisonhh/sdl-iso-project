@@ -132,20 +132,30 @@ void render_sprite_no_offset(sprite_t *sprite, v2i pos, v2i cell) {
 }
 
 // surfaces are in right-left-top order
-SDL_Texture *render_cached_voxel_texture(SDL_Surface *surfaces[3], unsigned expose_mask) {
+SDL_Texture *render_cached_voxel_texture(SDL_Surface *surfaces[3]) {
+	int i;
+	unsigned expose_mask;
 	SDL_Surface *voxel_surface;
 	SDL_Texture *texture;
+	SDL_Rect dst_rect;
 
-	voxel_surface = SDL_CreateRGBSurfaceWithFormat(0, VOXEL_WIDTH, VOXEL_HEIGHT, 32, RENDER_FORMAT);
+	voxel_surface = SDL_CreateRGBSurfaceWithFormat(0, VOXEL_WIDTH * 7, VOXEL_HEIGHT, 32, RENDER_FORMAT);
 
 	// voxel shading, equivalent to applying (255, 255, 127) with alphas 31 and 63
 	// this should correspond to shading in flat artwork
 	SDL_SetSurfaceColorMod(surfaces[1], 0xDF, 0xDF, 0xEF);
 	SDL_SetSurfaceColorMod(surfaces[0], 0xBF, 0xBF, 0xDF);
 
-	for (int i = 0; i < 3; ++i)
-		if ((expose_mask >> i) & 1)
-			SDL_BlitSurface(surfaces[i], NULL, voxel_surface, &VOXEL_TEX_RECTS[i]);
+	for (expose_mask = 1; expose_mask < 8; ++expose_mask) {
+		for (i = 0; i < 3; ++i) {
+			if ((expose_mask >> i) & 1) {
+				dst_rect = VOXEL_TEX_RECTS[i];
+				dst_rect.x += VOXEL_WIDTH * (expose_mask - 1);
+
+				SDL_BlitSurface(surfaces[i], NULL, voxel_surface, &dst_rect);
+			}
+		}
+	}
 
 	texture = SDL_CreateTextureFromSurface(renderer, voxel_surface);
 	SDL_FreeSurface(voxel_surface);
@@ -156,15 +166,24 @@ SDL_Texture *render_cached_voxel_texture(SDL_Surface *surfaces[3], unsigned expo
 // expose and void mask are processed to 3 bit: R-L-T
 // outline mask is processed to 6 bits corresponding to OUTLINES array; see above
 void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, voxel_masks_t masks) {
+	SDL_Rect dst_rect = SDL_TEX_RECT;
+	SDL_Rect src_rect = SDL_TEX_RECT;
+
 	masks.expose = masks.expose & ((~masks.dark) & 0x7);
 
+	dst_rect.x += pos.x;
+	dst_rect.y += pos.y;
+	src_rect.y = 0;
+
 	if (masks.expose) {
-		SDL_RenderDrawPoint(renderer, pos.x, pos.y);
-		render_sdl_texture(voxel_texture->textures[masks.expose - 1], pos);
+		src_rect.x = VOXEL_WIDTH * (masks.expose - 1);
+		SDL_RenderCopy(renderer, voxel_texture->texture, &src_rect, &dst_rect);
 	}
 
-	if (masks.dark)
-		render_sdl_texture(DARK_VOXEL_TEXTURE->textures[masks.dark - 1], pos);
+	if (masks.dark) {
+		src_rect.x = VOXEL_WIDTH * (masks.dark - 1);
+		SDL_RenderCopy(renderer, DARK_VOXEL_TEXTURE->texture, &src_rect, &dst_rect);
+	}
 
 	if (masks.outline) {
 		int i, corner_offset;
