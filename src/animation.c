@@ -169,27 +169,54 @@ void anim_human_hands(entity_t *entity, animation_t *state) {
 void anim_human_tool(entity_t *entity, animation_t *state) {
 	int pose;
 
-	switch (entity->dir_xy) {
-		case DIR_FRONT:
-			pose = 0;
-			break;
-		case DIR_BACK:
-		case DIR_BACK_LEFT:
-		case DIR_BACK_RIGHT:
-			pose = 1;
-			break;
-		case DIR_RIGHT:
-		case DIR_FRONT_RIGHT:
-			pose = 2;
-			break;
-		case DIR_LEFT:
-		case DIR_FRONT_LEFT:
-			pose = 3;
-			break;
-	}
 
-	if (entity->state.human->using_tool)
-		pose += 4;
+	if (entity->state.human->using_tool) {
+		switch (entity->dir_xy) {
+			case DIR_FRONT:
+				pose = 4;
+				break;
+			case DIR_FRONT_RIGHT:
+				pose = 5;
+				break;
+			case DIR_RIGHT:
+				pose = 6;
+				break;
+			case DIR_BACK_RIGHT:
+				pose = 7;
+				break;
+			case DIR_BACK:
+				pose = 8;
+				break;
+			case DIR_BACK_LEFT:
+				pose = 9;
+				break;
+			case DIR_LEFT:
+				pose = 10;
+				break;
+			case DIR_FRONT_LEFT:
+				pose = 11;
+				break;
+		}
+	} else {
+		switch (entity->dir_xy) {
+			case DIR_FRONT:
+				pose = 0;
+				break;
+			case DIR_BACK:
+			case DIR_BACK_LEFT:
+			case DIR_BACK_RIGHT:
+				pose = 1;
+				break;
+			case DIR_RIGHT:
+			case DIR_FRONT_RIGHT:
+				pose = 2;
+				break;
+			case DIR_LEFT:
+			case DIR_FRONT_LEFT:
+				pose = 3;
+				break;
+		}
+	}
 
 	if (state->cell.y != pose)
 		anim_state_set(state, pose);

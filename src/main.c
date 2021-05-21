@@ -151,9 +151,6 @@ int main(int argc, char *argv[]) {
 						case SDLK_q:
 							camera_rotate(false);
 							break;
-						case SDLK_RETURN:
-							player_use_tool();
-							break;
 
 					}
 					break;

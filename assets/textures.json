@@ -33,19 +33,21 @@
 	},
 	{
 		"name": "axe_back",
-		"path": "tools/axe_back.png",
+		"path": "tools/axe/axe_back.png",
 		"type": "sprite",
 		"sprite-type": "human-tool",
-		"sprite-size": [19, 19],
-		"anim-lengths": [1, 1, 1, 1, 3, 3, 3, 3]
+		"sprite-size": [25, 25],
+		"sprite-offset": [0, 3],
+		"anim-lengths": [1, 1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 5]
 	},
 	{
 		"name": "axe_front",
-		"path": "tools/axe_front.png",
+		"path": "tools/axe/axe_front.png",
 		"type": "sprite",
 		"sprite-type": "human-tool",
-		"sprite-size": [19, 19],
-		"anim-lengths": [1, 1, 1, 1, 3, 3, 3, 3]
+		"sprite-size": [25, 25],
+		"sprite-offset": [0, 3],
+		"anim-lengths": [1, 1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 5]
 	},
 
 	{

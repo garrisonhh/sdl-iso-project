@@ -11,12 +11,10 @@ human_t *human_create() {
 
 	human->tool = NULL;
 
-	/*
 	human->tool = malloc(sizeof(tool_t));
 
 	human->tool->sprites[0] = texture_from_key("axe_back");
 	human->tool->sprites[1] = texture_from_key("axe_front");
-	*/
 
 	human->using_tool = false;
 
@@ -52,4 +50,5 @@ void entity_human_tick(entity_t *entity, double time) {
 
 void entity_human_use_tool(entity_t *entity) {
 	entity->state.human->using_tool = true;
+	entity->state.human->anim_state.done = false;
 }

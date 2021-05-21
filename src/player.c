@@ -55,6 +55,12 @@ void player_tick() {
 
 	if (PLAYER->on_ground && jump)
 		PLAYER->ray.dir.z += HUMAN_JUMP_VELOCITY;
+
+	// tool
+	bool tool = KEYBOARD[SDL_SCANCODE_RETURN];
+
+	if (tool && !PLAYER->state.human->using_tool)
+		entity_human_use_tool(PLAYER);
 }
 
 void player_use_tool() { // called from event loop
