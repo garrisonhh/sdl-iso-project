@@ -289,6 +289,9 @@ sprite_t *load_sprite(const char *path, json_object *obj, hashmap_t *sprite_type
 
 	sprite->pos = (v2i){-(sprite->size.x >> 1), -sprite->size.y};
 
+	if (content_has_key(obj, "sprite-offset"))
+		sprite->pos = v2i_add(sprite->pos, content_get_v2i(obj, "sprite-offset"));
+
 	if (content_has_key(obj, "anim-lengths")) {
 		array_t *anim_len_objs = content_get_array(obj, "anim-lengths");
 
