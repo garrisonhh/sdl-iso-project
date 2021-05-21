@@ -6,8 +6,6 @@
 #include "vector.h"
 #include "data_structures/array.h"
 
-#define ANIMATION_FPS 12.0
-
 // also modify textures_load when modifying this enum
 enum texture_type_e {
 	TEX_TEXTURE = 0,
