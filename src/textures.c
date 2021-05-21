@@ -11,6 +11,19 @@
 #include "data_structures/hashmap.h"
 #include "data_structures/hash_functions.h"
 
+const SDL_Rect VOXEL_TOP_RECT = {
+	0,
+	0,
+	VOXEL_WIDTH,
+	(VOXEL_WIDTH >> 1) - 1
+};
+const SDL_Rect VOXEL_SIDE_RECT = {
+	0,
+	(VOXEL_WIDTH >> 1) - 1,
+	VOXEL_WIDTH >> 1,
+	VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
+};
+
 texture_t **TEXTURES = NULL;
 size_t NUM_TEXTURES;
 hashmap_t *TEXTURE_MAP;
@@ -313,25 +326,21 @@ sprite_t *load_sprite(const char *path, json_object *obj, hashmap_t *sprite_type
 // this uses kinda complicated surface stuff in order to be able to store textures
 // with the SDL_TEXTUREACCESS_STATIC access format
 voxel_tex_t* load_voxel_texture(const char *path) {
-	size_t len_path;
-	char top_path[100], side_path[100];
 	SDL_Rect src_rect, dst_rect;
 	SDL_Surface *surfaces[3];
+	SDL_Surface *image;
 	voxel_tex_t *voxel_tex;
 
 	voxel_tex = malloc(sizeof(voxel_tex_t));
-	len_path = strlen(path) - 4;
 
-	strncpy(top_path, path, 99);
-	strncpy(side_path, path, 99);
-	top_path[len_path] = 0;
-	side_path[len_path] = 0;
-	strcat(top_path, "_top.png");
-	strcat(side_path, "_side.png");
+	image = load_sdl_surface(path);
 
-	surfaces[2] = load_sdl_surface(top_path);
-	surfaces[1] = load_sdl_surface(side_path);
+	surfaces[2] = SDL_CreateRGBSurfaceWithFormat(0, VOXEL_TOP_RECT.w, VOXEL_TOP_RECT.h, 32, RENDER_FORMAT);
+	surfaces[1] = SDL_CreateRGBSurfaceWithFormat(0, VOXEL_SIDE_RECT.w, VOXEL_SIDE_RECT.h, 32, RENDER_FORMAT);
 	surfaces[0] = SDL_CreateRGBSurfaceWithFormat(0, surfaces[1]->w, surfaces[1]->h, 32, RENDER_FORMAT);
+
+	SDL_BlitSurface(image, &VOXEL_TOP_RECT, surfaces[2], NULL);
+	SDL_BlitSurface(image, &VOXEL_SIDE_RECT, surfaces[1], NULL);
 
 	// flip surfaces (yeah this is hacky and probably slow, but not performance-critical whatsoever)
 	src_rect = (SDL_Rect){0, 0, 1, surfaces[1]->h};
@@ -347,6 +356,8 @@ voxel_tex_t* load_voxel_texture(const char *path) {
 
 	for (int i = 0; i < 3; ++i)
 		SDL_FreeSurface(surfaces[i]);
+
+	SDL_FreeSurface(image);
 
 	return voxel_tex;
 }
