@@ -15,40 +15,32 @@ void anim_state_set(animation_t *state, int pose) {
 	state->state = 0.0;
 }
 
-void anim_entity_tick(entity_t *entity, double time) {
-	sprite_t *sprite;
-	animation_t *state;
+void anim_tick(entity_t *entity, texture_t *texture, animation_t *state, double time) {
+	sprite_t *sprite = texture->tex.sprite;
 
-	anim_entity_update_directions(entity);
+	switch (sprite->type) {
+		case SPRITE_STATIC:
+			break;
+		case SPRITE_HUMAN_BODY:
+			anim_human_body(entity, state);
+			break;
+		case SPRITE_HUMAN_BACK_HANDS:
+		case SPRITE_HUMAN_FRONT_HANDS:
+			anim_human_hands(entity, state);
+			break;
+		case SPRITE_HUMAN_BACK_TOOL:
+		case SPRITE_HUMAN_FRONT_TOOL:
+			anim_human_tool(entity, state);
+			break;
+	}
 
-	for (size_t i = 0; i < entity->num_sprites; ++i) {
-		sprite = entity->sprites[i]->tex.sprite;
-		state = &entity->anim_states[i];
+	if (sprite->anim_lengths[state->cell.y] > 1) {
+		state->state += time * ANIMATION_FPS;
 
-		switch (sprite->type) {
-			case SPRITE_STATIC:
-				break;
-			case SPRITE_HUMAN_BODY:
-				anim_human_body(entity, state);
-				break;
-			case SPRITE_HUMAN_BACK_HANDS:
-			case SPRITE_HUMAN_FRONT_HANDS:
-				anim_human_hands(entity, state);
-				break;
-			case SPRITE_HUMAN_BACK_TOOL:
-			case SPRITE_HUMAN_FRONT_TOOL:
-				anim_human_tool(entity, state);
-				break;
-		}
+		if (state->state > sprite->anim_lengths[state->cell.y])
+			state->state -= (double)sprite->anim_lengths[state->cell.y];
 
-		if (sprite->anim_lengths[state->cell.y] > 1) {
-			state->state += time * ANIMATION_FPS;
-
-			if (state->state > sprite->anim_lengths[state->cell.y])
-				state->state -= (double)sprite->anim_lengths[state->cell.y];
-
-			state->cell.x = (int)state->state;
-		}
+		state->cell.x = (int)state->state;
 	}
 }
 

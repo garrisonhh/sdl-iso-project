@@ -49,6 +49,8 @@ void render_quit(void);
 render_info_t *render_gen_info(world_t *world);
 void render_info_destroy(render_info_t *);
 
+render_packet_t *render_packet_create(v2i pos, texture_t *texture);
+
 void render_from_info(render_info_t *);
 
 #endif

@@ -10,13 +10,13 @@
 
 struct tool_t {
 	texture_t *sprites[2];
-	animation_t anim_state;
 };
 typedef struct tool_t tool_t;
 
 struct human_t {
 	texture_t *hands[2];
 	tool_t *tool;
+	animation_t anim_state; // shared between tools/hands
 };
 typedef struct human_t human_t;
 

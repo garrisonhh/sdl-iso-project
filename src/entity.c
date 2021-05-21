@@ -2,21 +2,17 @@
 #include <stdbool.h>
 #include "entity.h"
 #include "vector.h"
-#include "collision.h"
 #include "world.h"
 #include "block_gen.h"
 #include "block_collision.h"
-#include "textures.h"
-#include "animation.h"
-#include "data_structures/array.h"
-#include "data_structures/list.h"
 #include "camera.h"
 #include "utils.h"
+#include "render.h"
 
 void entity_update_directions(entity_t *);
 void entity_move_and_collide(entity_t *, world_t *world, double time);
 
-entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_sprites, v3d size) {
+entity_t *entity_create(entity_type_e type, texture_t *sprite, v3d size) {
 	entity_t *entity = malloc(sizeof(entity_t));
 
 	entity->type = type;
@@ -29,16 +25,9 @@ entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_spri
 			break;
 	}
 
-	entity->num_sprites = num_sprites;
-	entity->sprites = malloc(sizeof(texture_t *) * entity->num_sprites);
-	memcpy(entity->sprites, sprites, sizeof(texture_t *) * num_sprites);
-
-	entity->anim_states = malloc(sizeof(animation_t) * num_sprites);
-
-	for (size_t i = 0; i < entity->num_sprites; ++i) {
-		entity->anim_states[i].cell = (v2i){0, 0};
-		entity->anim_states[i].state = 0.0;
-	}
+	entity->sprite = sprite;
+	entity->anim_state.cell = (v2i){0, 0};
+	entity->anim_state.state = 0.0;
 
 	entity->last_dir = (v3d){0, 1, 0};
 	entity->dir_xy = DIR_FRONT;
@@ -61,8 +50,6 @@ void entity_destroy(entity_t *entity) {
 			break;
 	}
 
-	free(entity->sprites);
-	free(entity->anim_states);
 	free(entity);
 }
 
@@ -79,13 +66,58 @@ void entity_tick(entity_t *entity, world_t *world, double time) {
 	}
 
 	// sprite/animation state
-	anim_entity_tick(entity, time);
+	anim_entity_update_directions(entity);
+	anim_tick(entity, entity->sprite, &entity->anim_state, time);
 
 	// movement
 	if (!entity->on_ground)
 		entity->ray.dir.z += GRAVITY * time;
 
 	entity_move_and_collide(entity, world, time);
+}
+
+v2i entity_screen_pos(entity_t *entity) {
+	v3d entity_pos = entity->ray.pos;
+
+	entity_pos.z -= entity->size.z / 2;
+
+	return project_v3d(entity_pos);
+}
+
+void entity_add_sprite_packet(array_t *packets, v2i pos, texture_t *sprite, animation_t *anim_state) {
+	render_packet_t *packet = render_packet_create(pos, sprite);
+
+	packet->state.anim = *anim_state;
+
+	array_add(packets, packet);
+}
+
+void entity_add_render_packets(entity_t *entity, array_t *packets) {
+	v2i pos = entity_screen_pos(entity);
+	render_packet_t *base_packet = render_packet_create(pos, entity->sprite);
+	
+	base_packet->state.anim = entity->anim_state;
+
+	switch (entity->type) {
+		case ENTITY_BASE:
+			array_add(packets, base_packet);
+
+			break;
+		case ENTITY_HUMAN:;
+			human_t *human = entity->state.human;
+			texture_t **sprites;
+
+			if (human->tool == NULL)
+				sprites = human->hands;
+			else
+				sprites = human->tool->sprites;
+
+			entity_add_sprite_packet(packets, pos, sprites[0], &human->anim_state);
+			array_add(packets, base_packet);
+			entity_add_sprite_packet(packets, pos, sprites[1], &human->anim_state);
+
+			break;
+	}
 }
 
 array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {

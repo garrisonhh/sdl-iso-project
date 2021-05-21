@@ -2,6 +2,7 @@
 #define ANIMATION_H
 
 #include "vector.h"
+#include "textures.h"
 
 typedef struct entity_t entity_t;
 typedef struct animation_t animation_t;
@@ -32,6 +33,7 @@ struct animation_t {
 };
 typedef struct animation_t animation_t;
 
-void anim_entity_tick(entity_t *, double time);
+void anim_entity_update_directions(entity_t *entity);
+void anim_tick(entity_t *, texture_t *, animation_t *, double time);
 
 #endif

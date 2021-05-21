@@ -68,6 +68,16 @@ void render_quit() {
 	background = NULL;
 }
 
+// still need to set state after creation
+render_packet_t *render_packet_create(v2i pos, texture_t *texture) {
+	render_packet_t *packet = malloc(sizeof(render_packet_t));
+
+	packet->pos = pos;
+	packet->texture = texture;
+
+	return packet;
+}
+
 void render_info_gen_shadows(render_info_t *info, world_t *world) {
 	size_t i, arr_idx;
 	entity_t *entity;
@@ -102,7 +112,7 @@ void render_info_gen_shadows(render_info_t *info, world_t *world) {
 		if (arr_idx < info->z_levels) {
 			shadow = malloc(sizeof(circle_t));
 			shadow->loc = project_v3d(shadow_pos);
-			shadow->radius = entity->sprites[0]->tex.sprite->size.x >> 1;
+			shadow->radius = entity->sprite->tex.sprite->size.x >> 1;
 
 			if (info->shadows[arr_idx] == NULL)
 				info->shadows[arr_idx] = array_create(2);
@@ -112,6 +122,7 @@ void render_info_gen_shadows(render_info_t *info, world_t *world) {
 	}
 }
 
+/*
 render_packet_t **render_gen_entity_packets(entity_t *entity) {
 	v3d entity_pos;
 	v2i screen_pos;
@@ -133,17 +144,7 @@ render_packet_t **render_gen_entity_packets(entity_t *entity) {
 
 	return packets;
 }
-
-void render_info_add_entity(array_t *packet_arr, entity_t *entity) {
-	if (entity->num_sprites) {
-		render_packet_t **packets = render_gen_entity_packets(entity);
-
-		for (int i = 0; i < entity->num_sprites; ++i)
-			array_add(packet_arr, packets[i]);
-
-		free(packets);
-	}
-}
+*/
 
 v2i render_block_project(v3i loc) {
 	// modify loc so that it is the back center corner of voxel from camera perspective
@@ -167,16 +168,14 @@ void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, 
 	render_packet_t *packet = NULL;
 
 	if (block->texture->type == TEX_VOXEL) {
-		packet = malloc(sizeof(render_packet_t));
+		voxel_masks_t voxel_masks = world_voxel_masks(block, loc);
 
-		packet->pos = render_block_project(loc);
-		packet->texture = block->texture;
-		packet->state.voxel_masks = world_voxel_masks(block, loc);
+		if (voxel_masks.expose || voxel_masks.dark) {
+			packet = render_packet_create(render_block_project(loc), block->texture);
+			packet->state.voxel_masks = voxel_masks;
+		}
 	} else if (world_exposed(block)) {
-		packet = malloc(sizeof(render_packet_t));
-
-		packet->pos = render_block_project(loc);
-		packet->texture = block->texture;
+		packet = render_packet_create(render_block_project(loc), block->texture);
 
 		if (block->texture->type == TEX_CONNECTED)
 			packet->state.connected_mask = world_connected_mask(block);
@@ -240,14 +239,14 @@ render_info_t *render_gen_info(world_t *world) {
 						bucket_trav = bucket->root;
 
 						while (bucket_trav != NULL && world_bucket_y(bucket_trav->item) < block_y) {
-							render_info_add_entity(level, bucket_trav->item);
+							entity_add_render_packets(bucket_trav->item, level);
 							bucket_trav = bucket_trav->next;
 						}
 
 						render_info_add_block(level, world, block, loc);
 						
 						while (bucket_trav != NULL) {
-							render_info_add_entity(level, bucket_trav->item);
+							entity_add_render_packets(bucket_trav->item, level);
 							bucket_trav = bucket_trav->next;
 						}
 					} else { // draw entities over block regardless
@@ -255,11 +254,11 @@ render_info_t *render_gen_info(world_t *world) {
 
 						if (bucket != NULL)
 							LIST_FOREACH(bucket_trav, bucket)
-								render_info_add_entity(level, bucket_trav->item);
+								entity_add_render_packets(bucket_trav->item, level);
 					}
 				} else if (bucket != NULL) {
 					LIST_FOREACH(bucket_trav, bucket)
-						render_info_add_entity(level, bucket_trav->item);
+						entity_add_render_packets(bucket_trav->item, level);
 				}
 			}
 		}
