@@ -44,7 +44,6 @@ typedef struct entity_t entity_t;
 entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_sprites, v3d size);
 void entity_destroy(entity_t *);
 
-void entity_add_path(entity_t *, list_t *);
 void entity_tick(entity_t *, world_t *, double time);
 
 #endif

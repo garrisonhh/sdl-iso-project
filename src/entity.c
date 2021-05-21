@@ -14,6 +14,7 @@
 #include "utils.h"
 
 void entity_update_directions(entity_t *);
+void entity_move_and_collide(entity_t *, world_t *world, double time);
 
 entity_t *entity_create(entity_type_e type, texture_t **sprites, size_t num_sprites, v3d size) {
 	entity_t *entity = malloc(sizeof(entity_t));
@@ -65,9 +66,30 @@ void entity_destroy(entity_t *entity) {
 	free(entity);
 }
 
+void entity_tick(entity_t *entity, world_t *world, double time) {
+	time = MIN(time, 0.1); // super slow physics ticks means broken physics
+
+	// entity state
+	switch (entity->type) {
+		case ENTITY_BASE:
+			break;
+		case ENTITY_HUMAN:
+			entity_human_tick(entity, time);
+			break;
+	}
+
+	// sprite/animation state
+	anim_entity_tick(entity, time);
+
+	// movement
+	if (!entity->on_ground)
+		entity->ray.dir.z += GRAVITY * time;
+
+	entity_move_and_collide(entity, world, time);
+}
+
 array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
-	int x, y, z;
-	v3i entity_loc, current_loc;
+	v3i entity_loc, loc, offset;
 	array_t *block_colls;
 	block_t *block;
 	block_collidable_t *block_coll;
@@ -75,31 +97,26 @@ array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 	block_colls = array_create(27);
 	entity_loc = v3i_from_v3d(entity->ray.pos);
 
-	for (z = -1; z <= 1; z++) {
-		for (y = -1; y <= 1; y++) {
-			for (x = -1; x <= 1; x++) {
-				current_loc = (v3i){x, y, z};
-				current_loc = v3i_add(entity_loc, current_loc);
+	FOR_CUBE(offset.x, offset.y, offset.z, -1, 2) {
+		loc = v3i_add(entity_loc, offset);
 
-				if ((block = world_get(world, current_loc)) != NULL
-				  && block->coll_data->coll_type != BLOCK_COLL_NONE) {
-					block_coll = malloc(sizeof(block_collidable_t));
+		if ((block = world_get(world, loc)) != NULL
+		  && block->coll_data->coll_type != BLOCK_COLL_NONE) {
+			block_coll = malloc(sizeof(block_collidable_t));
 
-					block_coll->loc = current_loc;
-					block_coll->coll_data = block->coll_data;
+			block_coll->loc = loc;
+			block_coll->coll_data = block->coll_data;
 
-					array_add(block_colls, block_coll);
-				} else if (current_loc.x < 0 || current_loc.x >= world->block_size
-						|| current_loc.y < 0 || current_loc.y >= world->block_size
-						|| current_loc.z < 0 || current_loc.z >= world->block_size) {
-					block_coll = malloc(sizeof(block_collidable_t));
+			array_add(block_colls, block_coll);
+		} else if (loc.x < 0 || loc.x >= world->block_size
+				|| loc.y < 0 || loc.y >= world->block_size
+				|| loc.z < 0 || loc.z >= world->block_size) {
+			block_coll = malloc(sizeof(block_collidable_t));
 
-					block_coll->loc = current_loc;
-					block_coll->coll_data = &WALL_COLL_DATA;
+			block_coll->loc = loc;
+			block_coll->coll_data = &WALL_COLL_DATA;
 
-					array_add(block_colls, block_coll);
-				}
-			}
+			array_add(block_colls, block_coll);
 		}
 	}
 
@@ -125,15 +142,19 @@ ray_t entity_collide_bbox(entity_t *entity, ray_t movement, bbox_t block_bbox) {
 	return movement;
 }
 
-void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time) {
+void entity_move_and_collide(entity_t *entity, world_t *world, double time) {
 	ray_t movement;
 	bbox_t block_bbox;
 	block_collidable_t *block_coll;
+	array_t *block_colls;
 
 	movement = entity->ray;
 	movement.dir = v3d_scale(movement.dir, time);
 
+	block_colls = entity_surrounding_block_colls(entity, world);
 	block_coll_array_sort(block_colls, entity->ray.dir);
+
+	entity->on_ground = false;
 
 	for (size_t i = 0; i < block_colls->size; i++) {
 		block_coll = (block_collidable_t *)block_colls->items[i];
@@ -149,101 +170,6 @@ void entity_move_and_collide(entity_t *entity, array_t *block_colls, double time
 	}
 
 	entity->ray.pos = v3d_add(entity->ray.pos, movement.dir);
-}
 
-/*
-void entity_add_path(entity_t *entity, list_t *path) {
-	list_merge(entity->path, path);
-}
-
-// TODO make these part of entity_t struct
-// leaving them here just to get a working version
-#define ENTITY_XY_SPEED 6.0
-#define ENTITY_JUMP 9.0
-#define DIST_TOLERANCE 0.01
-
-void entity_follow_path(entity_t *entity, double time) {
-	if (entity->path->size == 0)
-		return;
-
-	v3d next, diff, dir;
-	double dist;
-
-	next = v3d_from_v3i(*(v3i *)list_peek(entity->path));
-	next.x += .5;
-	next.y += .5;
-	next.z += entity->center.z;
-
-	diff = v3d_sub(next, entity->ray.pos);
-	dist = v3d_magnitude(diff);
-
-	dir = diff;
-	dir.z = 0;
-	dir = v3d_scale(v3d_normalize(dir), ENTITY_XY_SPEED);
-	dir.z = entity->ray.dir.z;
-	
-	// TODO some sort of jump() function
-	if (diff.z > 0)
-		if (entity->on_ground)
-			dir.z += ENTITY_JUMP;
-
-	entity->ray.dir = dir;
-
-	// remove path v3i when close enough
-	if (dist < time * v3d_magnitude(entity->ray.dir)) {
-		v3i *popping = list_pop(entity->path);
-		v3i_print("popping", *popping);
-		free(popping);
-
-		if (entity->path->size == 0)
-			printf("PATH DONE!\n");
-	}
-}
-*/
-
-// for render_packets TODO
-array_t *entity_sprites(entity_t *entity) {
-	array_t *sprites = NULL;
-
-	switch (entity->type) {
-		case ENTITY_BASE:
-			sprites = array_create(entity->num_sprites);
-			
-			for (size_t i = 0; i < entity->num_sprites; ++i)
-				array_add(sprites, entity->sprites[i]);
-
-			return sprites;
-		case ENTITY_HUMAN:
-			sprites = entity_human_sprites(entity);
-	}
-
-	return sprites;
-}
-
-void entity_tick(entity_t *entity, world_t *world, double time) {
-	array_t *block_colls;
-
-	time = MIN(time, 0.1); // super slow physics ticks means broken physics
-
-	// entity state
-	switch (entity->type) {
-		case ENTITY_BASE:
-			break;
-		case ENTITY_HUMAN:
-			entity_human_tick(entity, time);
-			break;
-	}
-
-	// sprite/animation state
-	anim_entity_tick(entity, time);
-
-	// movement
-	if (!entity->on_ground)
-		entity->ray.dir.z += GRAVITY * time;
-
-	entity->on_ground = false;
-
-	block_colls = entity_surrounding_block_colls(entity, world);
-	entity_move_and_collide(entity, block_colls, time);
 	array_destroy(block_colls, true);
 }
