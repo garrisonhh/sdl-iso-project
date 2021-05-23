@@ -56,7 +56,7 @@ double path_heuristic(v3i a, v3i b) {
 	delta = v3i_sub(a, b);
 
 	for (i = 0; i < 3; i++)
-		v3i_set(&delta, i, abs(v3i_get(&delta, i)));
+		v3i_IDX(delta, i) = abs(v3i_IDX(delta, i));
 
 	dmax = MAX(delta.x, delta.y);
 	dmin = MIN(delta.x, delta.y);

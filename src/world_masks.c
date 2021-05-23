@@ -72,7 +72,7 @@ void world_update_masks(world_t *world, v3i loc) {
 			neighbor = loc;
 
 			for (j = 0; j <= 1; ++j) {
-				v3i_set(&neighbor, i, v3i_get(&loc, i) + (j ? 1 : -1));
+				v3i_IDX(neighbor, i) = v3i_IDX(loc, i) + (j ? 1 : -1);
 
 				if (world_block_see_through(world, neighbor))
 					BIT_SET_TRUE(expose_mask, (i << 1) | j);
@@ -96,7 +96,7 @@ void world_update_masks(world_t *world, v3i loc) {
 				neighbor = loc;
 
 				for (j = 0; j <= 1; ++j) {
-					v3i_set(&neighbor, i, v3i_get(&loc, i) + (j ? 1 : -1));
+					v3i_IDX(neighbor, i) = v3i_IDX(loc, i) + (j ? 1 : -1);
 
 					if ((other = world_get(world, neighbor)) != NULL)
 						if (world_blocks_connect(block, other))
@@ -175,7 +175,7 @@ voxel_masks_t world_voxel_masks(block_t *block, v3i loc) {
 
 	// dark
 	for (i = 0; i < 3; ++i)
-		if (v3i_get(&loc, i) == v3i_get(&camera.rndr_end, i))
+		if (v3i_IDX(loc, i) == v3i_IDX(camera.rndr_end, i))
 			BIT_SET_TRUE(masks.dark, i);
 
 	if (loc.z == (int)camera.pos.z && !BIT_GET(masks.expose, 2))

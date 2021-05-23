@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <math.h>
 #include "vector.h"
 #include "utils.h"

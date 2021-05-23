@@ -26,9 +26,9 @@ bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), 
 	step = polarity_of_v3d(ray.dir);
 
 	for (i = 0; i < 3; i++) {
-		dim_pos = v3d_get(&ray.pos, i);
-		dim_abs_dir = fabs(v3d_get(&ray.dir, i));
-		polarity = v3i_get(&step, i);
+		dim_pos = v3d_IDX(ray.pos, i);
+		dim_abs_dir = fabs(v3d_IDX(ray.dir, i));
+		polarity = v3i_IDX(step, i);
 
 		// t_max: scalar t where ray crosses boundary from initial position on each axis
 		t_max_target = (polarity > 0 ? ceil(dim_pos) : floor(dim_pos));
@@ -36,10 +36,10 @@ bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), 
 		if (d_close(dim_pos, t_max_target))
 			t_max_target += polarity;
 
-		v3d_set(&t_max, i, fabs(t_max_target - dim_pos) / dim_abs_dir);
+		v3d_IDX(t_max, i) = fabs(t_max_target - dim_pos) / dim_abs_dir;
 
 		// t_delta: scalar t where ray changes by 1 on each axis
-		v3d_set(&t_delta, i, 1.0 / dim_abs_dir);
+		v3d_IDX(t_delta, i) = 1.0 / dim_abs_dir;
 	}
 
 	// iterate though voxel space
@@ -56,17 +56,17 @@ bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), 
 		axis = 2;
 
 		for (i = 1; i >= 0; i--)
-			if (v3d_get(&t_max, i) < v3d_get(&t_max, axis))
+			if (v3d_IDX(t_max, i) < v3d_IDX(t_max, axis))
 				axis = i;
 
 		// increase by step and delta on axis
-		next_axis = v3i_get(&loc, axis) + v3i_get(&step, axis);
-		v3i_set(&loc, axis, next_axis);
+		next_axis = v3i_IDX(loc, axis) + v3i_IDX(step, axis);
+		v3i_IDX(loc, axis) = next_axis;
 
 		if (next_axis < 0 || next_axis >= world->block_size)
 			return false;
 
-		v3d_set(&t_max, axis, v3d_get(&t_max, axis) + v3d_get(&t_delta, axis));
+		v3d_IDX(t_max, axis) = v3d_IDX(t_max, axis) + v3d_IDX(t_delta, axis);
 	}
 }
 

@@ -163,7 +163,7 @@ ray_t entity_collide_bbox(entity_t *entity, ray_t movement, bbox_t block_bbox) {
 	collision_axis = ray_intersects_bbox(movement, block_bbox, NULL, &resolved_dir);
 
 	if (collision_axis >= 0) {
-		v3d_set(&entity->ray.dir, collision_axis, 0);
+		v3d_IDX(entity->ray.dir, collision_axis) = 0;
 
 		if (collision_axis == 2 && (movement.dir.z <= 0.0 || d_close(movement.dir.z, 0)))
 			entity->on_ground = true;

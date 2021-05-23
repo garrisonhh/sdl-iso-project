@@ -53,6 +53,8 @@
 
 #define D_ROUND(d) ((int)(d + 0.5l))
 
+// TODO ERR_MSG()
+
 bool d_close(double a, double b);
 void timeit_start(void);
 void timeit_end(const char *message);

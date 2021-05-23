@@ -95,7 +95,7 @@ bool world_indices(world_t *world, v3i loc, unsigned *chunk_result, unsigned *bl
 		chunk_index <<= world->size_power;
 		block_index <<= 4;
 
-		dim = v3i_get(&loc, i);
+		dim = v3i_IDX(loc, i);
 
 		if (dim < 0 || dim >= world->block_size)
 			return false;

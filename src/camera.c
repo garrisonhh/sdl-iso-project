@@ -157,15 +157,15 @@ void camera_update() {
 	}
 
 	for (i = 0; i < 3; ++i) {
-		min_val = MAX(0, v3i_get(&center, i) - camera.rndr_dist);
-		max_val = MIN(camera.block_size - 1, v3i_get(&center, i) + camera.rndr_dist);
+		min_val = MAX(0, v3i_IDX(center, i) - camera.rndr_dist);
+		max_val = MIN(camera.block_size - 1, v3i_IDX(center, i) + camera.rndr_dist);
 
-		if (v3i_get(&camera.rndr_inc, i) > 0) {
-			v3i_set(&camera.rndr_start, i, min_val);
-			v3i_set(&camera.rndr_end, i, max_val);
+		if (v3i_IDX(camera.rndr_inc, i) > 0) {
+			v3i_IDX(camera.rndr_start, i) = min_val;
+			v3i_IDX(camera.rndr_end, i) = max_val;
 		} else { // values swapped
-			v3i_set(&camera.rndr_start, i, max_val);
-			v3i_set(&camera.rndr_end, i, min_val);
+			v3i_IDX(camera.rndr_start, i) = max_val;
+			v3i_IDX(camera.rndr_end, i) = min_val;
 		}
 	}
 }

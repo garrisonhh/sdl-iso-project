@@ -74,7 +74,7 @@ v3d content_v3d_from_obj(json_object *obj) {
 	v3d v;
 
 	for (int i = 0; i < 3; ++i)
-		v3d_set(&v, i, json_object_get_double(arr->items[i]));
+		v3d_IDX(v, i) = json_object_get_double(arr->items[i]);
 
 	array_destroy(arr, false);
 

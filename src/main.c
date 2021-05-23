@@ -17,6 +17,7 @@
 #include "utils.h"
 #include "textures.h"
 #include "block_gen.h"
+#include "vector.h"
 
 SDL_Window *window = NULL;
 
@@ -27,6 +28,9 @@ SDL_mutex *RENDER_INFO_LOCK;
 render_info_t *RENDER_INFO, *LAST_INFO;
 
 void init() {
+	vector_check_structs();
+
+	// sdl
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		printf("SDL could not initialize:\n%s\n", SDL_GetError());
 		exit(1);
@@ -48,10 +52,12 @@ void init() {
 		exit(1);
 	}
 
+	// threading
 	MAIN_DONE = SDL_CreateSemaphore(0);
 	RENDER_DONE = SDL_CreateSemaphore(1);
 	RENDER_INFO_LOCK = SDL_CreateMutex();
 
+	// init game stuff
 	render_init(window);
 	gui_init();
 
@@ -61,13 +67,13 @@ void init() {
 
 	gui_load();
 
-	SDL_RenderPresent(renderer);
-
 	// draw loading text
 	v2i loading_pos = {0, 0};
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(renderer);
 	fonts_render_text(FONT_UI, "loading...", loading_pos);
+	// calls twice for double buffer
+	SDL_RenderPresent(renderer);
 	SDL_RenderPresent(renderer);
 }
 

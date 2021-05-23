@@ -17,8 +17,8 @@ bool collide1d(double start_a, double len_a, double start_b, double len_b) {
 
 bool bbox_bbox_collide(bbox_t a, bbox_t b) {
 	for (int i = 0; i < 3; i++) {
-		if (!collide1d(v3d_get(&a.pos, i), v3d_get(&a.size, i),
-					   v3d_get(&b.pos, i), v3d_get(&b.size, i))) {
+		if (!collide1d(v3d_IDX(a.pos, i), v3d_IDX(a.size, i),
+					   v3d_IDX(b.pos, i), v3d_IDX(b.size, i))) {
 			return false;
 		}
 	}
@@ -29,9 +29,9 @@ bool inside_bbox(bbox_t box, v3d point) {
 	double dim_start, dim_end, dim_point;
 
 	for (int i = 0; i < 3; i++) {
-		dim_start = v3d_get(&box.pos, i);
-		dim_end = dim_start + v3d_get(&box.size, i);
-		dim_point = v3d_get(&point, i);
+		dim_start = v3d_IDX(box.pos, i);
+		dim_end = dim_start + v3d_IDX(box.size, i);
+		dim_point = v3d_IDX(point, i);
 
 		if (!(collides(dim_start, dim_end, dim_point)
 		   || d_close(dim_start, dim_point) || d_close(dim_end, dim_point)))
@@ -63,11 +63,11 @@ int ray_intersects_bbox(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_
 
 	for (i = 2; i >= 0; i--) {
 		// find near plane of face on this axis 
-		plane_vel = v3d_get(&ray.dir, i);
-		plane = v3d_get(&box.pos, i);
+		plane_vel = v3d_IDX(ray.dir, i);
+		plane = v3d_IDX(box.pos, i);
 	
-		if (v3d_get(&ray.dir, i) < 0)
-			plane += v3d_get(&box.size, i);
+		if (v3d_IDX(ray.dir, i) < 0)
+			plane += v3d_IDX(box.size, i);
 
 		if (!d_close(plane_vel, 0)) {
 			// ray is not parallel, safe to find line-box intersection
@@ -77,16 +77,16 @@ int ray_intersects_bbox(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_
 					continue;
 
 				// axis_res = collision with plane along slope b/t axis j and plane axis
-				axis_vel = v3d_get(&ray.dir, j) / plane_vel;
-				axis_res = (axis_vel * plane) + (v3d_get(&ray.pos, j) - (axis_vel * v3d_get(&ray.pos, i)));
+				axis_vel = v3d_IDX(ray.dir, j) / plane_vel;
+				axis_res = (axis_vel * plane) + (v3d_IDX(ray.pos, j) - (axis_vel * v3d_IDX(ray.pos, i)));
 
 				// check collision is in bounds of the box face on this plane
-				dim_start = v3d_get(&box.pos, j);
-				dim_len = v3d_get(&box.size, j);
+				dim_start = v3d_IDX(box.pos, j);
+				dim_len = v3d_IDX(box.size, j);
 
 				if ((dim_start <= axis_res && axis_res <= dim_start + dim_len)
 				 || d_close(dim_start, axis_res) || d_close(dim_start + dim_len, axis_res)) {
-					v3d_set(&isect, j, axis_res);
+					v3d_IDX(isect, j) = axis_res;
 				} else {
 					collide = false;
 					break;
@@ -94,15 +94,17 @@ int ray_intersects_bbox(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_
 			}
 			
 			if (collide) {
-				v3d_set(&isect, i, plane);
+				v3d_IDX(isect, i) = plane;
 
 				// check collision in bounds of ray
 				if (bbox_bbox_collide(ray_to_bbox(ray), box)) {
 					if (intersection != NULL)
 						*intersection = isect;
 					if (resolved_dir != NULL) {
-						*resolved_dir = ray.dir;
-						v3d_set(resolved_dir, i, plane - v3d_get(&ray.pos, i)); // pixel fucking perfect :)
+						v3d resolved = ray.dir;
+						v3d_IDX(resolved, i) = plane - v3d_IDX(ray.pos, i); // pixel fucking perfect :)
+
+						*resolved_dir = resolved;
 					}
 					return i;
 				}

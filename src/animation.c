@@ -67,14 +67,14 @@ void anim_entity_update_directions(entity_t *entity) {
 	entity->last_dir.z = entity->ray.dir.z;
 
 	for (int i = 0; i < 3; ++i) {
-		dir = v3d_get(&entity->last_dir, i);
+		dir = v3d_IDX(entity->last_dir, i);
 
 		if (d_close(dir, 0.0))
-			v3i_set(&facing, i, 0);
+			v3i_IDX(facing, i) = 0;
 		else if (dir > 0)
-			v3i_set(&facing, i, 1);
+			v3i_IDX(facing, i) = 1;
 		else
-			v3i_set(&facing, i, -1);
+			v3i_IDX(facing, i) = -1;
 	}
 
 	facing = camera_rotated_v3i(facing);
@@ -168,7 +168,6 @@ void anim_human_hands(entity_t *entity, animation_t *state) {
 
 void anim_human_tool(entity_t *entity, animation_t *state) {
 	int pose;
-
 
 	if (entity->state.human->using_tool) {
 		switch (entity->dir_xy) {

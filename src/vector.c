@@ -4,99 +4,72 @@
 #include <stdbool.h>
 #include "vector.h"
 
+#define DECL_V2_BASIC(fn_name, fn_type, oper) \
+	fn_type fn_name(fn_type a, fn_type b) {\
+		return (fn_type){a.x oper b.x, a.y oper b.y};\
+	}
+#define DECL_V3_BASIC(fn_name, fn_type, oper) \
+	fn_type fn_name(fn_type a, fn_type b) {\
+		return (fn_type){a.x oper b.x, a.y oper b.y, a.z oper b.z};\
+	}
+
+void vector_check_structs() {
+	if (!(offsetof(v2i, y) == sizeof(int))) {
+		printf("v2i not aligned properly.\n");
+		exit(1);
+	}
+
+	if (!(offsetof(v2d, y) == sizeof(double))) {
+		printf("v2d not aligned properly.\n");
+		exit(1);
+	}
+
+	if (!(offsetof(v3i, y) == sizeof(int)
+	   && offsetof(v3i, z) == sizeof(int) * 2)) {
+		printf("v3i not aligned properly.\n");
+		exit(1);
+	}
+
+	if (!(offsetof(v3d, y) == sizeof(double)
+	   && offsetof(v3d, z) == sizeof(double) * 2)) {
+		printf("v3d not aligned properly.\n");
+		exit(1);
+	}
+}
+
+// v2i
 v2i v2i_from_v2d(v2d v) {
-	return (v2i){
-		(int)v.x,
-		(int)v.y
-	};
+	return (v2i){v.x, v.y};
 }
 
-v2i v2i_add(v2i a, v2i b) {
-	return (v2i){
-		a.x + b.x,
-		a.y + b.y
-	};
+DECL_V2_BASIC(v2i_add, v2i, +)
+DECL_V2_BASIC(v2i_sub, v2i, -)
+DECL_V2_BASIC(v2i_mul, v2i, *)
+DECL_V2_BASIC(v2i_div, v2i, /)
+
+// v2d
+v2d v2d_from_v2i(v2i v) {
+	return (v2d){v.x, v.y};
 }
 
-v2i v2i_sub(v2i a, v2i b) {
-	return (v2i){
-		a.x - b.x,
-		a.y - b.y
-	};
-}
-
-v2i v2i_mul(v2i a, v2i b) {
-	return (v2i){
-		a.x * b.x,
-		a.y * b.y
-	};
-}
-
-v2i v2i_div(v2i a, v2i b) {
-	return (v2i){
-		a.x / b.x,
-		a.y / b.y
-	};
-}
-
-v2d v2d_add(v2d a, v2d b) {
-	return (v2d){
-		a.x + b.x,
-		a.y + b.y
-	};
-}
-
-v2d v2d_sub(v2d a, v2d b) {
-	return (v2d){
-		a.x - b.x,
-		a.y - b.y
-	};
-}
+DECL_V2_BASIC(v2d_add, v2d, +)
+DECL_V2_BASIC(v2d_sub, v2d, -)
+DECL_V2_BASIC(v2d_mul, v2d, *)
+DECL_V2_BASIC(v2d_div, v2d, /)
 
 double v2d_dot(v2d a, v2d b) {
 	return a.x * b.x + a.y * b.y;
 }
 
+// v3i
 v3i v3i_from_v3d(v3d v) {
-	return (v3i){
-		(int)v.x,
-		(int)v.y,
-		(int)v.z
-	};
+	return (v3i){v.x, v.y, v.z};
 }
 
-int v3i_get(v3i *v, int index) {
-	if (index == 0)
-		return v->x;
-	else if (index == 1)
-		return v->y;
-	return v->z;
-}
-
-void v3i_set(v3i *v, int index, int value) {
-	if (index == 0)
-		v->x = value;
-	else if (index == 1)
-		v->y = value;
-	else
-		v->z = value;
-}
-
-v3i v3i_add(v3i a, v3i b) {
-	return (v3i){
-		a.x + b.x,
-		a.y + b.y,
-		a.z + b.z
-	};
-}
-
-v3i v3i_sub(v3i a, v3i b) {
-	return (v3i){
-		a.x - b.x,
-		a.y - b.y,
-		a.z - b.z
-	};
-}
+DECL_V3_BASIC(v3i_add, v3i, +)
+DECL_V3_BASIC(v3i_sub, v3i, -)
+DECL_V3_BASIC(v3i_mul, v3i, *)
+DECL_V3_BASIC(v3i_div, v3i, /)
 
 v3i v3i_scale(v3i v, double scalar) {
 	return (v3i){
@@ -114,7 +87,7 @@ v3i polarity_of_v3d(v3d v) {
 	v3i polarity;
 
 	for (int i = 0; i < 3; i++)
-		v3i_set(&polarity, i, (v3d_get(&v, i) >= 0 ? 1 : -1));
+		v3i_IDX(polarity, i) = (v3d_IDX(v, i) >= 0 ? 1 : -1);
 
 	return polarity;
 }
@@ -140,50 +113,15 @@ void v3i_sprint(char *string, const char *message, v3i v) {
 		sprintf(string, "(%9d, %9d, %9d)", v.x, v.y, v.z);
 }
 
+// v3d
 v3d v3d_from_v3i(v3i v) {
 	return (v3d){v.x, v.y, v.z};
 }
 
-double v3d_get(v3d *v, int index) {
-	if (index == 0)
-		return v->x;
-	else if (index == 1)
-		return v->y;
-	return v->z;
-}
-
-void v3d_set(v3d *v, int index, double value) {
-	if (index == 0)
-		v->x = value;
-	else if (index == 1)
-		v->y = value;
-	else
-		v->z = value;
-}
-
-v3d v3d_add(v3d a, v3d b) {
-	return (v3d){
-		a.x + b.x,
-		a.y + b.y,
-		a.z + b.z
-	};
-}
-
-v3d v3d_sub(v3d a, v3d b) {
-	return (v3d){
-		a.x - b.x,
-		a.y - b.y,
-		a.z - b.z
-	};
-}
-
-v3d v3d_mul(v3d a, v3d b) {
-	return (v3d){
-		a.x * b.x,
-		a.y * b.y,
-		a.z * b.z
-	};
-}
+DECL_V3_BASIC(v3d_add, v3d, +)
+DECL_V3_BASIC(v3d_sub, v3d, -)
+DECL_V3_BASIC(v3d_mul, v3d, *)
+DECL_V3_BASIC(v3d_div, v3d, /)
 
 v3d v3d_scale(v3d v, double scalar) {
 	return (v3d){

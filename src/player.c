@@ -21,6 +21,9 @@ void player_init(world_t *world) {
 }
 
 void player_tick() {
+	v2i mouse_pos;
+	uint32_t mouse = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
+
 	// movement
 	v3d move = {0, 0, 0};
 	bool up = KEYBOARD[SDL_SCANCODE_W];
@@ -51,20 +54,19 @@ void player_tick() {
 	PLAYER->ray.dir.y = move.y;
 
 	// jump
-	bool jump = KEYBOARD[SDL_SCANCODE_SPACE];
-
-	if (PLAYER->on_ground && jump)
+	if (PLAYER->on_ground && KEYBOARD[SDL_SCANCODE_SPACE])
 		PLAYER->ray.dir.z += HUMAN_JUMP_VELOCITY;
 
 	// tool
-	bool tool = KEYBOARD[SDL_SCANCODE_RETURN];
+	if (mouse & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+		if (d_close(move.x + move.y, 0)) {
+			v2d pos = v2d_from_v2i(mouse_pos);
 
-	if (tool && !PLAYER->state.human->using_tool)
+			pos.y *= 2;
+		}
+
 		entity_human_use_tool(PLAYER);
-}
-
-void player_use_tool() { // called from event loop
-	entity_human_use_tool(PLAYER);
+	}
 }
 
 v3d player_get_pos() {
