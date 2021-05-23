@@ -110,6 +110,9 @@ int render(void *arg) {
 	return 0;
 }
 
+#include <time.h>
+#include "noise.h"
+
 int main(int argc, char *argv[]) {
 	init();
 

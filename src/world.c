@@ -208,7 +208,7 @@ void generate_tree(world_t *world, v3i loc) {
 	v3i leaf_loc;
 
 	trunk = block_gen_get_id("tree trunk");
-	leaves = block_gen_get_id("dirt"); // TODO change back
+	leaves = block_gen_get_id("leaves");
 
 	max_v = 3 + rand() % 2;
 
@@ -238,6 +238,8 @@ void generate_tree(world_t *world, v3i loc) {
 }
 
 void world_generate(world_t *world) {
+	srand(time(0));
+
 	timeit_start();
 
 	if (0) { // debug world
@@ -261,10 +263,9 @@ void world_generate(world_t *world) {
 		}
 
 	} else {
-		int noise_val;
-		v2d noise_pos;
-		v2i dims = {world->size >> 1, world->size >> 1};
 		v3i loc;
+		double noise_val;
+		noise2_t *noise = noise2_create(world->block_size, MAX(world->size_power - 1, 0), 5, 0.5);
 
 		size_t dirt = block_gen_get_id("dirt");
 		size_t grass = block_gen_get_id("grass");
@@ -273,17 +274,12 @@ void world_generate(world_t *world) {
 		size_t flower = block_gen_get_id("flower");
 		size_t sml_rock = block_gen_get_id("small rock");
 		// larger rocks don't look good in forest umgebung
-		//size_t med_rock = block_gen_get_id("medium rock");
-		//size_t lrg_rock = block_gen_get_id("large rock");
-
-		srand(time(0));
-		noise_init(dims);
 
 		FOR_XY(loc.x, loc.y, world->block_size, world->block_size) {
-			noise_pos = (v2d){(double)loc.x / 32.0, (double)loc.y / 32.0};
-			noise_val = (int)(pow((1.0 + noise_at(noise_pos)) / 2, 3.0) * (double)(MIN(world->block_size, 64)));
+			noise_val = pow((1.0 + noise2_at(noise, loc.x, loc.y)) / 2, 3.0);
+			noise_val *= MIN(world->block_size, 64);
 
-			for (loc.z = 0; loc.z < noise_val; loc.z++)
+			for (loc.z = 0; loc.z < (int)noise_val; loc.z++)
 				world_set_no_update(world, loc, dirt);
 			
 			world_set_no_update(world, loc, grass);
@@ -305,22 +301,15 @@ void world_generate(world_t *world) {
 				case 5:
 					world_set_no_update(world, loc, sml_rock);
 					break;
-				/*
-				case 6:
-					world_set_no_update(world, loc, med_rock);
-					break;
-				case 7:
-					world_set_no_update(world, loc, lrg_rock);
-					break;
-				*/
 			}
 
 			if (rand() % 500 == 0)
 				generate_tree(world, loc);
 		}
 
-		noise_quit();
+		noise2_destroy(noise);
 	}
+
 	timeit_end("world generated");
 
 	v3i loc;
