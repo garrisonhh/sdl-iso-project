@@ -61,5 +61,8 @@ void timeit_start(void);
 void timeit_end(const char *message);
 double timeit_get_time(void);
 void print_bits(const char *message, unsigned n, size_t bits);
+void term_set_bg(int color);
+void term_set_fg(int color);
+void term_reset_color();
 
 #endif
