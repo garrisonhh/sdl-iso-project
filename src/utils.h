@@ -56,6 +56,7 @@
 // TODO ERR_MSG()
 
 bool d_close(double a, double b);
+double randf(void); // returns values between 0 and 1
 void timeit_start(void);
 void timeit_end(const char *message);
 double timeit_get_time(void);

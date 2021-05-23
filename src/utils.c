@@ -14,6 +14,10 @@ bool d_close(double a, double b) {
 	return fabs(a - b) < FLOAT_TOLERANCE;
 }
 
+double randf() {
+	return (double)rand() / (double)RAND_MAX;
+}
+
 void timeit_start() {
 	gettimeofday(&LAST_TIMEIT, NULL);
 }
