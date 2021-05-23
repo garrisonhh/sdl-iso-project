@@ -27,6 +27,8 @@ typedef struct v3d v3d;
 void vector_check_structs(void);
 
 // v2i
+#define v2i_IDX(v, idx) ((int *)(&v))[idx]
+
 v2i v2i_from_v2d(v2d);
 
 v2i v2i_add(v2i, v2i);
@@ -35,6 +37,8 @@ v2i v2i_mul(v2i, v2i);
 v2i v2i_div(v2i, v2i);
 
 // v2d
+#define v2d_IDX(v, idx) ((double *)(&v))[idx]
+
 v2d v2d_from_v2i(v2i);
 
 v2d v2d_add(v2d, v2d);
