@@ -57,6 +57,10 @@ DECL_V2_BASIC(v2d_sub, v2d, -)
 DECL_V2_BASIC(v2d_mul, v2d, *)
 DECL_V2_BASIC(v2d_div, v2d, /)
 
+v2d v2d_scale(v2d v, double scalar) {
+	return (v2d){v.x * scalar, v.y * scalar};
+}
+
 double v2d_dot(v2d a, v2d b) {
 	return a.x * b.x + a.y * b.y;
 }
@@ -72,11 +76,7 @@ DECL_V3_BASIC(v3i_mul, v3i, *)
 DECL_V3_BASIC(v3i_div, v3i, /)
 
 v3i v3i_scale(v3i v, double scalar) {
-	return (v3i){
-		v.x * scalar,
-		v.y * scalar,
-		v.z * scalar
-	};
+	return (v3i){v.x * scalar, v.y * scalar, v.z * scalar};
 }
 
 int v3i_compare(v3i a, v3i b) {
@@ -124,11 +124,7 @@ DECL_V3_BASIC(v3d_mul, v3d, *)
 DECL_V3_BASIC(v3d_div, v3d, /)
 
 v3d v3d_scale(v3d v, double scalar) {
-	return (v3d){
-		v.x * scalar,
-		v.y * scalar,
-		v.z * scalar
-	};
+	return (v3d){v.x * scalar, v.y * scalar, v.z * scalar};
 }
 
 v3d v3d_normalize(v3d v) {
