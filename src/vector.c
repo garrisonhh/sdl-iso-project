@@ -61,6 +61,14 @@ v2d v2d_scale(v2d v, double scalar) {
 	return (v2d){v.x * scalar, v.y * scalar};
 }
 
+v2d v2d_normalize(v2d v) {
+	return v2d_scale(v, 1.0 / v2d_magnitude(v));
+}
+
+double v2d_magnitude(v2d v) {
+	return sqrt(v2d_dot(v, v));
+}
+
 double v2d_dot(v2d a, v2d b) {
 	return a.x * b.x + a.y * b.y;
 }

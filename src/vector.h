@@ -47,6 +47,8 @@ v2d v2d_mul(v2d, v2d);
 v2d v2d_div(v2d, v2d);
 
 v2d v2d_scale(v2d, double);
+v2d v2d_normalize(v2d);
+double v2d_magnitude(v2d v);
 double v2d_dot(v2d, v2d);
 
 // v3i

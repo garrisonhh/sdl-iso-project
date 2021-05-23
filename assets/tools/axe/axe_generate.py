@@ -8,20 +8,20 @@ SPLIT = 13
 
 # 0 = front, 1 = back, 2 = split 
 SPRITE_MODES = (
-    (0, 0, 0, 0, 0),
-    (1, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0),
+    (0, 0, 0, 0, 0, 0),
+    (1, 0, 0, 0, 0, 0),
+    (0, 0, 0, 0, 0, 0),
+    (0, 0, 0, 0, 0, 0),
     
-    (0, 0, 2, 2, 0),
-    (0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 1),
+    (0, 0, 2, 2, 0, 0),
+    (0, 0, 0, 0, 0, 0),
+    (0, 0, 0, 0, 0, 0),
+    (0, 0, 0, 0, 1, 1),
 
-    (1, 1, 1, 1, 1),
-    (1, 1, 1, 1, 1),
-    (0, 1, 1, 1, 2),
-    (0, 0, 1, 2, 2),
+    (1, 1, 1, 1, 1, 1),
+    (1, 1, 1, 1, 1, 1),
+    (0, 1, 1, 1, 2, 2),
+    (0, 0, 1, 2, 2, 2),
 )
 
 def cell_rect(x, y):
@@ -48,7 +48,7 @@ def main():
     axe_fastest = pg.image.load("axe_swing_fastest.png")
     axe_unmoving = pg.image.load("axe_unmoving.png")
 
-    front = pg.Surface((W * 5, H * 4 * 3)).convert_alpha()
+    front = pg.Surface((W * len(SPRITE_MODES[0]), H * len(SPRITE_MODES))).convert_alpha()
     front.fill((0, 0, 0, 0))
     front.blit(axe_unmoving, (0, 0))
 
@@ -58,12 +58,13 @@ def main():
         copy_cell(front, 2, i + 4, axe_swing, i, 0)
         copy_cell(front, 3, i + 4, axe_fast, (i + 1) % 8, 0)
         copy_cell(front, 4, i + 4, axe_fastest, (i + 3) % 8, 0)
+        copy_cell(front, 5, i + 5, axe_swing, (i + 3) % 8, 0)
 
     back = pg.Surface((W * 5, H * 4 * 3)).convert_alpha()
     back.fill((0, 0, 0, 0))
 
-    for y in range(12):
-        for x in range(5):
+    for y in range(len(SPRITE_MODES)):
+        for x in range(len(SPRITE_MODES[y])):
             if SPRITE_MODES[y][x] == 1:
                 cut_cell(back, x, y, front, x, y)
             elif SPRITE_MODES[y][x] == 2:

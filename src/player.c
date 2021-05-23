@@ -1,10 +1,13 @@
 #include <SDL2/SDL.h>
+#include <math.h>
 #include "entity.h"
 #include "entity_human.h"
 #include "world.h"
 #include "vector.h"
 #include "camera.h"
 #include "utils.h"
+
+const double SIN_PI_6 = sin(M_PI / 6);
 
 entity_t *PLAYER;
 const uint8_t *KEYBOARD;
@@ -60,9 +63,26 @@ void player_tick() {
 	// tool
 	if (mouse & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 		if (d_close(move.x + move.y, 0)) {
-			v2d pos = v2d_from_v2i(mouse_pos);
+			v2d pos;
+			v2i dir;
 
-			pos.y *= 2;
+			pos.x = mouse_pos.x - (SCREEN_WIDTH >> 1);
+			pos.y = (mouse_pos.y - (SCREEN_HEIGHT >> 1)) * 2;
+			pos = v2d_normalize(pos);
+
+			for (int i = 0; i < 2; ++i) {
+				if (v2d_IDX(pos, i) > SIN_PI_6)
+					v2i_IDX(dir, i) = 1;
+				else if (v2d_IDX(pos, i) < -SIN_PI_6)
+					v2i_IDX(dir, i) = -1;
+				else
+					v2i_IDX(dir, i) = 0;
+			}
+
+			PLAYER->last_dir.x = dir.x;
+			PLAYER->last_dir.y = dir.y;
+
+			PLAYER->last_dir = camera_reverse_rotated_v3d(PLAYER->last_dir);
 		}
 
 		entity_human_use_tool(PLAYER);
