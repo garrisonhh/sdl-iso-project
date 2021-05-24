@@ -1,6 +1,4 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
@@ -122,30 +120,6 @@ void render_info_gen_shadows(render_info_t *info, world_t *world) {
 	}
 }
 
-/*
-render_packet_t **render_gen_entity_packets(entity_t *entity) {
-	v3d entity_pos;
-	v2i screen_pos;
-	render_packet_t **packets;
-
-	entity_pos = entity->ray.pos;
-	entity_pos.z -= entity->size.z / 2;
-	screen_pos = project_v3d(entity_pos);
-
-	packets = malloc(sizeof(render_packet_t *) * entity->num_sprites);
-
-	for (size_t i = 0; i < entity->num_sprites; ++i) {
-		packets[i] = malloc(sizeof(render_packet_t));
-
-		packets[i]->pos = screen_pos;
-		packets[i]->texture = entity->sprites[i];
-		packets[i]->state.anim = entity->anim_states[i];
-	}
-
-	return packets;
-}
-*/
-
 v2i render_block_project(v3i loc) {
 	// modify loc so that it is the back center corner of voxel from camera perspective
 	switch (camera.rotation) {
@@ -215,7 +189,7 @@ render_info_t *render_gen_info(world_t *world) {
 	if (raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL))
 		info->z_split = (int)camera.pos.z - camera.rndr_start.z;
 	else
-		info->z_split = 0;
+		info->z_split = -1;
 
 	info->cam_viewport = camera.viewport;
 
@@ -294,7 +268,6 @@ void render_from_info(render_info_t *info) {
 		for (j = 0; j < info->packets[i]->size; ++j)
 			render_render_packet(info->packets[i]->items[j]);
 
-
 		// shadows
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);
 	
@@ -302,14 +275,14 @@ void render_from_info(render_info_t *info) {
 			for (j = 0; j < info->shadows[i]->size; ++j)
 				render_iso_circle(*(circle_t *)info->shadows[i]->items[j]);
 
-		if (info->z_split && i == info->z_split) {
+		if (i == info->z_split) {
 			SDL_SetRenderTarget(renderer, foreground);
 			SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
 			SDL_RenderClear(renderer);
 		}
 	}
 
-	if (info->z_split) {
+	if (info->z_split >= 0) {
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 		SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
 		render_iso_circle(camera.view_circle);
@@ -319,6 +292,6 @@ void render_from_info(render_info_t *info) {
 	SDL_SetRenderTarget(renderer, NULL);
 	SDL_RenderCopy(renderer, background, &info->cam_viewport, NULL);
 
-	if (info->z_split)
+	if (info->z_split >= 0)
 		SDL_RenderCopy(renderer, foreground, &info->cam_viewport, NULL);
 }

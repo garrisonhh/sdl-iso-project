@@ -37,7 +37,7 @@ struct render_info_t {
 	array_t **shadows;
 	array_t **packets;
 	size_t z_levels;
-	size_t z_split;
+	int z_split;
 
 	SDL_Rect cam_viewport;
 };
