@@ -9,6 +9,8 @@
 
 const double SIN_PI_6 = sin(M_PI / 6);
 
+bool GODMODE = false;
+
 entity_t *PLAYER;
 const uint8_t *KEYBOARD;
 const v3d DOWN = {1.0, 1.0, 0.0};
@@ -33,6 +35,7 @@ void player_tick() {
 	bool down = KEYBOARD[SDL_SCANCODE_S];
 	bool left = KEYBOARD[SDL_SCANCODE_A];
 	bool right = KEYBOARD[SDL_SCANCODE_D];
+	bool jump = KEYBOARD[SDL_SCANCODE_SPACE];
 
 	if (up) {
 		if (!down)
@@ -56,9 +59,13 @@ void player_tick() {
 	PLAYER->ray.dir.x = move.x;
 	PLAYER->ray.dir.y = move.y;
 
-	// jump
-	if (PLAYER->on_ground && KEYBOARD[SDL_SCANCODE_SPACE])
-		PLAYER->ray.dir.z += HUMAN_JUMP_VELOCITY;
+	if (GODMODE) {
+		if (jump)
+			PLAYER->ray.dir.z = HUMAN_WALK_VELOCITY;
+	} else {
+		if (PLAYER->on_ground && jump)
+			PLAYER->ray.dir.z += HUMAN_JUMP_VELOCITY;
+	}
 
 	// tool
 	if (mouse & SDL_BUTTON(SDL_BUTTON_LEFT)) {
@@ -87,6 +94,10 @@ void player_tick() {
 
 		entity_human_use_tool(PLAYER);
 	}
+}
+
+void player_toggle_godmode() {
+	GODMODE = !GODMODE;
 }
 
 v3d player_get_pos() {

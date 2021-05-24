@@ -243,16 +243,15 @@ void world_generate(world_t *world) {
 	timeit_start();
 
 	if (1) { // debug world
-		size_t grass = block_gen_get_id("grass");
+		size_t stone = block_gen_get_id("stone");
 		v3i loc;
 		noise3_t *noise;
 
 		noise = noise3_create(world->block_size, 3, 3, 0.5);
 
-		FOR_CUBE(loc.x, loc.y, loc.z, 0, world->block_size) {
+		FOR_CUBE(loc.x, loc.y, loc.z, 0, world->block_size)
 			if (noise3_at(noise, loc.x, loc.y, loc.z) > 0.0)
-				world_set_no_update(world, loc, grass);
-		}
+				world_set_no_update(world, loc, stone);
 
 		noise3_destroy(noise);
 

@@ -52,10 +52,11 @@ void gui_update(double fps, int packets, world_t *world) {
 		UPDATE_STATIC = true;
 	}
 
-	v3d_sprint(DEBUG_LINES[line++], "POS", player_get_pos());
+	v3d_sprint(DEBUG_LINES[line++], "POSITION", player_get_pos());
 	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);
 	sprintf(DEBUG_LINES[line++], "RNDR DIST: %i", camera.rndr_dist);
 	sprintf(DEBUG_LINES[line++], "PACKETS: %i", packets);
+	sprintf(DEBUG_LINES[line++], "GODMODE: %s", (GODMODE ? "on" : "off"));
 }
 
 void gui_render() {

@@ -148,14 +148,17 @@ int main(int argc, char *argv[]) {
 						case SDLK_ESCAPE:
 							QUIT = true;
 							break;
-						case SDLK_BACKQUOTE:
-							gui_toggle_debug();
-							break;
 						case SDLK_e:
 							camera_rotate(true);
 							break;
 						case SDLK_q:
 							camera_rotate(false);
+							break;
+						case SDLK_F1:
+							gui_toggle_debug();
+							break;
+						case SDLK_F2:
+							player_toggle_godmode();
 							break;
 
 					}
