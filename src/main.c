@@ -110,14 +110,11 @@ int render(void *arg) {
 	return 0;
 }
 
-#include <time.h>
-#include "noise.h"
-
 int main(int argc, char *argv[]) {
 	init();
 
 	// init game stuff
-	world_t *world = world_create(4);
+	world_t *world = world_create(3);
 
 	world_generate(world);
 

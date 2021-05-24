@@ -242,25 +242,19 @@ void world_generate(world_t *world) {
 
 	timeit_start();
 
-	if (0) { // debug world
+	if (1) { // debug world
 		size_t grass = block_gen_get_id("grass");
-		size_t trunk = block_gen_get_id("tree trunk");
-		v3i loc = (v3i){0, 0, 0};
+		v3i loc;
+		noise3_t *noise;
 
-		for (loc.x = 0; loc.x < world->block_size; ++loc.x) {
-			for (loc.y = 0; loc.y < world->block_size; ++loc.y) {
+		noise = noise3_create(world->block_size, 3, 3, 0.5);
+
+		FOR_CUBE(loc.x, loc.y, loc.z, 0, world->block_size) {
+			if (noise3_at(noise, loc.x, loc.y, loc.z) > 0.0)
 				world_set_no_update(world, loc, grass);
-			}
 		}
 
-		loc.z = 1;
-		for (loc.x = 1; loc.x <= 2; ++loc.x) {
-			for (loc.y = 1; loc.y <= 4; ++loc.y) {
-				for (loc.z = 1; loc.z <= 3; ++loc.z) {
-					world_set_no_update(world, loc, trunk);
-				}
-			}
-		}
+		noise3_destroy(noise);
 
 	} else {
 		v3i loc;
