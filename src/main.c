@@ -95,6 +95,9 @@ int render(void *arg) {
 		SDL_SemWait(MAIN_DONE);
 		SDL_LockMutex(RENDER_INFO_LOCK);
 
+		if (RENDER_INFO == NULL)
+			exit(0);
+
 		render_from_info(RENDER_INFO);
 		LAST_INFO = RENDER_INFO;
 		RENDER_INFO = NULL;
@@ -117,7 +120,7 @@ int main(int argc, char *argv[]) {
 	init();
 
 	// init game stuff
-	world_t *world = world_create(1);
+	world_t *world = world_create(3);
 
 	world_generate(world);
 
