@@ -27,8 +27,8 @@ typedef struct chunk_t chunk_t;
 struct world_t {
 	array_t *mask_updates; // malloc'd v3i *
 	list_t *ticks; // block_t *
-	list_t *buckets;
-	array_t *entities; // TODO make list
+	list_t *buckets; // list_t *
+	list_t *entities;
 
 	path_network_t *path_net;
 

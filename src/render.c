@@ -79,6 +79,7 @@ render_packet_t *render_packet_create(v2i pos, texture_t *texture) {
 void render_info_gen_shadows(render_info_t *info, world_t *world) {
 	size_t i, arr_idx;
 	entity_t *entity;
+	list_node_t *node;
 	block_t *block;
 	circle_t *shadow;
 	v3d shadow_pos;
@@ -90,8 +91,8 @@ void render_info_gen_shadows(render_info_t *info, world_t *world) {
 	for (i = 0; i < info->z_levels; i++)
 		info->shadows[i] = NULL;
 
-	for (i = 0; i < world->entities->size; i++) {
-		entity = world->entities->items[i];
+	LIST_FOREACH(node, world->entities) {
+		entity = node->item;
 		shadow_pos = entity->ray.pos;
 		shadow_pos.z -= entity->size.z / 2;
 		shadow_loc = v3i_from_v3d(shadow_pos);
