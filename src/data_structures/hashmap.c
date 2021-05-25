@@ -4,9 +4,6 @@
 #include "hashmap.h"
 #include "hashable.h"
 
-#include <stdio.h> // TODO remove
-#include "../vector.h" // TODO REMOVE
-
 #define HASHKEY(hmap, key) (hmap->funcs.hash(key) % hmap->max_size)
 
 #define BUCKET_MATCH(hmap, bucket, key, hash) (bucket.hash == hash && !hmap->funcs.cmp(bucket.key, key))

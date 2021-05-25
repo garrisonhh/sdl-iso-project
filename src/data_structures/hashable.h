@@ -17,8 +17,6 @@ struct hashmap_funcs_t {
 };
 typedef struct hashmap_funcs_t hashmap_funcs_t;
 
-hash_t hash_v3i(const void *); // TODO REMOVE
-
 hashmap_funcs_t hashmap_funcs(hashable_e);
 
 #endif

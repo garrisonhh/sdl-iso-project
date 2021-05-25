@@ -4,8 +4,6 @@
 #include "vector.h"
 #include "utils.h"
 
-#include <stdio.h> // TODO REMOVE
-
 const v2d RANDOM_VECTORS2[4] = {
 	(v2d){ 1,  1},
 	(v2d){ 1, -1},
