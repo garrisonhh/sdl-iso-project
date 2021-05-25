@@ -114,48 +114,6 @@ int render(void *arg) {
 #include "data_structures/hashmap.h"
 
 int main(int argc, char *argv[]) {
-	srand(time(0));
-
-	/*
-	int k;
-	const int calls = 100000;
-	unsigned *value = NULL;
-	unsigned test_keys[calls];
-	hashmap_t *test = hashmap_create(calls * 2, HASH_UNSIGNED);
-	hashmap_iter_t *iter = hashmap_iter_create(test);
-
-	timeit_start();
-	for (k = 0; k < calls; ++k) {
-		test_keys[k] = rand();
-		hashmap_set(test, &test_keys[k], &test_keys[k]);
-	}
-	timeit_end("hashmap_set");
-
-	timeit_start();
-	for (k = 0; k < calls; ++k) {
-		value = hashmap_get(test, &test_keys[k]);
-
-		if (value == NULL || *value != test_keys[k])
-			printf("get failed\n");
-	}
-	timeit_end("hashmap_get");
-
-	timeit_start();
-	while ((value = hashmap_iter_next(iter)) != NULL)
-		;
-	timeit_end("hashmap iter");
-
-	timeit_start();
-	for (k = 0; k < calls; ++k)
-		hashmap_remove(test, &test_keys[k]);
-	timeit_end("hashmap_remove");
-
-	free(iter);
-	hashmap_destroy(test, false);
-
-	exit(0);
-	*/
-	
 	init();
 
 	// init game stuff

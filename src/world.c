@@ -312,11 +312,9 @@ void world_generate(world_t *world) {
 
 	timeit_end("block masks updated");
 
-	/* TODO fix path network stuff
 	timeit_start();
 	world->path_net = path_generate_world_network(world);
 	timeit_end("path network created");
-	*/
 }
 
 void world_tick(world_t *world, double time) {

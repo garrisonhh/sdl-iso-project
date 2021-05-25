@@ -12,8 +12,7 @@ typedef struct world_t world_t;
 // path network types
 struct path_node_t {
 	v3i pos;
-	// map of {connected pos : path_connect_t *}
-	hashmap_t *connects;
+	array_t *connects;
 };
 typedef struct path_node_t path_node_t;
 
