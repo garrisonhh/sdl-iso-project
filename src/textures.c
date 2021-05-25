@@ -9,7 +9,6 @@
 #include "textures.h"
 #include "render/textures.h"
 #include "data_structures/hashmap.h"
-#include "data_structures/hash_functions.h"
 
 const SDL_Rect VOXEL_TOP_RECT = {
 	0,
@@ -49,12 +48,12 @@ void textures_load() {
 		"sheet",
 	};
 	texture_type_e *tex_type;
-	hashmap_t *tex_type_map = hashmap_create(num_tex_types * 2, false, hash_string);
+	hashmap_t *tex_type_map = hashmap_create(num_tex_types * 2, HASH_STRING);
 
 	for (i = 0; i < num_tex_types; ++i) {
 		tex_type = malloc(sizeof(texture_type_e));
 		*tex_type = (texture_type_e)i;
-		hashmap_set(tex_type_map, tex_type_strings[i], strlen(tex_type_strings[i]), tex_type);
+		hashmap_set(tex_type_map, tex_type_strings[i], tex_type);
 	}
 
 	// sprite_type map
@@ -66,19 +65,18 @@ void textures_load() {
 		"human-tool",
 	};
 	sprite_type_e *sprite_type;
-	hashmap_t *sprite_type_map = hashmap_create(num_sprite_types * 2, false, hash_string);
+	hashmap_t *sprite_type_map = hashmap_create(num_sprite_types * 2, HASH_STRING);
 
 	for (i = 0; i < num_sprite_types; ++i) {
 		sprite_type = malloc(sizeof(sprite_type_e));
 		*sprite_type = (sprite_type_e)i;
-		hashmap_set(sprite_type_map, sprite_type_strings[i], strlen(sprite_type_strings[i]), sprite_type);
+		hashmap_set(sprite_type_map, sprite_type_strings[i], sprite_type);
 	}
 
 	// tags
-	hashmap_t *tags_map = hashmap_create(4, true, hash_string);
+	hashmap_t *tags_map = hashmap_create(4, HASH_STRING);
 	array_t *tag_arr;
 	const char *tag;
-	int len_tag;
 	size_t cur_tag_id = 0;
 	size_t *tag_id;
 
@@ -92,7 +90,7 @@ void textures_load() {
 	// set up globals
 	NUM_TEXTURES = texture_objects->size;
 	TEXTURES = malloc(sizeof(texture_t *) * NUM_TEXTURES);
-	TEXTURE_MAP = hashmap_create(NUM_TEXTURES * 2, true, hash_string);
+	TEXTURE_MAP = hashmap_create(NUM_TEXTURES * 2, HASH_STRING);
 
 	// load textures
 	json_object *texture_obj;
@@ -105,11 +103,12 @@ void textures_load() {
 
 		texture_obj = texture_objects->items[i];
 
+		// name
 		name = content_get_string(texture_obj, "name");
 
 		// type
 		tex_type_name = content_get_string(texture_obj, "type");
-		tex_type = hashmap_get(tex_type_map, (char *)tex_type_name, strlen(tex_type_name));
+		tex_type = (texture_type_e *)hashmap_get(tex_type_map, tex_type_name);
 
 		if (tex_type == NULL) {
 			printf("\"%s\" is an unrecognized texture type.\n", tex_type_name);
@@ -155,16 +154,15 @@ void textures_load() {
 
 			for (j = 0; j < TEXTURES[i]->num_tags; ++j) {
 				tag = json_object_get_string(tag_arr->items[j]);
-				len_tag = strlen(tag);
 
-				if (hashmap_contains(tags_map, (char *)tag, len_tag)) {
-					TEXTURES[i]->tags[j] = *(size_t *)hashmap_get(tags_map, (char *)tag, len_tag);
-				} else {
+				if (hashmap_get(tags_map, tag) == NULL) {
 					tag_id = malloc(sizeof(size_t));
 					*tag_id = cur_tag_id++;
-					hashmap_set(tags_map, (char *)tag, len_tag, tag_id);
+					hashmap_set(tags_map, tag, tag_id);
 
 					TEXTURES[i]->tags[j] = *tag_id;
+				} else {
+					TEXTURES[i]->tags[j] = *(size_t *)hashmap_get(tags_map, tag);
 				}
 			}
 		} else {
@@ -175,7 +173,7 @@ void textures_load() {
 		// save to array and hashmap
 		texture_id = malloc(sizeof(size_t));
 		*texture_id = i;
-		hashmap_set(TEXTURE_MAP, (char *)name, strlen(name), texture_id);
+		hashmap_set(TEXTURE_MAP, name, texture_id);
 	}
 
 	// clean up and exit
@@ -189,9 +187,9 @@ void textures_load() {
 }
 
 void textures_destroy() {
-	int j;
+	size_t i, j;
 
-	for (size_t i = 0; i < NUM_TEXTURES; i++) {
+	for (i = 0; i < NUM_TEXTURES; i++) {
 		switch (TEXTURES[i]->type) {
 			case TEX_TEXTURE:
 				SDL_DestroyTexture(TEXTURES[i]->tex.texture);
@@ -277,7 +275,7 @@ sprite_t *load_sprite(const char *path, json_object *obj, hashmap_t *sprite_type
 		sprite_type_e *sprite_type;
 
 		sprite_type_name = content_get_string(obj, "sprite-type");
-		sprite_type = hashmap_get(sprite_type_map, (char *)sprite_type_name, strlen(sprite_type_name));
+		sprite_type = hashmap_get(sprite_type_map, sprite_type_name);
 
 		if (sprite_type == NULL) {
 			printf("\"%s\" is not a valid sprite type.\n", sprite_type_name);
@@ -407,7 +405,7 @@ sheet_tex_t *load_sheet_texture(const char *path, json_object *obj) {
 }
 
 texture_t *texture_from_key(const char *key) {
-	size_t *value = hashmap_get(TEXTURE_MAP, (char *)key, strlen(key));
+	size_t *value = hashmap_get(TEXTURE_MAP, key);
 
 	if (value == NULL) {
 		printf("key not found in TEXTURE_MAP: %s\n", key);

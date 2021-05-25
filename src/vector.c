@@ -88,7 +88,13 @@ v3i v3i_scale(v3i v, double scalar) {
 }
 
 int v3i_compare(v3i a, v3i b) {
-	return ((((a.z - b.z) << 1) + (a.y - b.y)) << 1) + a.x - b.x;
+	int v;
+
+	for (int i = 0; i < 3; ++i)
+		if ((v = v3i_IDX(a, i) - v3i_IDX(b, i)))
+			return v;
+
+	return 0;
 }
 
 v3i polarity_of_v3d(v3d v) {

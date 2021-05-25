@@ -1,36 +1,35 @@
 #ifndef HASHMAP_H
 #define HASHMAP_H
 
-#include <stdlib.h>
+#include <stddef.h>
 #include <stdbool.h>
 
-typedef unsigned hash_t;
+#include "hashable.h"
 
-struct hashbucket_t {
-	void *key;
-	size_t size_key;
-	void *value;
-	struct hashbucket_t *overflow;
-};
 typedef struct hashbucket_t hashbucket_t;
+typedef struct hashmap_t hashmap_t;
+typedef struct hashmap_iter_t hashmap_iter_t;
 
 struct hashmap_t {
-	hashbucket_t **buckets;
+	hashbucket_t *buckets;
 	size_t max_size, size, min_size;
-	hash_t (*hash_func)(const void *, size_t);
-	bool rehashes; // when false, hashmap_set() will never rehash
+	hashmap_funcs_t funcs;
 };
-typedef struct hashmap_t hashmap_t;
 
-hashmap_t *hashmap_create(size_t initial_size, bool rehashes, hash_t (*hash_func)(const void *, size_t));
-void hashmap_destroy(hashmap_t *, bool destroy_values);
+// hashmap
+hashmap_t *hashmap_create(size_t initial_size, hashable_e hash_type);
+void hashmap_destroy(hashmap_t *hmap, bool destroy_values);
 
-void *hashmap_get(hashmap_t *, void *key, size_t size_key);
-hash_t hashmap_set(hashmap_t *, void *key, size_t size_key, void *value);
-void *hashmap_remove(hashmap_t *, void *key, size_t size_key);
-bool hashmap_contains(hashmap_t *, void *key, size_t size_key);
-void **hashmap_values(hashmap_t *);
-void **hashmap_keys(hashmap_t *);
+void *hashmap_get(hashmap_t *, const void *key);
+void hashmap_set(hashmap_t *, const void *key, const void *value);
+void *hashmap_remove(hashmap_t *, const void *key);
+
+void hashmap_print(hashmap_t *, size_t, size_t);
+
+// hashmap iterator
+hashmap_iter_t *hashmap_iter_create(hashmap_t *);
+
+void hashmap_iter_reset(hashmap_iter_t *);
+void *hashmap_iter_next(hashmap_iter_t *); // returns NULL when done
 
 #endif
-

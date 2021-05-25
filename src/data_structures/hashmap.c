@@ -1,213 +1,173 @@
 #include <stdlib.h>
-#include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include "hashmap.h"
-#include "../utils.h"
+#include "hashable.h"
 
-hashmap_t *hashmap_create(size_t initial_size, bool rehashes, hash_t (*hash_func)(const void *, size_t)) {
+#include <stdio.h> // TODO remove
+#include "../vector.h" // TODO REMOVE
+
+#define HASHKEY(hmap, key) (hmap->funcs.hash(key) % hmap->max_size)
+
+#define BUCKET_MATCH(hmap, bucket, key, hash) (bucket.hash == hash && !hmap->funcs.cmp(bucket.key, key))
+#define FIND_BUCKET_IDX(hmap, key, hash, idx) {\
+	idx = hash;\
+	while (hmap->buckets[idx].key != NULL && !BUCKET_MATCH(hmap, hmap->buckets[idx], key, hash))\
+		idx = (idx + 1) % hmap->max_size;\
+}
+
+// structs are typedef'd in header
+struct hashbucket_t {
+	hash_t hash;
+	const void *key, *value;
+};
+
+struct hashmap_iter_t {
+	hashmap_t *hmap;
+	int index;
+};
+
+void hashmap_clear(hashmap_t *);
+void hashmap_rehash(hashmap_t *hmap, size_t new_size);
+
+hashmap_t *hashmap_create(size_t initial_size, hashable_e hash_type) {
 	hashmap_t *hmap = malloc(sizeof(hashmap_t));
 
-	hmap->min_size = hmap->max_size = initial_size;
+	hmap->max_size = initial_size;
 	hmap->size = 0;
-	hmap->buckets = malloc(sizeof(hashbucket_t *) * hmap->max_size);
-	hmap->hash_func = hash_func;
-	hmap->rehashes = rehashes;
+	hmap->min_size = initial_size;
 
-	for (size_t i = 0; i < hmap->max_size; i++)
-		hmap->buckets[i] = NULL;
+	hmap->buckets = malloc(sizeof(hashbucket_t) * hmap->max_size);
+	hashmap_clear(hmap);
+
+	hmap->funcs = hashmap_funcs(hash_type);
 
 	return hmap;
 }
 
-// returns bucket overflow
-hashbucket_t *hashbucket_destroy(hashbucket_t *bucket, bool destroy_value) {
-	hashbucket_t *overflow = bucket->overflow;
-
-	if (destroy_value && bucket->value != NULL)
-		free(bucket->value);
-
-	free(bucket->key);
-	free(bucket);
-
-	return overflow;
-}
-
 void hashmap_destroy(hashmap_t *hmap, bool destroy_values) {
-	hashbucket_t *trav;
+	for (size_t i = 0; i < hmap->max_size; ++i) {
+		if (hmap->buckets[i].key != NULL) {
+			free((void *)hmap->buckets[i].key);
 
-	// I like this code right here. C can be so much more concise than you expect
-	for (size_t i = 0; i < hmap->max_size; i++)
-		if ((trav = hmap->buckets[i]) != NULL)
-			while ((trav = hashbucket_destroy(trav, destroy_values)) != NULL)
-				;
+			if (destroy_values && hmap->buckets[i].value != NULL)
+				free((void *)hmap->buckets[i].value);
+		}
+	}
 
 	free(hmap->buckets);
 	free(hmap);
 }
 
-hash_t hash_key(hashmap_t *hmap, void *key, size_t size_key) {
-	return hmap->hash_func(key, size_key) % hmap->max_size;
+void hashmap_clear(hashmap_t *hmap) {
+	for (size_t i = 0; i < hmap->max_size; ++i) {
+		hmap->buckets[i].hash = 0;
+		hmap->buckets[i].key = NULL;
+		hmap->buckets[i].value = NULL;
+	}
 }
 
-void hashmap_rehash(hashmap_t *hmap, bool increase) {
-	size_t old_size = hmap->max_size, i;
-	hashbucket_t **old_buckets = hmap->buckets;
-	hashbucket_t *trav;
+void hashmap_set_lower(hashmap_t *hmap, const void *key, const void *value, bool copy) {
+	if (hmap->size > (hmap->max_size >> 1))
+		hashmap_rehash(hmap, hmap->max_size << 1);
 
-	if (increase)
-		hmap->max_size <<= 1;
-	else
-		hmap->max_size >>= 1;
+	hash_t idx, hash = HASHKEY(hmap, key);
 
-	hmap->buckets = malloc(sizeof(hashbucket_t *) * hmap->max_size);
-	hmap->size = 0;
+	FIND_BUCKET_IDX(hmap, key, hash, idx);
 
-	for (i = 0; i < hmap->max_size; i++)
-		hmap->buckets[i] = NULL;
+	hmap->buckets[idx].value = value;
 
-	for (i = 0; i < old_size; i++) {
-		if ((trav = old_buckets[i]) != NULL) {
-			while (trav != NULL) {
-				hashmap_set(hmap, trav->key, trav->size_key, trav->value);
-				trav = trav->overflow;
-			}
+	if (hmap->buckets[idx].key == NULL) {
+		hmap->buckets[idx].hash = hash;
+		hmap->buckets[idx].key = (copy ? hmap->funcs.copy(key) : key);
 
-			hashbucket_destroy(old_buckets[i], false);
-		}
+		++hmap->size;
 	}
+}
+
+void hashmap_rehash(hashmap_t *hmap, size_t new_size) {
+	hashbucket_t *old_buckets = hmap->buckets;
+	size_t old_size = hmap->max_size;
+
+	hmap->size = 0;
+	hmap->max_size = new_size;
+	hmap->buckets = malloc(sizeof(hashbucket_t) * hmap->max_size);
+
+	hashmap_clear(hmap);
+
+	for (size_t i = 0; i < old_size; ++i)
+		if (old_buckets[i].key != NULL)
+			hashmap_set_lower(hmap, old_buckets[i].key, old_buckets[i].value, false);
 
 	free(old_buckets);
 }
 
-hashbucket_t *hashmap_get_pair(hashmap_t *hmap, void *key, size_t size_key) {
-	hash_t hash = hash_key(hmap, key, size_key);
-	hashbucket_t *trav = hmap->buckets[hash];
+void *hashmap_get(hashmap_t *hmap, const void *key) {
+	hash_t idx, hash = HASHKEY(hmap, key);
 
-	while (trav != NULL && (size_key != trav->size_key || memcmp(key, trav->key, trav->size_key)))
-		trav = trav->overflow;
+	FIND_BUCKET_IDX(hmap, key, hash, idx);
 
-	return trav;
+	return (hmap->buckets[idx].key == NULL ? NULL : (void *)hmap->buckets[idx].value);
 }
 
-void *hashmap_get(hashmap_t *hmap, void *key, size_t size_key) {
-	hashbucket_t *bucket = hashmap_get_pair(hmap, key, size_key);
-
-	return (bucket != NULL ? bucket->value : NULL);
+void hashmap_set(hashmap_t *hmap, const void *key, const void *value) {
+	hashmap_set_lower(hmap, key, value, true);
 }
 
-hash_t hashmap_set(hashmap_t *hmap, void *key, size_t size_key, void *value) {
-	hash_t hash;
-	hashbucket_t *bucket, *trav;
+void *hashmap_remove(hashmap_t *hmap, const void *key) {
+	hash_t idx, hash = HASHKEY(hmap, key);
 
-	hash = hash_key(hmap, key, size_key);
-	trav = hmap->buckets[hash];
+	FIND_BUCKET_IDX(hmap, key, hash, idx);
 
-	while (trav != NULL && (size_key != trav->size_key || memcmp(key, trav->key, trav->size_key)))
-		trav = trav->overflow;
+	if (hmap->buckets[idx].key == NULL) {
+		return NULL;
+	} else {
+		void *value = (void *)hmap->buckets[idx].value;
+		free((void *)hmap->buckets[idx].key);
 
-	if (trav != NULL) { // found matching bucket, modify value
-		trav->value = value;
-	} else { // no matching bucket, create new bucket
-		bucket = malloc(sizeof(hashbucket_t));
+		hash_t last_slot = idx;
+		hashbucket_t *bucket;
 
-		bucket->key = malloc(size_key);
-		memcpy(bucket->key, key, size_key);
+		while (hmap->buckets[(idx = (idx + 1) % hmap->max_size)].key != NULL) {
+			bucket = &hmap->buckets[idx];
 
-		bucket->size_key = size_key;
-		bucket->value = value;
-		bucket->overflow = NULL;
-
-		if (hmap->buckets[hash] == NULL)
-			hmap->buckets[hash] = bucket;
-		else {
-			trav = hmap->buckets[hash];
-
-			while (trav->overflow != NULL)
-				trav = trav->overflow;
-
-			trav->overflow = bucket;
+			if ((bucket->hash < idx && (last_slot < idx && bucket->hash <= last_slot))
+			 || (bucket->hash > idx && ((last_slot > idx && bucket->hash <= last_slot) || last_slot < idx))) {
+				hmap->buckets[last_slot] = hmap->buckets[idx];
+				last_slot = idx;
+			}
 		}
 
-		if (hmap->rehashes && ++hmap->size == hmap->max_size)
-			hashmap_rehash(hmap, true);
-	}
+		hmap->buckets[last_slot].hash = 0;
+		hmap->buckets[last_slot].key = NULL;
+		hmap->buckets[last_slot].value = NULL;
 
-	return hash;
-}
-
-bool hashmap_contains(hashmap_t *hmap, void *key, size_t size_key) {
-	return hashmap_get_pair(hmap, key, size_key) != NULL;
-}
-
-void *hashmap_remove(hashmap_t *hmap, void *key, size_t size_key) {
-	hash_t hash;
-	hashbucket_t *trav, *last;
-	void *value;
-	bool match;
-
-	hash = hash_key(hmap, key, size_key);
-	trav = hmap->buckets[hash];
-	last = NULL;
-	value = NULL;
-	match = false;
-
-	while (trav != NULL && !(match = (size_key == trav->size_key && !memcmp(key, trav->key, size_key)))) {
-		last = trav;
-		trav = trav->overflow;
-	}
-
-	if (match) {
-		value = trav->value;
-
-		if (last == NULL)
-			hmap->buckets[hash] = hashbucket_destroy(trav, false);
-		else
-			last->overflow = hashbucket_destroy(trav, false);
-
-		hmap->size--;
-
-		if (hmap->rehashes && hmap->size < (hmap->max_size >> 2) && hmap->size > hmap->min_size)
-			hashmap_rehash(hmap, false);
-	}
-
-	return value;
-}
-void **hashmap_values(hashmap_t *hmap) {
-	void **values;
-	hashbucket_t *trav;
-	size_t i, cur_values;
-
-	values = calloc(hmap->size, sizeof(void *));
-	cur_values = 0;
-
-	for (i = 0; i < hmap->max_size; i++) {
-		trav = hmap->buckets[i];
-
-		while (trav != NULL) {
-			values[cur_values++] = trav->value;
-			trav = trav->overflow;
+		if (--hmap->size < (hmap->max_size >> 2)) {
+			hashmap_rehash(hmap, hmap->max_size >> 1);
 		}
-	}
 
-	return values;
+		return value;
+	}
 }
 
-void **hashmap_keys(hashmap_t *hmap) {
-	void **keys;
-	hashbucket_t *trav;
-	size_t i, cur_keys;
+hashmap_iter_t *hashmap_iter_create(hashmap_t *hmap) {
+	hashmap_iter_t *iter = malloc(sizeof(hashmap_iter_t));
 
-	keys = calloc(hmap->size, sizeof(void *));
-	cur_keys = 0;
+	iter->hmap = hmap;
+	iter->index = 0;
 
-	for (i = 0; i < hmap->max_size; i++) {
-		trav = hmap->buckets[i];
+	return iter;
+}
 
-		while (trav != NULL) {
-			keys[cur_keys++] = trav->key;
-			trav = trav->overflow;
-		}
-	}
+void hashmap_iter_reset(hashmap_iter_t *iter) {
+	iter->index = 0;
+}
 
-	return keys;
+void *hashmap_iter_next(hashmap_iter_t *iter) {
+	do {
+		if (iter->hmap->buckets[iter->index].key != NULL)
+			return (void *)iter->hmap->buckets[iter->index++].value;
+	} while (++iter->index < iter->hmap->max_size);
+
+	return NULL;
 }

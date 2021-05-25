@@ -247,7 +247,7 @@ void world_generate(world_t *world) {
 		v3i loc;
 		noise3_t *noise;
 
-		noise = noise3_create(world->block_size, 3, 3, 0.5);
+		noise = noise3_create(world->block_size, 0, 2, 0.5);
 
 		FOR_CUBE(loc.x, loc.y, loc.z, 0, world->block_size)
 			if (noise3_at(noise, loc.x, loc.y, loc.z) > 0.0)
@@ -312,9 +312,11 @@ void world_generate(world_t *world) {
 
 	timeit_end("block masks updated");
 
+	/* TODO fix path network stuff
 	timeit_start();
 	world->path_net = path_generate_world_network(world);
 	timeit_end("path network created");
+	*/
 }
 
 void world_tick(world_t *world, double time) {

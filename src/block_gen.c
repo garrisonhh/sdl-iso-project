@@ -6,7 +6,6 @@
 #include "block_collision.h"
 #include "block_types/plant.h"
 #include "data_structures/hashmap.h"
-#include "data_structures/hash_functions.h"
 
 /*
  * this is similar but not identical to textures.c; textures can be reused
@@ -31,7 +30,7 @@ hashmap_t *block_gen_load_plants(array_t *plant_objects) {
 	plant_t *plant;
 	const char *name;
 
-	plant_models = hashmap_create(4, true, hash_string);
+	plant_models = hashmap_create(4, HASH_STRING);
 
 	for (size_t i = 0; i < plant_objects->size; ++i) {
 		plant_obj = plant_objects->items[i];
@@ -44,7 +43,7 @@ hashmap_t *block_gen_load_plants(array_t *plant_objects) {
 			.fullgrown = content_get_int(plant_obj, "fullgrown")
 		};
 
-		hashmap_set(plant_models, (char *)name, strlen(name), plant);
+		hashmap_set(plant_models, name, plant);
 	}
 
 	return plant_models;
@@ -53,7 +52,7 @@ hashmap_t *block_gen_load_plants(array_t *plant_objects) {
 void block_gen_load_block(json_object *block_obj, size_t index,
 						  hashmap_t *coll_type_map,
 						  hashmap_t *block_type_map,
-						  hashmap_t *block_subtype_maps[block_type_map->size]) {
+						  hashmap_t **block_subtype_maps) {
 	block_t *block;
 	block_coll_e *coll_type;
 	block_coll_data_t *coll_data;
@@ -79,7 +78,7 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 
 	if (content_has_key(block_obj, "collision")) {
 		coll_type_name = content_get_string(block_obj, "collision");
-		coll_type = hashmap_get(coll_type_map, (char *)coll_type_name, strlen(coll_type_name));
+		coll_type = hashmap_get(coll_type_map, coll_type_name);
 		coll_data->coll_type = *coll_type;
 	} else {
 		coll_data->coll_type = BLOCK_COLL_DEFAULT_BOX;
@@ -103,7 +102,7 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 	// block type
 	if (content_has_key(block_obj, "type")) {
 		block_type_name = content_get_string(block_obj, "type");
-		block_type = hashmap_get(block_type_map, (char *)block_type_name, strlen(block_type_name));
+		block_type = hashmap_get(block_type_map, block_type_name);
 		block->type = *block_type;
 	} else {
 		block->type = BLOCK_STATELESS;
@@ -115,9 +114,7 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 			break;
 		case BLOCK_PLANT:
 			block_subtype_name = content_get_string(block_obj, "subtype");
-			block->state.plant = *(plant_t *)hashmap_get(block_subtype_maps[BLOCK_PLANT],
-														 (char *)block_subtype_name,
-														 strlen(block_subtype_name));
+			block->state.plant = *(plant_t *)hashmap_get(block_subtype_maps[BLOCK_PLANT], block_subtype_name);
 			break;
 	}
 
@@ -133,7 +130,7 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 
 	block_id = malloc(sizeof(size_t));
 	*block_id = index;
-	hashmap_set(BLOCK_MAP, (char *)name, strlen(name), block_id);
+	hashmap_set(BLOCK_MAP, name, block_id);
 }
 
 void block_gen_load() {
@@ -147,13 +144,13 @@ void block_gen_load() {
 		"custom",
 	};
 	block_coll_e *coll_type;
-	hashmap_t *coll_type_map = hashmap_create(num_coll_types * 2, false, hash_string);
+	hashmap_t *coll_type_map = hashmap_create(num_coll_types * 2, HASH_STRING);
 
 	for (i = 0; i < num_coll_types; ++i) {
 		coll_type = malloc(sizeof(block_coll_e));
 		*coll_type = i;
 
-		hashmap_set(coll_type_map, coll_type_strings[i], strlen(coll_type_strings[i]), coll_type);
+		hashmap_set(coll_type_map, coll_type_strings[i], coll_type);
 	}
 
 	// construct block_type hashmap
@@ -163,13 +160,13 @@ void block_gen_load() {
 		"plant",
 	};
 	block_type_e *block_type;
-	hashmap_t *block_type_map = hashmap_create(num_block_types * 2, false, hash_string);
+	hashmap_t *block_type_map = hashmap_create(num_block_types * 2, HASH_STRING);
 
 	for (i = 0; i < num_block_types; ++i) {
 		block_type = malloc(sizeof(block_coll_e));
 		*block_type = i;
 
-		hashmap_set(block_type_map, block_type_strings[i], strlen(block_type_strings[i]), block_type);
+		hashmap_set(block_type_map, block_type_strings[i], block_type);
 	}
 
 	// load json file
@@ -190,7 +187,7 @@ void block_gen_load() {
 	NUM_BLOCKS = block_objects->size;
 	BLOCKS = malloc(sizeof(block_t *) * NUM_BLOCKS);
 	BLOCK_COLL_DATA = malloc(sizeof(block_coll_data_t *) * NUM_BLOCKS);
-	BLOCK_MAP = hashmap_create(NUM_BLOCKS * 2, true, hash_string);
+	BLOCK_MAP = hashmap_create(NUM_BLOCKS * 2, HASH_STRING);
 
 	// load blocks
 	for (i = 0; i < block_objects->size; ++i)
@@ -227,7 +224,7 @@ void block_gen_destroy() {
 size_t block_gen_get_id(char *key) {
 	size_t *value;
 
-	if ((value = (size_t *)hashmap_get(BLOCK_MAP, key, strlen(key))) == NULL) {
+	if ((value = hashmap_get(BLOCK_MAP, key)) == NULL) {
 		printf("key not found in BLOCK_MAP: %s\n", key);
 		exit(1);
 	}
