@@ -58,7 +58,7 @@ def main():
         copy_cell(front, 2, i + 4, axe_swing, i, 0)
         copy_cell(front, 3, i + 4, axe_fast, (i + 1) % 8, 0)
         copy_cell(front, 4, i + 4, axe_fastest, (i + 3) % 8, 0)
-        copy_cell(front, 5, i + 5, axe_swing, (i + 3) % 8, 0)
+        copy_cell(front, 5, i + 4, axe_swing, (i + 3) % 8, 0)
 
     back = pg.Surface((W * 5, H * 4 * 3)).convert_alpha()
     back.fill((0, 0, 0, 0))
