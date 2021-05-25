@@ -115,7 +115,7 @@ void render_info_gen_shadows(render_info_t *info, world_t *world) {
 			if (info->shadows[arr_idx] == NULL)
 				info->shadows[arr_idx] = array_create(2);
 
-			array_add(info->shadows[arr_idx], shadow);
+			array_push(info->shadows[arr_idx], shadow);
 		}
 	}
 }
@@ -158,7 +158,7 @@ void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, 
 	}
 
 	if (packet != NULL)
-		array_add(packet_arr, packet);
+		array_push(packet_arr, packet);
 }
 
 render_info_t *render_gen_info(world_t *world) {

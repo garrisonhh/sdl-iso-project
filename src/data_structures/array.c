@@ -7,8 +7,8 @@ array_t *array_create(size_t initial_size) {
 	array_t *array = malloc(sizeof(array_t));
 	
 	array->size = 0;
-	array->max_size = initial_size;
-	array->min_size = initial_size;
+	array->min_size = (initial_size < 4 ? 4 : initial_size);
+	array->max_size = array->min_size;
 	array->items = malloc(sizeof(void *) * array->max_size);
 
 	return array;
@@ -23,18 +23,24 @@ void array_destroy(array_t *array, bool destroy_values) {
 	free(array);
 }
 
-void array_add(array_t *array, void *item) {
+void array_push(array_t *array, void *item) {
 	if (array->size == array->max_size) {
 		array->max_size <<= 1;
 		array->items = realloc(array->items, sizeof(void *) * array->max_size);
-
-		if (array->items == NULL) {
-			printf("array expansion realloc failed.\n");
-			exit(1);
-		}
 	}
 
 	array->items[array->size++] = item;
+}
+
+void *array_pop(array_t *array) {
+	void *value = array->items[--array->size];
+
+	if (array->size < (array->max_size >> 1)) {
+		array->max_size >>= 1;
+		array->items = realloc(array->items, sizeof(void *) * array->max_size);
+	}
+
+	return value;
 }
 
 void array_remove(array_t *array, void *item) {
@@ -44,11 +50,10 @@ void array_remove(array_t *array, void *item) {
 		if (array->items[i] == item) {
 			for (j = i + 1; j < array->size; j++)
 				array->items[j - 1] = array->items[j];
+
 			array->size--;
 
-			if (array->max_size > array->min_size
-			 && array->max_size > 4
-			 && array->size < array->max_size >> 1) {
+			if (array->max_size > array->min_size && array->size < array->max_size >> 1) {
 				array->max_size >>= 1;
 				array->items = realloc(array->items, sizeof(void *) * array->max_size);
 			}
@@ -56,6 +61,19 @@ void array_remove(array_t *array, void *item) {
 		}
 	}
 }
+
+void array_clear(array_t *array, bool destroy_values) {
+	if (destroy_values)
+		for (size_t i = 0; i < array->size; i++)
+			free(array->items[i]);
+
+	array->size = 0;
+	array->max_size = array->min_size;
+
+	free(array->items);
+	array->items = malloc(sizeof(void *) * array->max_size);
+}
+
 
 void array_qsort(array_t *array, int (*compare)(const void *, const void *)) {
 	qsort(array->items, array->size, sizeof(void *), compare);

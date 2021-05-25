@@ -127,7 +127,7 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 		// how to free this properly..?
 		id_val = malloc(sizeof(int));
 		*id_val = id;
-		array_add(network->id_targets, id_val);
+		array_push(network->id_targets, id_val);
 
 		// find all nodes connected to the starting node, remove them from original nodes list
 		// and add them to the network with a unique id tied to the group

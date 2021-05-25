@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
 	init();
 
 	// init game stuff
-	world_t *world = world_create(0);
+	world_t *world = world_create(1);
 
 	world_generate(world);
 

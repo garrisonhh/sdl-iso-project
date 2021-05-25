@@ -89,7 +89,7 @@ void entity_add_sprite_packet(array_t *packets, v2i pos, texture_t *sprite, anim
 
 	packet->state.anim = *anim_state;
 
-	array_add(packets, packet);
+	array_push(packets, packet);
 }
 
 void entity_add_render_packets(entity_t *entity, array_t *packets) {
@@ -100,7 +100,7 @@ void entity_add_render_packets(entity_t *entity, array_t *packets) {
 
 	switch (entity->type) {
 		case ENTITY_BASE:
-			array_add(packets, base_packet);
+			array_push(packets, base_packet);
 
 			break;
 		case ENTITY_HUMAN:;
@@ -113,7 +113,7 @@ void entity_add_render_packets(entity_t *entity, array_t *packets) {
 				sprites = human->tool->sprites;
 
 			entity_add_sprite_packet(packets, pos, sprites[0], &human->anim_state);
-			array_add(packets, base_packet);
+			array_push(packets, base_packet);
 			entity_add_sprite_packet(packets, pos, sprites[1], &human->anim_state);
 
 			break;
@@ -139,7 +139,7 @@ array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 			block_coll->loc = loc;
 			block_coll->coll_data = block->coll_data;
 
-			array_add(block_colls, block_coll);
+			array_push(block_colls, block_coll);
 		} else if (loc.x < 0 || loc.x >= world->block_size
 				|| loc.y < 0 || loc.y >= world->block_size
 				|| loc.z < 0 || loc.z >= world->block_size) {
@@ -148,7 +148,7 @@ array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
 			block_coll->loc = loc;
 			block_coll->coll_data = &WALL_COLL_DATA;
 
-			array_add(block_colls, block_coll);
+			array_push(block_colls, block_coll);
 		}
 	}
 

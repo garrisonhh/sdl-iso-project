@@ -57,11 +57,11 @@ world_t *world_create(unsigned size_power) {
 	for (int i = 0; i < world->num_chunks; i++)
 	 	world->chunks[i] = NULL; //world->chunks[i] = chunk_create();
 
-	world->mask_updates = list_create();
+	world->mask_updates = array_create(0);
 	world->ticks = list_create();
 	world->buckets = list_create();
 
-	world->entities = array_create(2);
+	world->entities = array_create(0);
 
 	return world;
 }
@@ -76,7 +76,7 @@ void world_destroy(world_t *world) {
 	for (i = 0; i < world->entities->size; ++i)
 		entity_destroy(world->entities->items[i]);
 
-	list_destroy(world->mask_updates, true);
+	array_destroy(world->mask_updates, true);
 	list_destroy(world->ticks, false);
 	array_destroy(world->entities, false);
 	path_network_destroy(world->path_net);
@@ -150,7 +150,7 @@ void world_push_update(world_t *world, v3i loc) {
 
 	*update = loc;
 
-	list_push(world->mask_updates, update);
+	array_push(world->mask_updates, update);
 }
 
 // only for internal use
@@ -197,7 +197,7 @@ void world_set(world_t *world, v3i loc, size_t block_id) {
 void world_spawn(world_t *world, entity_t *entity, v3d pos) {
 	entity->ray.pos = pos;
 	world_bucket_add(world, v3i_from_v3d(entity->ray.pos), entity);
-	array_add(world->entities, entity);
+	array_push(world->entities, entity);
 }
 
 // TODO better tree generation
@@ -320,13 +320,14 @@ void world_generate(world_t *world) {
 }
 
 void world_tick(world_t *world, double time) {
+	size_t i;
 	entity_t *entity;
 	v3i last_loc, this_loc;
 	v3i *update;
 	list_node_t *node;
 
 	// update entities and check for bucket swaps
-	for (size_t i = 0; i < world->entities->size; i++) {
+	for (i = 0; i < world->entities->size; i++) {
 		entity = world->entities->items[i];
 
 		last_loc = v3i_from_v3d(entity->ray.pos);
@@ -340,13 +341,13 @@ void world_tick(world_t *world, double time) {
 	}
 
 	// update loops
-	while (world->mask_updates->size) {
-		update = (v3i *)list_pop(world->mask_updates);	
+	for (i = 0; i < world->mask_updates->size; ++i) {
+		update = world->mask_updates->items[i];
 
 		world_update_masks(world, *update);
-
-		free(update);
 	}
+
+	array_clear(world->mask_updates, true);
 
 	LIST_FOREACH(node, world->ticks)
 		block_tick(node->item, world, time);

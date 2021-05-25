@@ -18,7 +18,7 @@ struct hashmap_t {
 
 // hashmap
 hashmap_t *hashmap_create(size_t initial_size, hashable_e hash_type);
-void hashmap_destroy(hashmap_t *hmap, bool destroy_values);
+void hashmap_destroy(hashmap_t *, bool destroy_values);
 
 void *hashmap_get(hashmap_t *, const void *key);
 void hashmap_set(hashmap_t *, const void *key, const void *value);
