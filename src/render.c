@@ -176,6 +176,7 @@ void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, 
 render_info_t *render_gen_info(world_t *world) {
 	int i;
 	double block_y;
+	bool cam_hit;
 	ray_t cam_ray;
 	block_t *block;
 	list_t *bucket;
@@ -184,6 +185,7 @@ render_info_t *render_gen_info(world_t *world) {
 	render_info_t *info;
 	array_t *level;
 
+	cam_hit = false;
 	cam_ray = (ray_t){
 		camera.pos,
 		camera_reverse_rotated_v3d(CAMERA_VIEW_DIR)
@@ -198,11 +200,17 @@ render_info_t *render_gen_info(world_t *world) {
 	for (i = 0; i < info->z_levels; ++i)
 		info->packets[i] = array_create((camera.rndr_dist + 1) * (camera.rndr_dist + 1));
 
-	if (raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL))
-		info->z_split = (int)camera.pos.z - camera.rndr_start.z;
-	else
-		info->z_split = -1;
+	if (raycast_to_block(world, cam_ray, raycast_block_exists, &loc, NULL)) {
+		cam_hit = true;
 
+		for (i = 0; i < 3; ++i)
+			if ((v3i_IDX(camera.rndr_inc, i) > 0 && v3i_IDX(loc, i) > v3i_IDX(camera.rndr_end, i))
+			 || (v3i_IDX(camera.rndr_inc, i) < 0 && v3i_IDX(loc, i) < v3i_IDX(camera.rndr_end, i)))
+				cam_hit = false;
+
+	}
+
+	info->z_split = (cam_hit ? (int)camera.pos.z - camera.rndr_start.z : -1);
 	info->cam_viewport = camera.viewport;
 
 	render_info_gen_shadows(info, world);
