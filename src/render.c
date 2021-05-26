@@ -173,6 +173,8 @@ void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, 
 		array_push(packet_arr, packet);
 }
 
+// TODO try out block raycasting idea?
+// start with a list of points at the same z, iteratively move down and away from camera, ...
 render_info_t *render_gen_info(world_t *world) {
 	int i;
 	double block_y;
@@ -207,7 +209,6 @@ render_info_t *render_gen_info(world_t *world) {
 			if ((v3i_IDX(camera.rndr_inc, i) > 0 && v3i_IDX(loc, i) > v3i_IDX(camera.rndr_end, i))
 			 || (v3i_IDX(camera.rndr_inc, i) < 0 && v3i_IDX(loc, i) < v3i_IDX(camera.rndr_end, i)))
 				cam_hit = false;
-
 	}
 
 	info->z_split = (cam_hit ? (int)camera.pos.z - camera.rndr_start.z : -1);
@@ -283,7 +284,8 @@ void render_from_info(render_info_t *info) {
 
 	for (i = 0; i < info->z_levels; ++i) {
 		// packets
-		SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0x7F); // outline
+		// TODO texture-wise outline colors
+		SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF); // outline
 
 		for (j = 0; j < info->packets[i]->size; ++j)
 			render_render_packet(info->packets[i]->items[j]);

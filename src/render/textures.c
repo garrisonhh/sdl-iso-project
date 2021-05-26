@@ -38,28 +38,28 @@ SDL_Rect VOXEL_TEX_RECTS[3] = {
 
 const v2i OUTLINES[6][2] = {
 	{ // top left
-		(v2i){0, (VOXEL_WIDTH >> 2) - 1},
-		(v2i){(VOXEL_WIDTH >> 1) - 1, 0}
+		(v2i){0, (VOXEL_WIDTH >> 2) - 2},
+		(v2i){(VOXEL_WIDTH >> 1) - 1, -1}
 	},
 	{ // top right
-		(v2i){(VOXEL_WIDTH >> 1), 0},
-		(v2i){VOXEL_WIDTH - 1, (VOXEL_WIDTH >> 2) - 1}
+		(v2i){VOXEL_WIDTH >> 1, -1},
+		(v2i){VOXEL_WIDTH - 1, (VOXEL_WIDTH >> 2) - 2}
 	},
 	{ // bottom left
-		(v2i){0, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)},
-		(v2i){(VOXEL_WIDTH >> 1) - 1, VOXEL_HEIGHT - 1}
+		(v2i){0, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) + 1},
+		(v2i){(VOXEL_WIDTH >> 1) - 1, VOXEL_HEIGHT}
 	},
 	{ // bottom right
-		(v2i){(VOXEL_WIDTH >> 1), VOXEL_HEIGHT - 1},
-		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)}
+		(v2i){(VOXEL_WIDTH >> 1), VOXEL_HEIGHT},
+		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) + 1}
 	},
 	{ // left corner
-		(v2i){0, VOXEL_WIDTH >> 2},
-		(v2i){0, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 1}
+		(v2i){-1, (VOXEL_WIDTH >> 2) - 1},
+		(v2i){-1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 1}
 	},
 	{ // right corner
-		(v2i){VOXEL_WIDTH - 1, VOXEL_WIDTH >> 2},
-		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 1}
+		(v2i){VOXEL_WIDTH, (VOXEL_WIDTH >> 2) - 1},
+		(v2i){VOXEL_WIDTH, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 1}
 	}
 };
 
@@ -164,14 +164,14 @@ void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 	SDL_Rect dst_rect = SDL_TEX_RECT;
 	SDL_Rect src_rect = {0, 0, VOXEL_WIDTH, VOXEL_HEIGHT};
 
-	masks.expose = masks.expose & ((~masks.dark) & 0x7);
+	unsigned exposed = masks.expose & ((~masks.dark) & 0x7);
 
 	dst_rect.x += pos.x;
 	dst_rect.y += pos.y;
 	src_rect.y = 0;
 
-	if (masks.expose) {
-		src_rect.x = VOXEL_WIDTH * (masks.expose - 1);
+	if (exposed) {
+		src_rect.x = VOXEL_WIDTH * (exposed - 1);
 		SDL_RenderCopy(renderer, texture->texture, &src_rect, &dst_rect);
 	}
 
@@ -181,31 +181,25 @@ void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 	}
 
 	if (masks.outline) {
-		int i, corner_offset;
+		int i;
 		v2i offset = {
 			pos.x + SDL_TEX_RECT.x,
 			pos.y + SDL_TEX_RECT.y
 		};
 
-		for (i = 0; i < 2; ++i) {
-			if (BIT_GET(masks.outline, i)) {
-				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
-											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
+		if (BIT_GET(masks.expose, 2)) {
+			for (i = 0; i < 2; ++i) {
+				if (BIT_GET(masks.outline, i)) {
+					SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
+												 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
+				}
 			}
 		}
 
-		for (i = 2; i < 4; ++i) {
-			if (BIT_GET(masks.expose, 3 - i) & BIT_GET(masks.outline, i)) {
+		for (i = 2; i < 6; ++i) {
+			if (BIT_GET(masks.expose, 1 ^ (i & 1)) & BIT_GET(masks.outline, i)) {
 				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
 											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
-			}
-		}
-
-		for (i = 4; i < 6; ++i) {
-			if (BIT_GET(masks.expose, 5 - i) & BIT_GET(masks.outline, i)) {
-				corner_offset = BIT_GET(masks.outline, i - 2);
-				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
-											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y + 1 - corner_offset);
 			}
 		}
 	}
