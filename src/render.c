@@ -22,7 +22,6 @@
 #define BG_GRAY 31
 #define SHADOW_ALPHA 63
 
-const int VOXEL_Z_HEIGHT = VOXEL_HEIGHT - (VOXEL_WIDTH >> 1);
 const v3d CAMERA_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
 
 SDL_Renderer *renderer;
@@ -55,7 +54,6 @@ void render_init(SDL_Window *window) {
 	SDL_SetTextureBlendMode(background, SDL_BLENDMODE_BLEND);
 
 	camera_init();
-	render_textures_init();
 }
 
 void render_quit() {
@@ -67,11 +65,22 @@ void render_quit() {
 }
 
 // still need to set state after creation
-render_packet_t *render_packet_create(v2i pos, texture_t *texture) {
+render_packet_t *render_texture_packet_create(v2i pos, texture_t *texture) {
 	render_packet_t *packet = malloc(sizeof(render_packet_t));
 
-	packet->pos = pos;
+	packet->sprited = false;
 	packet->texture = texture;
+	packet->pos = pos;
+
+	return packet;
+}
+
+render_packet_t *render_sprite_packet_create(v2i pos, sprite_t *sprite) {
+	render_packet_t *packet = malloc(sizeof(render_packet_t));
+
+	packet->sprited = true;
+	packet->sprite = sprite; 
+	packet->pos = pos;
 
 	return packet;
 }
@@ -111,7 +120,7 @@ void render_info_gen_shadows(render_info_t *info, world_t *world) {
 		if (arr_idx < info->z_levels) {
 			shadow = malloc(sizeof(circle_t));
 			shadow->loc = project_v3d(shadow_pos);
-			shadow->radius = entity->sprite->tex.sprite->size.x >> 1;
+			shadow->radius = entity->sprite->size.x >> 1;
 
 			if (info->shadows[arr_idx] == NULL)
 				info->shadows[arr_idx] = array_create(2);
@@ -146,11 +155,11 @@ void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, 
 		voxel_masks_t voxel_masks = world_voxel_masks(block, loc);
 
 		if (voxel_masks.expose || voxel_masks.dark) {
-			packet = render_packet_create(render_block_project(loc), block->texture);
+			packet = render_texture_packet_create(render_block_project(loc), block->texture);
 			packet->state.voxel_masks = voxel_masks;
 		}
 	} else if (world_exposed(block)) {
-		packet = render_packet_create(render_block_project(loc), block->texture);
+		packet = render_texture_packet_create(render_block_project(loc), block->texture);
 
 		if (block->texture->type == TEX_CONNECTED)
 			packet->state.connected_mask = world_connected_mask(block);

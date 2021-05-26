@@ -1,7 +1,7 @@
 #ifndef ENTITY_HUMAN_H
 #define ENTITY_HUMAN_H
 
-#include "textures.h"
+#include "sprites.h"
 #include "animation.h"
 #include "data_structures/array.h"
 
@@ -9,12 +9,12 @@
 #define HUMAN_JUMP_VELOCITY 7.5
 
 struct tool_t {
-	texture_t *sprites[2];
+	sprite_t *sprites[2];
 };
 typedef struct tool_t tool_t;
 
 struct human_t {
-	texture_t *hands[2];
+	sprite_t *hands[2];
 	tool_t *tool;
 	animation_t anim_state; // shared between both tool/hand sprites
 	bool using_tool;

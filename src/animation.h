@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include "vector.h"
-#include "textures.h"
+#include "sprites.h"
 
 #define ANIMATION_FPS 12.0
 
@@ -38,6 +38,6 @@ struct animation_t {
 typedef struct animation_t animation_t;
 
 void anim_entity_update_directions(entity_t *entity);
-void anim_tick(entity_t *, texture_t *, animation_t *, double time);
+void anim_tick(entity_t *, sprite_t *, animation_t *, double time);
 
 #endif

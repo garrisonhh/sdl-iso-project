@@ -6,7 +6,7 @@
 #include "../render.h"
 #include "../camera.h"
 #include "../player.h"
-#include "../textures.h"
+#include "../sprites.h"
 #include "../world.h"
 #include "../utils.h"
 

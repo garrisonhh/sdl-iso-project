@@ -6,7 +6,7 @@
 #include "data_structures/list.h"
 #include "data_structures/array.h"
 #include "collision.h"
-#include "textures.h"
+#include "sprites.h"
 #include "animation.h"
 #include "entity_human.h"
 
@@ -27,7 +27,7 @@ struct entity_t {
 	} state;
 
 	// sprite + animation
-	texture_t *sprite;
+	sprite_t *sprite;
 	animation_t anim_state;
 
 	v3d last_dir;
@@ -42,7 +42,7 @@ struct entity_t {
 };
 typedef struct entity_t entity_t;
 
-entity_t *entity_create(entity_type_e type, texture_t *sprites, v3d size);
+entity_t *entity_create(entity_type_e type, sprite_t *sprites, v3d size);
 void entity_destroy(entity_t *);
 
 void entity_tick(entity_t *, world_t *, double time);

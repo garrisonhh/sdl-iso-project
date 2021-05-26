@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include "textures.h"
+#include "sprites.h"
 #include "world_masks.h"
 #include "animation.h"
 
@@ -14,7 +15,7 @@
 
 #define VOXEL_WIDTH 32
 #define VOXEL_HEIGHT 34
-extern const int VOXEL_Z_HEIGHT;
+#define VOXEL_Z_HEIGHT (VOXEL_HEIGHT - (VOXEL_WIDTH >> 1))
 
 extern SDL_Renderer *renderer;
 
@@ -22,7 +23,9 @@ typedef struct world_t world_t;
 
 struct render_packet_t {
 	v2i pos;
+	bool sprited;
 	texture_t *texture;
+	sprite_t *sprite;
 
 	union render_packet_state {
 		texture_state_t tex;
@@ -49,7 +52,7 @@ void render_quit(void);
 render_info_t *render_gen_info(world_t *world);
 void render_info_destroy(render_info_t *);
 
-render_packet_t *render_packet_create(v2i pos, texture_t *texture);
+render_packet_t *render_sprite_packet_create(v2i pos, sprite_t *sprite);
 
 void render_from_info(render_info_t *);
 

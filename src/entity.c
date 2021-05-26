@@ -12,7 +12,7 @@
 void entity_update_directions(entity_t *);
 void entity_move_and_collide(entity_t *, world_t *world, double time);
 
-entity_t *entity_create(entity_type_e type, texture_t *sprite, v3d size) {
+entity_t *entity_create(entity_type_e type, sprite_t *sprite, v3d size) {
 	entity_t *entity = malloc(sizeof(entity_t));
 
 	entity->type = type;
@@ -84,8 +84,8 @@ v2i entity_screen_pos(entity_t *entity) {
 	return project_v3d(pos);
 }
 
-void entity_add_sprite_packet(array_t *packets, v2i pos, texture_t *sprite, animation_t *anim_state) {
-	render_packet_t *packet = render_packet_create(pos, sprite);
+void entity_add_sprite_packet(array_t *packets, v2i pos, sprite_t *sprite, animation_t *anim_state) {
+	render_packet_t *packet = render_sprite_packet_create(pos, sprite);
 
 	packet->state.anim = *anim_state;
 
@@ -94,7 +94,7 @@ void entity_add_sprite_packet(array_t *packets, v2i pos, texture_t *sprite, anim
 
 void entity_add_render_packets(entity_t *entity, array_t *packets) {
 	v2i pos = entity_screen_pos(entity);
-	render_packet_t *base_packet = render_packet_create(pos, entity->sprite);
+	render_packet_t *base_packet = render_sprite_packet_create(pos, entity->sprite);
 	
 	base_packet->state.anim = entity->anim_state;
 
@@ -105,7 +105,7 @@ void entity_add_render_packets(entity_t *entity, array_t *packets) {
 			break;
 		case ENTITY_HUMAN:;
 			human_t *human = entity->state.human;
-			texture_t **sprites;
+			sprite_t **sprites;
 
 			if (human->tool == NULL)
 				sprites = human->hands;

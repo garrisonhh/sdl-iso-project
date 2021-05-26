@@ -16,6 +16,7 @@
 #include "mytimer.h"
 #include "utils.h"
 #include "textures.h"
+#include "sprites.h"
 #include "block_gen.h"
 #include "vector.h"
 
@@ -63,17 +64,17 @@ void init() {
 
 	fonts_load();
 	textures_load();
+	sprites_load();
 	block_gen_load();
 
 	gui_load();
 
 	// draw loading text
+	SDL_RenderPresent(renderer);
 	v2i loading_pos = {0, 0};
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(renderer);
 	fonts_render_text(FONT_UI, "loading...", loading_pos);
-	// calls twice for double buffer
-	SDL_RenderPresent(renderer);
 	SDL_RenderPresent(renderer);
 }
 

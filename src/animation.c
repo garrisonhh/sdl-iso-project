@@ -15,9 +15,7 @@ void anim_state_set(animation_t *state, int pose) {
 	state->done = false;
 }
 
-void anim_tick(entity_t *entity, texture_t *texture, animation_t *state, double time) {
-	sprite_t *sprite = texture->tex.sprite;
-
+void anim_tick(entity_t *entity, sprite_t *sprite, animation_t *state, double time) {
 	switch (sprite->type) {
 		case SPRITE_STATIC:
 			break;

@@ -5,9 +5,36 @@
 #include "../utils.h"
 #include "../world_masks.h"
 #include "../textures.h"
+#include "../sprites.h"
 
-SDL_Rect SDL_TEX_RECT;
-SDL_Rect VOXEL_TEX_RECTS[3];
+int CONNECT_DRAW_ORDER[6] = {0, 2, 4, 1, 3, 5};
+
+SDL_Rect SDL_TEX_RECT = {
+	-(VOXEL_WIDTH >> 1),
+	-VOXEL_Z_HEIGHT,
+	VOXEL_WIDTH,
+	VOXEL_HEIGHT
+};
+SDL_Rect VOXEL_TEX_RECTS[3] = {
+	{
+		VOXEL_WIDTH >> 1,
+		VOXEL_WIDTH >> 2,
+		VOXEL_WIDTH >> 1,
+		VOXEL_Z_HEIGHT
+	},
+	{
+		0,
+		VOXEL_WIDTH >> 2,
+		VOXEL_WIDTH >> 1,
+		VOXEL_Z_HEIGHT
+	},
+	{
+		0,
+		0,
+		VOXEL_WIDTH,
+		VOXEL_WIDTH >> 1
+	},
+};
 
 const v2i OUTLINES[6][2] = {
 	{ // top left
@@ -36,56 +63,24 @@ const v2i OUTLINES[6][2] = {
 	}
 };
 
-// workaround for C's weird global constant rules
-void render_textures_init() {
-	SDL_TEX_RECT = (SDL_Rect){
-		-(VOXEL_WIDTH >> 1),
-		-VOXEL_Z_HEIGHT,
-		VOXEL_WIDTH,
-		VOXEL_HEIGHT
-	};
-
-	SDL_Rect voxel_tex_rects_tmp[3] = {
-		{
-			VOXEL_WIDTH >> 1,
-			VOXEL_WIDTH >> 2,
-			VOXEL_WIDTH >> 1,
-			VOXEL_Z_HEIGHT
-		},
-		{
-			0,
-			VOXEL_WIDTH >> 2,
-			VOXEL_WIDTH >> 1,
-			VOXEL_Z_HEIGHT
-		},
-		{
-			0,
-			0,
-			VOXEL_WIDTH,
-			VOXEL_WIDTH >> 1
-		},
-	};
-
-	memcpy(VOXEL_TEX_RECTS, voxel_tex_rects_tmp, sizeof voxel_tex_rects_tmp);
-}
-
 void render_render_packet(render_packet_t *packet) {
-	switch (packet->texture->type) {
-		case TEX_TEXTURE:
-			render_sdl_texture(packet->texture->tex.texture, packet->pos);
-			break;
-		case TEX_SPRITE:
-			render_sprite(packet->texture->tex.sprite, packet->pos, packet->state.anim.cell);
-			break;
-		case TEX_VOXEL:
-			render_voxel_texture(packet->texture->tex.voxel, packet->pos, packet->state.voxel_masks);
-			break;
-		case TEX_CONNECTED:
-			render_connected_texture(packet->texture->tex.connected, packet->pos, packet->state.connected_mask);
-			break;
-		case TEX_SHEET:
-			render_sheet_texture(packet->texture->tex.sheet, packet->pos, packet->state.tex.cell);
-			break;
+	if (packet->sprited) {
+		render_sprite(packet->sprite, packet->pos, packet->state.anim.cell);
+	} else {
+		switch (packet->texture->type) {
+			case TEX_TEXTURE:
+				render_sdl_texture(packet->texture->texture, packet->pos);
+				break;
+			case TEX_VOXEL:
+				render_voxel_texture(packet->texture, packet->pos, packet->state.voxel_masks);
+				break;
+			case TEX_CONNECTED:
+				render_connected_texture(packet->texture, packet->pos, packet->state.connected_mask);
+				break;
+			case TEX_SHEET:
+				render_sheet_texture(packet->texture, packet->pos, packet->state.tex.cell);
+				break;
+		}
 	}
 }
 
@@ -165,9 +160,9 @@ SDL_Texture *render_cached_voxel_texture(SDL_Surface *surfaces[3]) {
 
 // expose and void mask are processed to 3 bit: R-L-T
 // outline mask is processed to 6 bits corresponding to OUTLINES array; see above
-void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, voxel_masks_t masks) {
+void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 	SDL_Rect dst_rect = SDL_TEX_RECT;
-	SDL_Rect src_rect = SDL_TEX_RECT;
+	SDL_Rect src_rect = {0, 0, VOXEL_WIDTH, VOXEL_HEIGHT};
 
 	masks.expose = masks.expose & ((~masks.dark) & 0x7);
 
@@ -177,7 +172,7 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, voxel_masks_t mas
 
 	if (masks.expose) {
 		src_rect.x = VOXEL_WIDTH * (masks.expose - 1);
-		SDL_RenderCopy(renderer, voxel_texture->texture, &src_rect, &dst_rect);
+		SDL_RenderCopy(renderer, texture->texture, &src_rect, &dst_rect);
 	}
 
 	if (masks.dark) {
@@ -216,27 +211,25 @@ void render_voxel_texture(voxel_tex_t *voxel_texture, v2i pos, voxel_masks_t mas
 	}
 }
 
-void render_connected_texture(connected_tex_t *connected_tex, v2i pos, unsigned connected_mask) {
-	int i;
-	SDL_Rect draw_rect = SDL_TEX_RECT;
+void render_connected_texture(texture_t *texture, v2i pos, unsigned connected_mask) {
+	SDL_Rect dst_rect = SDL_TEX_RECT;
+	SDL_Rect src_rect = dst_rect;
 
-	draw_rect.x += pos.x;
-	draw_rect.y += pos.y;
+	dst_rect.x += pos.x;
+	dst_rect.y += pos.y;
 
-	SDL_RenderCopy(renderer, connected_tex->center, NULL, &draw_rect);
+	src_rect.x = 6 * VOXEL_WIDTH;
+	SDL_RenderCopy(renderer, texture->texture, &src_rect, &dst_rect);
 
-	// negative dirs
-	for (i = 0; i < 6; i += 2)
-		if (BIT_GET(connected_mask, i))
-			SDL_RenderCopy(renderer, connected_tex->directions[i], NULL, &draw_rect);
-
-	// positive dirs
-	for (i = 1; i < 6; i += 2)
-		if (BIT_GET(connected_mask, i))
-			SDL_RenderCopy(renderer, connected_tex->directions[i], NULL, &draw_rect);
+	for (int i = 0; i < 6; i += 2) {
+		if (BIT_GET(connected_mask, CONNECT_DRAW_ORDER[i])) {
+			src_rect.x = VOXEL_WIDTH * CONNECT_DRAW_ORDER[i];
+			SDL_RenderCopy(renderer, texture->texture, &src_rect, &dst_rect);
+		}
+	}
 }
 
-void render_sheet_texture(sheet_tex_t *sheet_tex, v2i pos, v2i cell) {
+void render_sheet_texture(texture_t *texture, v2i pos, v2i cell) {
 	SDL_Rect draw_rect, cell_rect;
 
 	draw_rect = SDL_TEX_RECT;
@@ -250,5 +243,5 @@ void render_sheet_texture(sheet_tex_t *sheet_tex, v2i pos, v2i cell) {
 		VOXEL_HEIGHT
 	};
 
-	SDL_RenderCopy(renderer, sheet_tex->sheet, &cell_rect, &draw_rect);
+	SDL_RenderCopy(renderer, texture->texture, &cell_rect, &draw_rect);
 }

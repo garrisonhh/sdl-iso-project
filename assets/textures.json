@@ -1,116 +1,115 @@
-[
-	{
-		"name": "compass",
-		"path": "ui/compass.png",
-		"type": "sprite",
-		"sprite-type": "static",
-		"sprite-size": [28, 19]
-	},
+{
+	"textures": [
+		{
+			"name": "dark",
+			"path": "blocks/dark.png",
+			"type": "voxel"
+		},
+		{
+			"name": "dirt",
+			"path": "blocks/dirt.png",
+			"type": "voxel",
+			"connected-tags": ["tree_trunk"]
+		},
+		{
+			"name": "grass",
+			"path": "blocks/grass.png",
+			"type": "voxel",
+			"connected-tags": ["tree_trunk"]
+		},
+		{
+			"name": "stone",
+			"path": "blocks/stone.png",
+			"type": "voxel"
+		},
 
-	{
-		"name": "harry_body",
-		"path": "harry/harry_body.png",
-		"type": "sprite",
-		"sprite-type": "human-body",
-		"sprite-size": [13, 19],
-		"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
-	},
-	{
-		"name": "harry_back",
-		"path": "harry/harry_back.png",
-		"type": "sprite",
-		"sprite-type": "human-hands",
-		"sprite-size": [13, 19],
-		"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
-	},
-	{
-		"name": "harry_front",
-		"path": "harry/harry_front.png",
-		"type": "sprite",
-		"sprite-type": "human-hands",
-		"sprite-size": [13, 19],
-		"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
-	},
-	{
-		"name": "axe_back",
-		"path": "tools/axe/axe_back.png",
-		"type": "sprite",
-		"sprite-type": "human-tool",
-		"sprite-size": [25, 25],
-		"sprite-offset": [0, 3],
-		"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6]
-	},
-	{
-		"name": "axe_front",
-		"path": "tools/axe/axe_front.png",
-		"type": "sprite",
-		"sprite-type": "human-tool",
-		"sprite-size": [25, 25],
-		"sprite-offset": [0, 3],
-		"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6]
-	},
+		{
+			"name": "leaves",
+			"path": "blocks/leaves.png",
+			"type": "texture",
+			"transparent": true,
+			"connected-tags": ["tree_trunk"]
+		},
+		{
+			"name": "bush",
+			"path": "blocks/bush.png",
+			"type": "texture",
+			"transparent": true
+		},
 
-	{
-		"name": "dark",
-		"path": "blocks/dark.png",
-		"type": "voxel"
-	},
-	{
-		"name": "dirt",
-		"path": "blocks/dirt.png",
-		"type": "voxel",
-		"connected-tags": ["tree_trunk"]
-	},
-	{
-		"name": "grass",
-		"path": "blocks/grass.png",
-		"type": "voxel",
-		"connected-tags": ["tree_trunk"]
-	},
-	{
-		"name": "stone",
-		"path": "blocks/stone.png",
-		"type": "voxel"
-	},
+		{
+			"name": "tree trunk",
+			"path": "blocks/tree_trunk.png",
+			"type": "connected",
+			"transparent": true,
+			"connected-tags": ["tree_trunk"]
+		},
 
-	{
-		"name": "leaves",
-		"path": "blocks/leaves.png",
-		"type": "texture",
-		"transparent": true,
-		"connected-tags": ["tree_trunk"]
-	},
-	{
-		"name": "bush",
-		"path": "blocks/bush.png",
-		"type": "texture",
-		"transparent": true
-	},
+		{
+			"name": "tall grass",
+			"path": "blocks/tall_grass.png",
+			"type": "sheet",
+			"transparent": true
+		},
+		{
+			"name": "flower",
+			"path": "blocks/flower.png",
+			"type": "sheet",
+			"transparent": true
+		},
+		{
+			"name": "rocks",
+			"path": "blocks/rocks.png",
+			"type": "sheet",
+			"transparent": true
+		}
+	],
 
-	{
-		"name": "tree trunk",
-		"path": "blocks/tree_trunk.png",
-		"type": "connected",
-		"transparent": true,
-		"connected-tags": ["tree_trunk"]
-	},
+	"sprites": [
+		{
+			"name": "compass",
+			"path": "ui/compass.png",
+			"type": "static",
+			"size": [28, 19]
+		},
 
-	{
-		"name": "tall grass",
-		"path": "blocks/tall_grass.png",
-		"type": "sheet",
-		"transparent": true
-	},
-	{
-		"name": "flower",
-		"path": "blocks/flower.png",
-		"type": "sheet",
-		"transparent": true
-	},
-	{
-		"name": "rocks",
-		"path": "blocks/rocks.png",
-		"type": "sheet",
-		"transparent": true
-	}
-]
+		{
+			"name": "harry_body",
+			"path": "harry/harry_body.png",
+			"type": "human-body",
+			"size": [13, 19],
+			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
+		},
+		{
+			"name": "harry_back",
+			"path": "harry/harry_back.png",
+			"type": "human-hands",
+			"size": [13, 19],
+			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
+		},
+		{
+			"name": "harry_front",
+			"path": "harry/harry_front.png",
+			"type": "human-hands",
+			"size": [13, 19],
+			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6]
+		},
+		{
+			"name": "axe_back",
+			"path": "tools/axe/axe_back.png",
+			"type": "human-tool",
+			"size": [25, 25],
+			"offset": [0, 3],
+			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6]
+		},
+		{
+			"name": "axe_front",
+			"path": "tools/axe/axe_front.png",
+			"type": "human-tool",
+			"size": [25, 25],
+			"offset": [0, 3],
+			"anim-lengths": [1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6]
+		}
+
+	]
+}
