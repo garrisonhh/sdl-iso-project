@@ -7,10 +7,6 @@
 #include "../vector.h"
 #include "../world_masks.h"
 
-typedef struct render_packet_t render_packet_t;
-
-void render_render_packet(render_packet_t *packet);
-
 void render_sprite(sprite_t *sprite, v2i, v2i cell);
 void render_sdl_texture(SDL_Texture *, v2i);
 void render_voxel_texture(texture_t *, v2i, voxel_masks_t masks);

@@ -32,8 +32,81 @@ texture_t *DARK_VOXEL_TEXTURE;
 SDL_Texture *load_sdl_texture(const char *path);
 SDL_Texture *load_voxel_texture(const char *path);
 
+texture_t *load_texture(const char *path, json_object *texture_obj,
+						hashmap_t *tex_type_map, hashmap_t *tags_map) {
+	texture_t *texture;
+	array_t *tag_arr;
+	const char *tag, *tex_type_name;
+	size_t cur_tag_id = 0;
+	size_t *tag_id;
+	texture_type_e *tex_type;
+
+	texture = malloc(sizeof(texture_t));
+
+	// type
+	tex_type_name = content_get_string(texture_obj, "type");
+	tex_type = (texture_type_e *)hashmap_get(tex_type_map, tex_type_name);
+
+	if (tex_type == NULL) {
+		printf("\"%s\" is an unrecognized texture type.\n", tex_type_name);
+		exit(1);
+	}
+
+	texture->type = *tex_type;
+
+	// load texture
+	if (texture->type == TEX_VOXEL)
+		texture->texture = load_voxel_texture(path);
+	else
+		texture->texture = load_sdl_texture(path);
+
+	switch (*tex_type) {
+		case TEX_TEXTURE:
+		case TEX_CONNECTED:
+		case TEX_SHEET:
+			break;
+		case TEX_VOXEL:
+			break;
+	}
+
+	// transparency
+	if (*tex_type == TEX_VOXEL)
+		texture->transparent = false;
+	else
+		texture->transparent = content_get_bool(texture_obj, "transparent");
+
+	// connected tags
+	if (content_has_key(texture_obj, "connected-tags")) {
+		tag_arr = content_get_array(texture_obj, "connected-tags");
+
+		texture->num_tags = tag_arr->size;
+		texture->tags = malloc(sizeof(size_t) * texture->num_tags);
+
+		for (size_t i = 0; i < texture->num_tags; ++i) {
+			tag = json_object_get_string(tag_arr->items[i]);
+
+			if (hashmap_get(tags_map, tag) == NULL) {
+				tag_id = malloc(sizeof(size_t));
+				*tag_id = cur_tag_id++;
+				hashmap_set(tags_map, tag, tag_id);
+
+				texture->tags[i] = *tag_id;
+			} else {
+				texture->tags[i] = *(size_t *)hashmap_get(tags_map, tag);
+			}
+		}
+
+		array_destroy(tag_arr, false);
+	} else {
+		texture->num_tags = 0;
+		texture->tags = NULL;
+	}
+
+	return texture;
+}
+
 void textures_load() {
-	int i, j;
+	int i;
 
 	// tex_type map
 	const int num_tex_types = 4;
@@ -54,10 +127,6 @@ void textures_load() {
 
 	// tags
 	hashmap_t *tags_map = hashmap_create(4, HASH_STRING);
-	array_t *tag_arr;
-	const char *tag;
-	size_t cur_tag_id = 0;
-	size_t *tag_id;
 
 	// json texture list
 	json_object *file_obj;
@@ -72,78 +141,15 @@ void textures_load() {
 	TEXTURE_MAP = hashmap_create(NUM_TEXTURES * 2, HASH_STRING);
 
 	// load textures
-	json_object *texture_obj;
-	const char *name, *tex_type_name;
+	const char *name;
 	char file_path[80];
 	size_t *texture_id;
 
 	for (i = 0; i < NUM_TEXTURES; ++i) {
-		TEXTURES[i] = malloc(sizeof(texture_t));
+		name = content_get_string(texture_objects->items[i], "name");
+		sprintf(file_path, "assets/%s", content_get_string(texture_objects->items[i], "path"));
 
-		texture_obj = texture_objects->items[i];
-
-		// name + path
-		name = content_get_string(texture_obj, "name");
-		sprintf(file_path, "assets/%s", content_get_string(texture_obj, "path"));
-
-		// type
-		tex_type_name = content_get_string(texture_obj, "type");
-		tex_type = (texture_type_e *)hashmap_get(tex_type_map, tex_type_name);
-
-		if (tex_type == NULL) {
-			printf("\"%s\" is an unrecognized texture type.\n", tex_type_name);
-			exit(1);
-		}
-
-		TEXTURES[i]->type = *tex_type;
-
-		// load texture
-		if (TEXTURES[i]->type == TEX_VOXEL)
-			TEXTURES[i]->texture = load_voxel_texture(file_path);
-		else
-			TEXTURES[i]->texture = load_sdl_texture(file_path);
-
-		switch (*tex_type) {
-			case TEX_TEXTURE:
-			case TEX_CONNECTED:
-			case TEX_SHEET:
-				break;
-			case TEX_VOXEL:
-				break;
-		}
-
-		// transparency
-		if (*tex_type == TEX_VOXEL)
-			TEXTURES[i]->transparent = false;
-		else
-			TEXTURES[i]->transparent = content_get_bool(texture_obj, "transparent");
-
-		// connected tags
-		if (content_has_key(texture_obj, "connected-tags")) {
-			tag_arr = content_get_array(texture_obj, "connected-tags");
-
-			TEXTURES[i]->num_tags = tag_arr->size;
-			TEXTURES[i]->tags = malloc(sizeof(size_t) * TEXTURES[i]->num_tags);
-
-			for (j = 0; j < TEXTURES[i]->num_tags; ++j) {
-				tag = json_object_get_string(tag_arr->items[j]);
-
-				if (hashmap_get(tags_map, tag) == NULL) {
-					tag_id = malloc(sizeof(size_t));
-					*tag_id = cur_tag_id++;
-					hashmap_set(tags_map, tag, tag_id);
-
-					TEXTURES[i]->tags[j] = *tag_id;
-				} else {
-					TEXTURES[i]->tags[j] = *(size_t *)hashmap_get(tags_map, tag);
-				}
-			}
-
-			array_destroy(tag_arr, false);
-		} else {
-			TEXTURES[i]->num_tags = 0;
-			TEXTURES[i]->tags = NULL;
-		}
+		TEXTURES[i] = load_texture(file_path, texture_objects->items[i], tex_type_map, tags_map);
 
 		// save to array and hashmap
 		texture_id = malloc(sizeof(size_t));

@@ -79,7 +79,7 @@ v2i entity_screen_pos(entity_t *entity) {
 void entity_add_sprite_packet(array_t *packets, v2i pos, sprite_t *sprite, animation_t *anim_state) {
 	render_packet_t *packet = render_sprite_packet_create(pos, sprite);
 
-	packet->state.anim = *anim_state;
+	packet->sprite.anim = *anim_state;
 
 	array_push(packets, packet);
 }
@@ -88,7 +88,7 @@ void entity_add_render_packets(entity_t *entity, array_t *packets) {
 	v2i pos = entity_screen_pos(entity);
 	render_packet_t *base_packet = render_sprite_packet_create(pos, entity->sprite);
 	
-	base_packet->state.anim = entity->anim_state;
+	base_packet->sprite.anim = entity->anim_state;
 
 	switch (entity->type) {
 		case ENTITY_BASE:

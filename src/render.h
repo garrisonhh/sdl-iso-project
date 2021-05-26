@@ -3,10 +3,8 @@
 
 #include <SDL2/SDL.h>
 #include <stdbool.h>
-#include "textures.h"
-#include "sprites.h"
-#include "world_masks.h"
-#include "animation.h"
+#include "data_structures/array.h"
+#include "render/packet.h"
 
 #define RENDER_FORMAT SDL_PIXELFORMAT_RGBA8888
 
@@ -20,21 +18,6 @@
 extern SDL_Renderer *renderer;
 
 typedef struct world_t world_t;
-
-struct render_packet_t {
-	v2i pos;
-	bool sprited;
-	texture_t *texture;
-	sprite_t *sprite;
-
-	union render_packet_state {
-		texture_state_t tex;
-		animation_t anim;
-		voxel_masks_t voxel_masks;
-		unsigned connected_mask: 6;
-	} state;
-};
-typedef struct render_packet_t render_packet_t;
 
 struct render_info_t {
 	array_t **shadows;
@@ -51,8 +34,6 @@ void render_quit(void);
 
 render_info_t *render_gen_info(world_t *world);
 void render_info_destroy(render_info_t *);
-
-render_packet_t *render_sprite_packet_create(v2i pos, sprite_t *sprite);
 
 void render_from_info(render_info_t *);
 

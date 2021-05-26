@@ -116,54 +116,6 @@ int ray_intersects_bbox(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_
 	return -1;
 }
 
-bool line_intersects_sphere(ray_t ray, sphere_t sphere, v3d *intersection) {
-	if (d_close(v3d_magnitude(ray.dir), 0.0)) {
-		printf("attempted ray sphere intersection with ray of 0 magnitude.\n");
-		exit(1);
-	}
-
-	double a, b, c;
-	double b4ac_term;
-	double t1, t2;
-
-	a = v3d_dot(ray.dir, ray.dir);
-	b = 2.0 * v3d_dot(ray.dir, v3d_sub(ray.pos, sphere.pos));
-	c = v3d_dot(sphere.pos, sphere.pos) + v3d_dot(ray.pos, ray.pos)
-		- (2.0 * v3d_dot(sphere.pos, ray.pos)) - (sphere.radius * sphere.radius);
-
-	// now solve quadratic equation
-	b4ac_term = b * b - (4.0 * a * c);
-
-	if (b4ac_term < 0.0) {
-		return false;
-	} else if (intersection != NULL) {
-		double sqrt_term, b2a_term;
-
-		sqrt_term = sqrt(b4ac_term) / (2.0 * a);
-		b2a_term = -b / (2.0 * a);
-
-		t1 = b2a_term + sqrt_term;
-		t2 = b2a_term - sqrt_term;
-		
-		*intersection = v3d_add(ray.pos, v3d_scale(ray.dir, MIN(t1, t2)));
-	}
-
-	return true;
-}
-
-bool ray_intersects_sphere(ray_t ray, sphere_t sphere, v3d *intersection) {
-	v3d line_intersect;
-
-	if (line_intersects_sphere(ray, sphere, &line_intersect)
-	 && inside_bbox(ray_to_bbox(ray), line_intersect)) {
-		if (intersection != NULL)
-			*intersection = line_intersect;
-		return true;
-	}
-
-	return false;
-}
-
 /*
  * returns whether ray intersects plane
  * intersection point -> intersection
@@ -225,5 +177,55 @@ bool ray_intersects_plane(ray_t ray, ray_t plane, v3d *intersection, v3d *resolv
 
 		return true;
 	}
+}
+
+// does not restrict to ray bounds
+bool line_intersects_sphere(ray_t ray, sphere_t sphere, v3d *intersection) {
+	if (d_close(v3d_magnitude(ray.dir), 0.0)) {
+		printf("attempted ray sphere intersection with ray of 0 magnitude.\n");
+		exit(1);
+	}
+
+	double a, b, c;
+	double b4ac_term;
+	double t1, t2;
+
+	a = v3d_dot(ray.dir, ray.dir);
+	b = 2.0 * v3d_dot(ray.dir, v3d_sub(ray.pos, sphere.pos));
+	c = v3d_dot(sphere.pos, sphere.pos) + v3d_dot(ray.pos, ray.pos)
+		- (2.0 * v3d_dot(sphere.pos, ray.pos)) - (sphere.radius * sphere.radius);
+
+	// now solve quadratic equation
+	b4ac_term = b * b - (4.0 * a * c);
+
+	if (b4ac_term < 0.0) {
+		return false;
+	} else if (intersection != NULL) {
+		double sqrt_term, b2a_term;
+
+		sqrt_term = sqrt(b4ac_term) / (2.0 * a);
+		b2a_term = -b / (2.0 * a);
+
+		t1 = b2a_term + sqrt_term;
+		t2 = b2a_term - sqrt_term;
+		
+		*intersection = v3d_add(ray.pos, v3d_scale(ray.dir, MIN(t1, t2)));
+	}
+
+	return true;
+}
+
+// restricts to ray bounds
+bool ray_intersects_sphere(ray_t ray, sphere_t sphere, v3d *intersection) {
+	v3d line_intersect;
+
+	if (line_intersects_sphere(ray, sphere, &line_intersect)
+	 && inside_bbox(ray_to_bbox(ray), line_intersect)) {
+		if (intersection != NULL)
+			*intersection = line_intersect;
+		return true;
+	}
+
+	return false;
 }
 

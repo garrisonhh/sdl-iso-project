@@ -63,26 +63,6 @@ const v2i OUTLINES[6][2] = {
 	}
 };
 
-void render_render_packet(render_packet_t *packet) {
-	if (packet->sprited) {
-		render_sprite(packet->sprite, packet->pos, packet->state.anim.cell);
-	} else {
-		switch (packet->texture->type) {
-			case TEX_TEXTURE:
-				render_sdl_texture(packet->texture->texture, packet->pos);
-				break;
-			case TEX_VOXEL:
-				render_voxel_texture(packet->texture, packet->pos, packet->state.voxel_masks);
-				break;
-			case TEX_CONNECTED:
-				render_connected_texture(packet->texture, packet->pos, packet->state.connected_mask);
-				break;
-			case TEX_SHEET:
-				render_sheet_texture(packet->texture, packet->pos, packet->state.tex.cell);
-				break;
-		}
-	}
-}
 
 void render_sdl_texture(SDL_Texture *texture, v2i pos) {
 	SDL_Rect draw_rect = SDL_TEX_RECT;
@@ -205,8 +185,11 @@ void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 
 		for (i = 4; i < 6; ++i) {
 			if (BIT_GET(masks.expose, 1 ^ (i & 1)) & BIT_GET(masks.outline, i)) {
-				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
-											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y + BIT_GET(masks.outline, i - 2));
+				SDL_RenderDrawLine(renderer,
+								   offset.x + OUTLINES[i][0].x,
+								   offset.y + OUTLINES[i][0].y,
+								   offset.x + OUTLINES[i][1].x,
+								   offset.y + OUTLINES[i][1].y + BIT_GET(masks.outline, i - 2));
 			}
 		}
 	}

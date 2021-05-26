@@ -3,8 +3,6 @@
 #include <stdbool.h>
 #include <math.h>
 #include "render.h"
-#include "render/textures.h"
-#include "render/primitives.h"
 #include "render/gui.h"
 #include "camera.h"
 #include "player.h"
@@ -62,29 +60,6 @@ void render_quit() {
 	renderer = NULL;
 	foreground = NULL;
 	background = NULL;
-}
-
-// still need to set state after creation
-render_packet_t *render_texture_packet_create(v2i pos, texture_t *texture) {
-	render_packet_t *packet = malloc(sizeof(render_packet_t));
-
-	packet->sprited = false;
-	packet->sprite = NULL;
-	packet->texture = texture;
-	packet->pos = pos;
-
-	return packet;
-}
-
-render_packet_t *render_sprite_packet_create(v2i pos, sprite_t *sprite) {
-	render_packet_t *packet = malloc(sizeof(render_packet_t));
-
-	packet->sprited = true;
-	packet->sprite = sprite; 
-	packet->texture = NULL;
-	packet->pos = pos;
-
-	return packet;
 }
 
 void render_info_gen_shadows(render_info_t *info, world_t *world) {
@@ -150,7 +125,7 @@ v2i render_block_project(v3i loc) {
 	return project_v3i(loc);
 }
 
-void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, v3i loc) {
+void render_info_add_block(array_t *packet_arr, block_t *block, v3i loc) {
 	render_packet_t *packet = NULL;
 
 	if (block->texture->type == TEX_VOXEL) {
@@ -158,15 +133,15 @@ void render_info_add_block(array_t *packet_arr, world_t *world, block_t *block, 
 
 		if (voxel_masks.expose || voxel_masks.dark) {
 			packet = render_texture_packet_create(render_block_project(loc), block->texture);
-			packet->state.voxel_masks = voxel_masks;
+			packet->texture.state.voxel_masks = voxel_masks;
 		}
 	} else if (world_exposed(block)) {
 		packet = render_texture_packet_create(render_block_project(loc), block->texture);
 
 		if (block->texture->type == TEX_CONNECTED)
-			packet->state.connected_mask = world_connected_mask(block);
+			packet->texture.state.connected_mask = world_connected_mask(block);
 		else
-			packet->state.tex = block->tex_state;
+			packet->texture.state.tex = block->tex_state;
 	}
 
 	if (packet != NULL)
@@ -238,14 +213,14 @@ render_info_t *render_gen_info(world_t *world) {
 							bucket_trav = bucket_trav->next;
 						}
 
-						render_info_add_block(level, world, block, loc);
+						render_info_add_block(level, block, loc);
 						
 						while (bucket_trav != NULL) {
 							entity_add_render_packets(bucket_trav->item, level);
 							bucket_trav = bucket_trav->next;
 						}
 					} else { // draw entities over block regardless
-						render_info_add_block(level, world, block, loc);
+						render_info_add_block(level, block, loc);
 
 						if (bucket != NULL)
 							LIST_FOREACH(bucket_trav, bucket)
@@ -288,7 +263,7 @@ void render_from_info(render_info_t *info) {
 		SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF); // outline
 
 		for (j = 0; j < info->packets[i]->size; ++j)
-			render_render_packet(info->packets[i]->items[j]);
+			render_from_packet(info->packets[i]->items[j]);
 
 		// shadows
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SHADOW_ALPHA);

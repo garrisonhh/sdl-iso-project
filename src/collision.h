@@ -23,9 +23,10 @@ struct sphere_t {
 typedef struct sphere_t sphere_t;
 
 bool inside_bbox(bbox_t, v3d);
-int ray_intersects_bbox(ray_t, bbox_t, v3d *, v3d *);
-// bool line_intersects_sphere(ray_t, sphere_t, v3d *);
-// bool ray_intersects_sphere(ray_t, sphere_t, v3d *);
-bool ray_intersects_plane(ray_t, ray_t, v3d *, v3d *, bool *);
+
+int ray_intersects_bbox(ray_t, bbox_t, v3d *intersect, v3d *resolved_dir);
+// plane represented as its normal
+bool ray_intersects_plane(ray_t ray, ray_t plane, v3d *intersect, v3d *resolved_dir, bool *behind);
+bool ray_intersects_sphere(ray_t, sphere_t, v3d *intersect);
 
 #endif
