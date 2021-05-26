@@ -15,12 +15,13 @@
 #define VOXEL_HEIGHT 34
 #define VOXEL_Z_HEIGHT (VOXEL_HEIGHT - (VOXEL_WIDTH >> 1))
 
+#define BG_GRAY 0x1F
+
 extern SDL_Renderer *renderer;
 
 typedef struct world_t world_t;
 
 struct render_info_t {
-	array_t **shadows;
 	array_t **packets;
 	size_t z_levels;
 	int z_split;

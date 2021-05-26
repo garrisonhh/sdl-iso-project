@@ -76,8 +76,8 @@ v2i entity_screen_pos(entity_t *entity) {
 	return project_v3d(pos);
 }
 
-void entity_add_sprite_packet(array_t *packets, v2i pos, sprite_t *sprite, animation_t *anim_state) {
-	render_packet_t *packet = render_sprite_packet_create(pos, sprite);
+void entity_add_sprite_packet(array_t *packets, v2i pos, int z, sprite_t *sprite, animation_t *anim_state) {
+	render_packet_t *packet = render_sprite_packet_create(pos, z, sprite);
 
 	packet->sprite.anim = *anim_state;
 
@@ -86,7 +86,8 @@ void entity_add_sprite_packet(array_t *packets, v2i pos, sprite_t *sprite, anima
 
 void entity_add_render_packets(entity_t *entity, array_t *packets) {
 	v2i pos = entity_screen_pos(entity);
-	render_packet_t *base_packet = render_sprite_packet_create(pos, entity->sprite);
+	int z = (int)entity->ray.pos.z;
+	render_packet_t *base_packet = render_sprite_packet_create(pos, z, entity->sprite);
 	
 	base_packet->sprite.anim = entity->anim_state;
 
@@ -104,9 +105,9 @@ void entity_add_render_packets(entity_t *entity, array_t *packets) {
 			else
 				sprites = human->tool->sprites;
 
-			entity_add_sprite_packet(packets, pos, sprites[0], &human->anim_state);
+			entity_add_sprite_packet(packets, pos, z, sprites[0], &human->anim_state);
 			array_push(packets, base_packet);
-			entity_add_sprite_packet(packets, pos, sprites[1], &human->anim_state);
+			entity_add_sprite_packet(packets, pos, z, sprites[1], &human->anim_state);
 
 			break;
 	}

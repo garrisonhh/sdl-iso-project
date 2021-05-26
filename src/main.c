@@ -30,7 +30,7 @@ void quit_all(void);
 int game_loop(void *arg) {
 	size_t i;
 
-	world_t *world = world_create(2);
+	world_t *world = world_create(4);
 	world_generate(world);
 	player_init(world);
 	camera_set_block_size(world->block_size);

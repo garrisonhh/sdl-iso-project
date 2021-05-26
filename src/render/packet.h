@@ -1,6 +1,7 @@
 #ifndef RENDER_PACKET_H
 #define RENDER_PACKET_H
 
+#include "primitives.h"
 #include "../vector.h"
 #include "../textures.h"
 #include "../world_masks.h"
@@ -17,6 +18,7 @@ typedef enum render_packet_e render_packet_e;
 struct render_packet_data_t {
 	render_packet_e type;
 	v2i pos;
+	int z;
 };
 typedef struct render_packet_data_t render_packet_data_t;
 
@@ -43,7 +45,7 @@ typedef struct sprite_packet_t sprite_packet_t;
 struct shadow_packet_t {
 	render_packet_data_t _data;
 
-	// TODO
+	int radius;
 };
 typedef struct shadow_packet_t shadow_packet_t;
 
@@ -52,12 +54,13 @@ union render_packet_t {
 
 	texture_packet_t texture;
 	sprite_packet_t sprite;
-	shadow_packet_t packet;
+	shadow_packet_t shadow;
 };
 typedef union render_packet_t render_packet_t;
 
-render_packet_t *render_texture_packet_create(v2i pos, texture_t *);
-render_packet_t *render_sprite_packet_create(v2i pos, sprite_t *);
+render_packet_t *render_texture_packet_create(v2i pos, int z, texture_t *);
+render_packet_t *render_sprite_packet_create(v2i pos, int z, sprite_t *);
+render_packet_t *render_shadow_packet_create(v2i pos, int z, int radius);
 
 void render_from_packet(render_packet_t *);
 
