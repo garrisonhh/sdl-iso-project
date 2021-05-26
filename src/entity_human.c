@@ -16,12 +16,15 @@ human_t *human_create() {
 	human->tool->sprites[0] = sprite_from_key("axe_back");
 	human->tool->sprites[1] = sprite_from_key("axe_front");
 
+	human->anim_state = anim_empty_state();
 	human->using_tool = false;
 
 	return human;
 }
 
 void human_destroy(human_t *human) {
+	if (human->tool != NULL)
+		free(human->tool);
 	free(human);
 }
 

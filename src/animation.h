@@ -37,6 +37,8 @@ struct animation_t {
 };
 typedef struct animation_t animation_t;
 
+animation_t anim_empty_state(void);
+
 void anim_entity_update_directions(entity_t *entity);
 void anim_tick(entity_t *, sprite_t *, animation_t *, double time);
 

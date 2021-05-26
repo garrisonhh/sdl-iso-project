@@ -16,18 +16,10 @@ entity_t *entity_create(entity_type_e type, sprite_t *sprite, v3d size) {
 	entity_t *entity = malloc(sizeof(entity_t));
 
 	entity->type = type;
-
-	switch (entity->type) {
-		case ENTITY_HUMAN:
-			entity->state.human = human_create();
-			break;
-		default:
-			break;
-	}
+	// entity state should be set in a wrapper function
 
 	entity->sprite = sprite;
-	entity->anim_state.cell = (v2i){0, 0};
-	entity->anim_state.state = 0.0;
+	entity->anim_state = anim_empty_state();
 
 	entity->last_dir = (v3d){0, 1, 0};
 	entity->dir_xy = DIR_FRONT;

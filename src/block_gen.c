@@ -179,9 +179,13 @@ void block_gen_load() {
 
 	// load subtypes (indexed to block_type_e values)
 	hashmap_t *block_subtype_maps[num_block_types];
+	array_t *subtype_arr;
 
 	block_subtype_maps[BLOCK_STATELESS] = NULL;
-	block_subtype_maps[BLOCK_PLANT] = block_gen_load_plants(content_get_array(block_subtypes, "plant"));
+
+	subtype_arr = content_get_array(block_subtypes, "plant");
+	block_subtype_maps[BLOCK_PLANT] = block_gen_load_plants(subtype_arr);
+	array_destroy(subtype_arr, false);
 
 	// set up globals
 	NUM_BLOCKS = block_objects->size;
@@ -198,6 +202,7 @@ void block_gen_load() {
 
 	array_destroy(block_objects, false);
 	hashmap_destroy(coll_type_map, true);
+	hashmap_destroy(block_type_map, true);
 	content_close_file(file);
 
 	WALL_COLL_DATA = (block_coll_data_t){

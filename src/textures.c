@@ -138,6 +138,8 @@ void textures_load() {
 					TEXTURES[i]->tags[j] = *(size_t *)hashmap_get(tags_map, tag);
 				}
 			}
+
+			array_destroy(tag_arr, false);
 		} else {
 			TEXTURES[i]->num_tags = 0;
 			TEXTURES[i]->tags = NULL;
@@ -159,11 +161,11 @@ void textures_load() {
 }
 
 void textures_destroy() {
+	// SDL_Textures are freed with SDL_DestroyRenderer call
 	for (size_t i = 0; i < NUM_TEXTURES; i++) {
 		if (TEXTURES[i]->num_tags)
 			free(TEXTURES[i]->tags);
 
-		free(TEXTURES[i]->texture);
 		free(TEXTURES[i]);
 	}
 

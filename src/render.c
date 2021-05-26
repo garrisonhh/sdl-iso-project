@@ -69,6 +69,7 @@ render_packet_t *render_texture_packet_create(v2i pos, texture_t *texture) {
 	render_packet_t *packet = malloc(sizeof(render_packet_t));
 
 	packet->sprited = false;
+	packet->sprite = NULL;
 	packet->texture = texture;
 	packet->pos = pos;
 
@@ -80,6 +81,7 @@ render_packet_t *render_sprite_packet_create(v2i pos, sprite_t *sprite) {
 
 	packet->sprited = true;
 	packet->sprite = sprite; 
+	packet->texture = NULL;
 	packet->pos = pos;
 
 	return packet;

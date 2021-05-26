@@ -120,9 +120,10 @@ void sprites_load() {
 }
 
 void sprites_destroy() {
+	// SDL_Textures are freed with SDL_DestroyRenderer call
 	for (size_t i = 0; i < NUM_SPRITES; ++i) {
-		free(SPRITES[i]->sheet);
 		free(SPRITES[i]->anim_lengths);
+		free(SPRITES[i]);
 	}
 
 	hashmap_destroy(SPRITE_MAP, true);

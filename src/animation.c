@@ -8,6 +8,14 @@ void anim_human_hands(entity_t *, animation_t *);
 void anim_human_tool(entity_t *, animation_t *);
 void anim_entity_update_directions(entity_t *);
 
+animation_t anim_empty_state() {
+	return (animation_t){
+		.cell = (v2i){0, 0},
+		.state = 0.0,
+		.done = false
+	};
+}
+
 void anim_state_set(animation_t *state, int pose) {
 	state->cell.y = pose;
 	state->cell.x = 0;

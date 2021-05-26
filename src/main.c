@@ -25,8 +25,8 @@ SDL_Window *window = NULL;
 bool QUIT = false;
 
 SDL_sem *MAIN_DONE, *RENDER_DONE;
-SDL_mutex *RENDER_INFO_LOCK;
-render_info_t *RENDER_INFO, *LAST_INFO;
+SDL_mutex *RENDER_INFO_LOCK, *LAST_INFO_LOCK;
+render_info_t *RENDER_INFO = NULL, *LAST_INFO = NULL;
 
 void init() {
 	vector_check_structs();
@@ -57,6 +57,7 @@ void init() {
 	MAIN_DONE = SDL_CreateSemaphore(0);
 	RENDER_DONE = SDL_CreateSemaphore(1);
 	RENDER_INFO_LOCK = SDL_CreateMutex();
+	LAST_INFO_LOCK = SDL_CreateMutex();
 
 	// init game stuff
 	render_init(window);
@@ -80,6 +81,7 @@ void init() {
 
 void quit_all() {
 	textures_destroy();
+	sprites_destroy();
 	block_gen_destroy();
 
 	render_quit();
@@ -88,6 +90,7 @@ void quit_all() {
 	window = NULL;
 
 	IMG_Quit();
+	SDL_QuitSubSystem(SDL_INIT_EVERYTHING);
 	SDL_Quit();
 }
 
@@ -97,10 +100,14 @@ int render(void *arg) {
 		SDL_LockMutex(RENDER_INFO_LOCK);
 
 		if (RENDER_INFO == NULL)
-			exit(0);
+			break;
 
 		render_from_info(RENDER_INFO);
+
+		SDL_LockMutex(LAST_INFO_LOCK);
 		LAST_INFO = RENDER_INFO;
+		SDL_UnlockMutex(LAST_INFO_LOCK);
+
 		RENDER_INFO = NULL;
 
 		SDL_UnlockMutex(RENDER_INFO_LOCK);
@@ -114,14 +121,11 @@ int render(void *arg) {
 	return 0;
 }
 
-#include <time.h>
-#include "data_structures/hashmap.h"
-
 int main(int argc, char *argv[]) {
 	init();
 
 	// init game stuff
-	world_t *world = world_create(3);
+	world_t *world = world_create(1);
 
 	world_generate(world);
 
@@ -132,7 +136,7 @@ int main(int argc, char *argv[]) {
 	size_t i;
 
 	SDL_Event event;
-	SDL_Thread *render_thread = SDL_CreateThread(render, "Rendering", NULL);
+	SDL_Thread *render_thread = SDL_CreateThread(render, "render", NULL);
 
 	if (render_thread == NULL) {
 		printf("spawning render thread failed.\n");
@@ -194,20 +198,32 @@ int main(int argc, char *argv[]) {
 		gui_update(mytimer_get_fps(timer), packets, world);
 
 		SDL_LockMutex(RENDER_INFO_LOCK);
-
 		RENDER_INFO = next_render_info;
-
 		SDL_UnlockMutex(RENDER_INFO_LOCK);
+
 		SDL_SemPost(MAIN_DONE);
 
-		if (LAST_INFO != NULL)
+		if (LAST_INFO != NULL) {
+			SDL_LockMutex(LAST_INFO_LOCK);
 			render_info_destroy(LAST_INFO);
+			LAST_INFO = NULL;
+			SDL_UnlockMutex(LAST_INFO_LOCK);
+		}
 	}
 
 	SDL_WaitThread(render_thread, NULL);
 
+	if (RENDER_INFO != NULL)
+		render_info_destroy(RENDER_INFO);
+
+	if (LAST_INFO != NULL)
+		render_info_destroy(RENDER_INFO);
+
+	mytimer_destroy(timer);
 	world_destroy(world);
 	quit_all();
+
+	printf("exited properly.\n");
 	
 	return 0;
  }
