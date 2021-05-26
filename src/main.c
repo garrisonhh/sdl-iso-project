@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
 #include "render.h"
 #include "render/gui.h"
 #include "render/fonts.h"
@@ -14,11 +12,9 @@
 #include "world.h"
 #include "player.h"
 #include "mytimer.h"
-#include "utils.h"
 #include "textures.h"
 #include "sprites.h"
 #include "block_gen.h"
-#include "vector.h"
 
 SDL_Window *window = NULL;
 
@@ -28,75 +24,13 @@ SDL_sem *MAIN_DONE, *GAME_LOOP_DONE;
 SDL_mutex *RENDER_INFO_LOCK, *LAST_INFO_LOCK;
 render_info_t *RENDER_INFO = NULL, *LAST_INFO = NULL;
 
-void init() {
-	vector_check_structs();
-
-	// sdl
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		printf("SDL could not initialize:\n%s\n", SDL_GetError());
-		exit(1);
-	}
-
-	window = SDL_CreateWindow("sdl-iso-project",
-							  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-							  SCREEN_WIDTH, SCREEN_HEIGHT,
-							  SDL_WINDOW_SHOWN);
-
-	if (window == NULL) {
-		printf("window could not be created:\n%s\n", SDL_GetError());
-		exit(1);
-	}
-	
-	int img_flags = IMG_INIT_PNG;
-	if (!(IMG_Init(img_flags) & img_flags)) {
-		printf("SDL_image could not initialize:\n%s\n", IMG_GetError());
-		exit(1);
-	}
-
-	// threading
-	MAIN_DONE = SDL_CreateSemaphore(1);
-	GAME_LOOP_DONE = SDL_CreateSemaphore(0);
-	RENDER_INFO_LOCK = SDL_CreateMutex();
-	LAST_INFO_LOCK = SDL_CreateMutex();
-
-	// init game stuff
-	render_init(window);
-	gui_init();
-
-	fonts_load();
-	textures_load();
-	sprites_load();
-	block_gen_load();
-
-	gui_load();
-
-	// draw loading text
-	SDL_RenderPresent(renderer);
-	v2i loading_pos = {0, 0};
-	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-	SDL_RenderClear(renderer);
-	fonts_render_text(FONT_UI, "loading...", loading_pos);
-	SDL_RenderPresent(renderer);
-}
-
-void quit_all() {
-	textures_destroy();
-	sprites_destroy();
-	block_gen_destroy();
-
-	render_quit();
-
-	SDL_DestroyWindow(window);
-	window = NULL;
-
-	IMG_Quit();
-	SDL_Quit();
-}
+void init(void);
+void quit_all(void);
 
 int game_loop(void *arg) {
 	size_t i;
 
-	world_t *world = world_create(1);
+	world_t *world = world_create(3);
 	world_generate(world);
 	player_init(world);
 	camera_set_block_size(world->block_size);
@@ -105,7 +39,7 @@ int game_loop(void *arg) {
 	render_info_t *next_render_info;
 	int packets;
 
-	mytimer_t *timer = mytimer_create(256);
+	mytimer_t *timer = mytimer_create(60);
 
 	while (!QUIT) {
 		while (SDL_PollEvent(&event)) {
@@ -220,4 +154,69 @@ int main(int argc, char *argv[]) {
 	quit_all();
 	
 	return 0;
- }
+}
+
+void init() {
+	vector_check_structs();
+
+	// sdl
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		printf("SDL could not initialize:\n%s\n", SDL_GetError());
+		exit(1);
+	}
+
+	window = SDL_CreateWindow("sdl-iso-project",
+							  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+							  SCREEN_WIDTH, SCREEN_HEIGHT,
+							  SDL_WINDOW_SHOWN);
+
+	if (window == NULL) {
+		printf("window could not be created:\n%s\n", SDL_GetError());
+		exit(1);
+	}
+	
+	int img_flags = IMG_INIT_PNG;
+	if (!(IMG_Init(img_flags) & img_flags)) {
+		printf("SDL_image could not initialize:\n%s\n", IMG_GetError());
+		exit(1);
+	}
+
+	// threading
+	MAIN_DONE = SDL_CreateSemaphore(1);
+	GAME_LOOP_DONE = SDL_CreateSemaphore(0);
+	RENDER_INFO_LOCK = SDL_CreateMutex();
+	LAST_INFO_LOCK = SDL_CreateMutex();
+
+	// init game stuff
+	render_init(window);
+	gui_init();
+
+	fonts_load();
+	textures_load();
+	sprites_load();
+	block_gen_load();
+
+	gui_load();
+
+	// draw loading text
+	SDL_RenderPresent(renderer);
+	v2i loading_pos = {0, 0};
+	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderClear(renderer);
+	fonts_render_text(FONT_UI, "loading...", loading_pos);
+	SDL_RenderPresent(renderer);
+}
+
+void quit_all() {
+	textures_destroy();
+	sprites_destroy();
+	block_gen_destroy();
+
+	render_quit();
+
+	SDL_DestroyWindow(window);
+	window = NULL;
+
+	IMG_Quit();
+	SDL_Quit();
+}
