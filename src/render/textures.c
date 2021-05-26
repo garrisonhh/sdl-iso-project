@@ -196,10 +196,17 @@ void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 			}
 		}
 
-		for (i = 2; i < 6; ++i) {
+		for (i = 2; i < 4; ++i) {
 			if (BIT_GET(masks.expose, 1 ^ (i & 1)) & BIT_GET(masks.outline, i)) {
 				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
 											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
+			}
+		}
+
+		for (i = 4; i < 6; ++i) {
+			if (BIT_GET(masks.expose, 1 ^ (i & 1)) & BIT_GET(masks.outline, i)) {
+				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
+											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y + BIT_GET(masks.outline, i - 2));
 			}
 		}
 	}
