@@ -24,7 +24,7 @@ SDL_Window *window = NULL;
 
 bool QUIT = false;
 
-SDL_sem *MAIN_DONE, *RENDER_DONE;
+SDL_sem *MAIN_DONE, *GAME_LOOP_DONE;
 SDL_mutex *RENDER_INFO_LOCK, *LAST_INFO_LOCK;
 render_info_t *RENDER_INFO = NULL, *LAST_INFO = NULL;
 
@@ -54,8 +54,8 @@ void init() {
 	}
 
 	// threading
-	MAIN_DONE = SDL_CreateSemaphore(0);
-	RENDER_DONE = SDL_CreateSemaphore(1);
+	MAIN_DONE = SDL_CreateSemaphore(1);
+	GAME_LOOP_DONE = SDL_CreateSemaphore(0);
 	RENDER_INFO_LOCK = SDL_CreateMutex();
 	LAST_INFO_LOCK = SDL_CreateMutex();
 
@@ -90,59 +90,18 @@ void quit_all() {
 	window = NULL;
 
 	IMG_Quit();
-	SDL_QuitSubSystem(SDL_INIT_EVERYTHING);
 	SDL_Quit();
 }
 
-int render(void *arg) {
-	while (!QUIT) {
-		SDL_SemWait(MAIN_DONE);
-		SDL_LockMutex(RENDER_INFO_LOCK);
+int game_loop(void *arg) {
+	size_t i;
 
-		if (RENDER_INFO == NULL)
-			break;
-
-		render_from_info(RENDER_INFO);
-
-		SDL_LockMutex(LAST_INFO_LOCK);
-		LAST_INFO = RENDER_INFO;
-		SDL_UnlockMutex(LAST_INFO_LOCK);
-
-		RENDER_INFO = NULL;
-
-		SDL_UnlockMutex(RENDER_INFO_LOCK);
-
-		gui_render();
-		SDL_RenderPresent(renderer);
-
-		SDL_SemPost(RENDER_DONE);
-	}
-
-	return 0;
-}
-
-int main(int argc, char *argv[]) {
-	init();
-
-	// init game stuff
 	world_t *world = world_create(1);
-
 	world_generate(world);
-
 	player_init(world);
 	camera_set_block_size(world->block_size);
 
-	// game loop vars
-	size_t i;
-
 	SDL_Event event;
-	SDL_Thread *render_thread = SDL_CreateThread(render, "render", NULL);
-
-	if (render_thread == NULL) {
-		printf("spawning render thread failed.\n");
-		exit(1);
-	}
-
 	render_info_t *next_render_info;
 	int packets;
 
@@ -193,7 +152,7 @@ int main(int argc, char *argv[]) {
 		for (i = 0; i < next_render_info->z_levels; ++i)
 			packets += next_render_info->packets[i]->size;
 
-		SDL_SemWait(RENDER_DONE);
+		SDL_SemWait(MAIN_DONE);
 
 		gui_update(mytimer_get_fps(timer), packets, world);
 
@@ -201,7 +160,7 @@ int main(int argc, char *argv[]) {
 		RENDER_INFO = next_render_info;
 		SDL_UnlockMutex(RENDER_INFO_LOCK);
 
-		SDL_SemPost(MAIN_DONE);
+		SDL_SemPost(GAME_LOOP_DONE);
 
 		if (LAST_INFO != NULL) {
 			SDL_LockMutex(LAST_INFO_LOCK);
@@ -211,19 +170,54 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	SDL_WaitThread(render_thread, NULL);
-
 	if (RENDER_INFO != NULL)
 		render_info_destroy(RENDER_INFO);
 
 	if (LAST_INFO != NULL)
 		render_info_destroy(RENDER_INFO);
 
-	mytimer_destroy(timer);
 	world_destroy(world);
-	quit_all();
+	mytimer_destroy(timer);
 
-	printf("exited properly.\n");
+	return 0;
+}
+
+int main(int argc, char *argv[]) {
+	init();
+
+	// game loop vars
+	SDL_Thread *game_loop_thread = SDL_CreateThread(game_loop, "game_loop", NULL);
+
+	if (game_loop_thread == NULL) {
+		printf("spawning game loop thread failed.\n");
+		exit(1);
+	}
+
+	while (!QUIT) {
+		SDL_SemWait(GAME_LOOP_DONE);
+		SDL_LockMutex(RENDER_INFO_LOCK);
+
+		if (RENDER_INFO == NULL)
+			break;
+
+		render_from_info(RENDER_INFO);
+
+		SDL_LockMutex(LAST_INFO_LOCK);
+		LAST_INFO = RENDER_INFO;
+		SDL_UnlockMutex(LAST_INFO_LOCK);
+
+		RENDER_INFO = NULL;
+
+		SDL_UnlockMutex(RENDER_INFO_LOCK);
+
+		gui_render();
+		SDL_RenderPresent(renderer);
+		SDL_SemPost(MAIN_DONE);
+	}
+
+	SDL_WaitThread(game_loop_thread, NULL);
+
+	quit_all();
 	
 	return 0;
  }
