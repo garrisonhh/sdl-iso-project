@@ -26,19 +26,20 @@ typedef struct camera_t camera_t;
 
 extern camera_t camera;
 
+void camera_init(void);
+
+void camera_set_block_size(int); // call on init
+void camera_set_pos(v3d);
+void camera_set_scale(int);
+void camera_scale(bool);
+void camera_rotate(bool);
+
 v2i project_v3i(v3i);
 v2i project_v3d(v3d);
-
-void camera_init(void);
 
 v3d camera_rotated_v3d(v3d);
 v3d camera_reverse_rotated_v3d(v3d);
 v3i camera_rotated_v3i(v3i);
 v3i camera_reverse_rotated_v3i(v3i);
-void camera_set_block_size(int);
-void camera_set_pos(v3d);
-void camera_set_scale(int);
-void camera_change_scale(bool);
-void camera_rotate(bool);
 
 #endif

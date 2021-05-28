@@ -6,13 +6,76 @@
 const int VOXEL_HALF_W = VOXEL_WIDTH >> 1;
 const int VOXEL_4TH_W = VOXEL_WIDTH >> 2;
 
+v2i project_v3d_absolute(v3d);
+void camera_set_rotation(int);
+
 // requires camera_init
 camera_t camera = {
 	.viewport = (SDL_Rect){0, 0, 0, 0},
 	.rotation = 0,
 };
 
-void camera_update(void);
+void camera_init() {
+	v3d pos = (v3d){0, 0, 0};
+
+	camera.view_circle.radius = SCREEN_HEIGHT >> 2;
+	camera_set_scale(2);
+	camera_set_pos(pos);
+	camera_set_rotation(0);
+}
+
+void camera_set_block_size(int block_size) {
+	camera.block_size = block_size;
+}
+
+void camera_set_pos(v3d pos) {
+	camera.pos = pos;
+	camera.center = v2i_sub(project_v3d_absolute(camera.pos), camera.center_screen);
+}
+
+void camera_set_scale(int scale) {
+	camera.scale = CLAMP(scale, 1, 16);
+
+	camera.viewport.w = SCREEN_WIDTH / camera.scale;
+	camera.viewport.h = SCREEN_HEIGHT / camera.scale;
+
+	camera.center_screen = (v2i){
+		camera.viewport.w >> 1,
+		camera.viewport.h >> 1,
+	};
+
+	camera.view_circle.loc = camera.center_screen;
+	camera.view_circle.radius = camera.viewport.w >> 2;
+
+	camera.rndr_dist = camera.viewport.w / VOXEL_WIDTH;
+}
+
+// used for controlling with mouse wheel
+void camera_scale(bool increase) {
+	camera_set_scale((increase ? camera.scale << 1 : camera.scale >> 1));
+}
+
+void camera_set_rotation(int rotation) {
+	camera.rotation = rotation;
+	camera.facing = (v3i){-1, -1, -1};
+
+	switch (camera.rotation) {
+		case 1:
+			camera.facing.x = 1;
+			break;
+		case 2:
+			camera.facing.x = 1;
+			camera.facing.y = 1;
+			break;
+		case 3:
+			camera.facing.y = 1;
+			break;
+	}
+}
+
+void camera_rotate(bool clockwise) {
+	camera_set_rotation((camera.rotation + (clockwise ? 1 : -1) + 4) % 4);
+}
 
 // project functions are high FPS impact and very visually important, so if the
 // code looks stupid/repetitive/weirldy formed that is why lol
@@ -125,73 +188,3 @@ v3i camera_reverse_rotated_v3i(v3i v) {
 	return v;
 }
 
-void camera_init() {
-	v3d pos = (v3d){0, 0, 0};
-
-	camera.view_circle.radius = SCREEN_HEIGHT >> 2;
-	camera_set_scale(2);
-	camera_set_pos(pos);
-
-	camera_update();
-}
-
-void camera_update() {
-	camera.facing = (v3i){-1, -1, -1};
-
-	switch (camera.rotation) {
-		case 1:
-			camera.facing.x = 1;
-			break;
-		case 2:
-			camera.facing.x = 1;
-			camera.facing.y = 1;
-			break;
-		case 3:
-			camera.facing.y = 1;
-			break;
-	}
-}
-
-void camera_set_block_size(int block_size) {
-	camera.block_size = block_size;
-	
-	camera_update();
-}
-
-void camera_set_pos(v3d pos) {
-	camera.pos = pos;
-	camera.center = v2i_sub(project_v3d_absolute(camera.pos), camera.center_screen);
-
-	camera_update();
-}
-
-void camera_set_scale(int scale) {
-	camera.scale = CLAMP(scale, 1, 16);
-
-	camera.viewport.w = SCREEN_WIDTH / camera.scale;
-	camera.viewport.h = SCREEN_HEIGHT / camera.scale;
-
-	camera.center_screen = (v2i){
-		camera.viewport.w >> 1,
-		camera.viewport.h >> 1,
-	};
-
-	camera.view_circle.loc = camera.center_screen;
-	camera.view_circle.radius = camera.viewport.w >> 2;
-
-	camera.rndr_dist = camera.viewport.w / VOXEL_WIDTH;
-
-	camera_update();
-}
-
-// used for controlling with mouse wheel
-void camera_change_scale(bool increase) {
-	camera_set_scale((increase ? camera.scale << 1 : camera.scale >> 1));
-}
-
-void camera_rotate(bool clockwise) {
-	camera.rotation += (clockwise ? 1 : -1);
-	camera.rotation = (camera.rotation + 4) % 4;
-
-	camera_update();
-}

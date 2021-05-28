@@ -66,7 +66,7 @@ int game_loop(void *arg) {
 					}
 					break;
 				case SDL_MOUSEWHEEL:
-					camera_change_scale(event.wheel.y > 0);
+					camera_scale(event.wheel.y > 0);
 					break;
 			}
 		}
