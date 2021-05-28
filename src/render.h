@@ -22,8 +22,8 @@ extern SDL_Renderer *renderer;
 typedef struct world_t world_t;
 
 struct render_info_t {
-	array_t **packets;
-	size_t z_levels;
+	array_t *bg_packets, *fg_packets;
+	bool cam_hit;
 	int z_split;
 
 	SDL_Rect cam_viewport;

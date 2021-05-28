@@ -17,8 +17,8 @@ typedef enum render_packet_e render_packet_e;
 
 struct render_packet_data_t {
 	render_packet_e type;
-	v2i pos;
-	int z;
+	v2i pos; // on screen
+	v3i loc; // in world (for sorting)
 };
 typedef struct render_packet_data_t render_packet_data_t;
 
@@ -58,10 +58,11 @@ union render_packet_t {
 };
 typedef union render_packet_t render_packet_t;
 
-render_packet_t *render_texture_packet_create(v2i pos, int z, texture_t *);
-render_packet_t *render_sprite_packet_create(v2i pos, int z, sprite_t *);
-render_packet_t *render_shadow_packet_create(v2i pos, int z, int radius);
+render_packet_t *render_texture_packet_create(v3i loc, v2i pos, texture_t *);
+render_packet_t *render_sprite_packet_create(v3i loc, v2i pos, sprite_t *);
+render_packet_t *render_shadow_packet_create(v3i loc, v2i pos, int radius);
 
+int render_packet_compare(const void *, const void *);
 void render_from_packet(render_packet_t *);
 
 #endif

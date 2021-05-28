@@ -2,45 +2,59 @@
 #include "packet.h"
 #include "textures.h"
 #include "../render.h"
+#include "../camera.h"
 #include "../block.h"
 #include "../entity.h"
 
 #define SHADOW_ALPHA (0x3F)
 
-render_packet_t *render_texture_packet_create(v2i pos, int z, texture_t *texture) {
+render_packet_t *render_texture_packet_create(v3i loc, v2i pos, texture_t *texture) {
 	render_packet_t *packet = malloc(sizeof(render_packet_t));
 
 	packet->data.type = RP_TEXTURE;
 	packet->data.pos = pos;
-	packet->data.z = z;
+	packet->data.loc = loc;
 
 	packet->texture.texture = texture;
 
 	return packet;
 }
 
-render_packet_t *render_sprite_packet_create(v2i pos, int z, sprite_t *sprite) {
+render_packet_t *render_sprite_packet_create(v3i loc, v2i pos, sprite_t *sprite) {
 	render_packet_t *packet = malloc(sizeof(render_packet_t));
 
 	packet->data.type = RP_SPRITE;
 	packet->data.pos = pos;
-	packet->data.z = z;
+	packet->data.loc = loc;
 
 	packet->sprite.sprite = sprite;
 
 	return packet;
 }
 
-render_packet_t *render_shadow_packet_create(v2i pos, int z, int radius) {
+render_packet_t *render_shadow_packet_create(v3i loc, v2i pos, int radius) {
 	render_packet_t *packet = malloc(sizeof(render_packet_t));
 
 	packet->data.type = RP_SHADOW;
 	packet->data.pos = pos;
-	packet->data.z = z;
+	packet->data.loc = loc;
 
 	packet->shadow.radius = radius;
 
 	return packet;
+}
+
+// for qsort
+int render_packet_compare(const void *a, const void *b) {
+	v3i loca, locb;
+
+	loca = (*(render_packet_data_t **)a)->loc;
+	locb = (*(render_packet_data_t **)b)->loc;
+
+	loca = camera_rotated_v3i(loca);
+	locb = camera_rotated_v3i(locb);
+
+	return v3i_compare(loca, locb);
 }
 
 void render_from_packet(render_packet_t *packet) {

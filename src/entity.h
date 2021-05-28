@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "data_structures/list.h"
 #include "data_structures/array.h"
+#include "render.h"
 #include "collision.h"
 #include "sprites.h"
 #include "animation.h"
@@ -47,7 +48,7 @@ void entity_destroy(entity_t *);
 
 void entity_tick(entity_t *, world_t *, double time);
 
-v2i entity_screen_pos(entity_t *entity);
-void entity_add_render_packets(entity_t *entity, array_t *packets);
+v2i entity_screen_pos(entity_t *);
+void entity_add_render_packets(array_t *packets, entity_t *entity);
 
 #endif

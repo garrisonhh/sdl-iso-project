@@ -63,7 +63,6 @@ const v2i OUTLINES[6][2] = {
 	}
 };
 
-
 void render_sdl_texture(SDL_Texture *texture, v2i pos) {
 	SDL_Rect draw_rect = SDL_TEX_RECT;
 	draw_rect.x += pos.x;

@@ -28,18 +28,16 @@ void init(void);
 void quit_all(void);
 
 int game_loop(void *arg) {
-	size_t i;
-
-	world_t *world = world_create(4);
+	world_t *world = world_create(1);
 	world_generate(world);
 	player_init(world);
 	camera_set_block_size(world->block_size);
 
 	SDL_Event event;
 	render_info_t *next_render_info;
-	int packets;
-
 	mytimer_t *timer = mytimer_create(60);
+
+	size_t num_packets;
 
 	while (!QUIT) {
 		while (SDL_PollEvent(&event)) {
@@ -82,13 +80,14 @@ int game_loop(void *arg) {
 		camera_set_pos(player_get_pos());
 		next_render_info = render_gen_info(world);
 
-		packets = 0;
-		for (i = 0; i < next_render_info->z_levels; ++i)
-			packets += next_render_info->packets[i]->size;
+		num_packets = next_render_info->bg_packets->size;
+
+		if (next_render_info->fg_packets != NULL)
+			num_packets += next_render_info->fg_packets->size;
 
 		SDL_SemWait(MAIN_DONE);
 
-		gui_update(mytimer_get_fps(timer), packets, world);
+		gui_update(mytimer_get_fps(timer), num_packets, world);
 
 		SDL_LockMutex(RENDER_INFO_LOCK);
 		RENDER_INFO = next_render_info;

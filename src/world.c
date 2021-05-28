@@ -245,7 +245,7 @@ void world_generate(world_t *world) {
 
 	timeit_start();
 
-	if (1) { // debug world
+	if (0) { // debug world
 		size_t grass = block_gen_get_id("grass");
 		v3i loc;
 		//*
