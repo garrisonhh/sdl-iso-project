@@ -136,37 +136,19 @@ void camera_init() {
 }
 
 void camera_update() {
-	int i;
-	int min_val, max_val;
-
-	v3i center = v3i_from_v3d(camera.pos);
-
-	camera.rndr_inc = (v3i){1, 1, 1};
+	camera.facing = (v3i){1, 1, 1};
 
 	switch (camera.rotation) {
 		case 1:
-			camera.rndr_inc.x = -1;
+			camera.facing.x = -1;
 			break;
 		case 2:
-			camera.rndr_inc.x = -1;
-			camera.rndr_inc.y = -1;
+			camera.facing.x = -1;
+			camera.facing.y = -1;
 			break;
 		case 3:
-			camera.rndr_inc.y = -1;
+			camera.facing.y = -1;
 			break;
-	}
-
-	for (i = 0; i < 3; ++i) {
-		min_val = MAX(0, v3i_IDX(center, i) - camera.rndr_dist);
-		max_val = MIN(camera.block_size - 1, v3i_IDX(center, i) + camera.rndr_dist);
-
-		if (v3i_IDX(camera.rndr_inc, i) > 0) {
-			v3i_IDX(camera.rndr_start, i) = min_val;
-			v3i_IDX(camera.rndr_end, i) = max_val;
-		} else { // values swapped
-			v3i_IDX(camera.rndr_start, i) = max_val;
-			v3i_IDX(camera.rndr_end, i) = min_val;
-		}
 	}
 }
 
