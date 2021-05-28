@@ -144,8 +144,8 @@ bool render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 
 	if (block != NULL) {
 		if (block->texture->transparent && bucket != NULL) { // draw block sorted between entities
-			block_y = ((double)loc.x + 0.5) * camera.facing.x
-					+ ((double)loc.y + 0.5) * camera.facing.y;
+			block_y = -(((double)loc.x + 0.5) * camera.facing.x
+					  + ((double)loc.y + 0.5) * camera.facing.y);
 			bucket_trav = bucket->root;
 
 			while (bucket_trav != NULL && world_bucket_y(bucket_trav->item) < block_y) {
@@ -190,7 +190,7 @@ void render_info_voxel_raycast(array_t *packets, world_t *world, v3i center, int
 
 			// voxel raycast from start location
 			while (loc.z >= min_z && !render_info_add_packets_at(packets, world, loc))
-				loc = v3i_sub(loc, camera.facing);
+				loc = v3i_add(loc, camera.facing);
 		}
 	}
 }
@@ -217,7 +217,7 @@ render_info_t *render_gen_info(world_t *world) {
 	info->bg_packets = array_create(256);
 
 	cam_loc = v3i_from_v3d(camera.pos);
-	center = v3i_add(cam_loc, v3i_scale(camera.facing, world->block_size - cam_loc.z - 1));
+	center = v3i_sub(cam_loc, v3i_scale(camera.facing, world->block_size - cam_loc.z - 1));
 
 	if (info->cam_hit) {
 		info->z_split = cam_loc.z;

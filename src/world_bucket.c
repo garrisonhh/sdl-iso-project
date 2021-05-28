@@ -2,7 +2,7 @@
 #include "camera.h"
 
 double world_bucket_y(entity_t *entity) {
-	return (entity->ray.pos.x * camera.facing.x) + (entity->ray.pos.y * camera.facing.y);
+	return -((entity->ray.pos.x * camera.facing.x) + (entity->ray.pos.y * camera.facing.y));
 }
 
 int world_bucket_compare(const void *a, const void *b) {

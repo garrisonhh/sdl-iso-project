@@ -136,18 +136,18 @@ void camera_init() {
 }
 
 void camera_update() {
-	camera.facing = (v3i){1, 1, 1};
+	camera.facing = (v3i){-1, -1, -1};
 
 	switch (camera.rotation) {
 		case 1:
-			camera.facing.x = -1;
+			camera.facing.x = 1;
 			break;
 		case 2:
-			camera.facing.x = -1;
-			camera.facing.y = -1;
+			camera.facing.x = 1;
+			camera.facing.y = 1;
 			break;
 		case 3:
-			camera.facing.y = -1;
+			camera.facing.y = 1;
 			break;
 	}
 }
