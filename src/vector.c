@@ -90,7 +90,7 @@ v3i v3i_scale(v3i v, double scalar) {
 int v3i_compare(v3i a, v3i b) {
 	int v;
 
-	for (int i = 0; i < 3; ++i)
+	for (int i = 2; i >= 0; --i)
 		if ((v = v3i_IDX(a, i) - v3i_IDX(b, i)))
 			return v;
 
