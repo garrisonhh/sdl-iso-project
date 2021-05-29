@@ -196,15 +196,20 @@ void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 
 void render_connected_texture(texture_t *texture, v2i pos, unsigned connected_mask) {
 	SDL_Rect dst_rect = SDL_TEX_RECT;
-	SDL_Rect src_rect = dst_rect;
+	SDL_Rect src_rect;
 
 	dst_rect.x += pos.x;
 	dst_rect.y += pos.y;
 
-	src_rect.x = 6 * VOXEL_WIDTH;
+	src_rect = (SDL_Rect){
+		.x = 6 * VOXEL_WIDTH,
+		.y = 0,
+		.w = VOXEL_WIDTH,
+		.h = VOXEL_HEIGHT
+	};
 	SDL_RenderCopy(renderer, texture->texture, &src_rect, &dst_rect);
 
-	for (int i = 0; i < 6; i += 2) {
+	for (int i = 0; i < 6; ++i) {
 		if (BIT_GET(connected_mask, CONNECT_DRAW_ORDER[i])) {
 			src_rect.x = VOXEL_WIDTH * CONNECT_DRAW_ORDER[i];
 			SDL_RenderCopy(renderer, texture->texture, &src_rect, &dst_rect);

@@ -27,7 +27,7 @@
 			"name": "leaves",
 			"path": "blocks/leaves.png",
 			"type": "texture",
-			"transparent": true,
+			"transparent": false,
 			"connected-tags": ["tree_trunk"]
 		},
 		{

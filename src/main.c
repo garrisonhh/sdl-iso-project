@@ -28,7 +28,7 @@ void init(void);
 void quit_all(void);
 
 int game_loop(void *arg) {
-	world_t *world = world_create(3);
+	world_t *world = world_create(1);
 	world_generate(world);
 	player_init(world);
 	camera_set_block_size(world->block_size);

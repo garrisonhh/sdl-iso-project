@@ -39,7 +39,7 @@ void camera_set_pos(v3d pos) {
 
 void camera_update_raycasting() {
 	camera.vray_size = ((float)camera.viewport.w / (float)VOXEL_WIDTH) * (1.0 / camera.vray_ratio);
-	camera.vray_size += 4; // buffer
+	camera.vray_size += 6; // buffer
 
 	camera.vray_middle = camera.vray_size >> 1;
 	camera.vray_start = (float)camera.vray_size * camera.vray_ratio;
