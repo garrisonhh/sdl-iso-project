@@ -263,6 +263,7 @@ texture_state_t texture_state_from_type(texture_type_e tex_type) {
 	texture_state_t tex_state;
 
 	switch (tex_type) {
+		case TEX_TEXTURE: // for non-transparent textures
 		case TEX_VOXEL:
 			tex_state.outline_mask = 0x0;
 			break;
@@ -271,8 +272,6 @@ texture_state_t texture_state_from_type(texture_type_e tex_type) {
 			break;
 		case TEX_SHEET:
 			tex_state.cell = (v2i){0, 0};
-			break;
-		default:
 			break;
 	}
 
