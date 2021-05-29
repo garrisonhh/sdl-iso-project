@@ -84,6 +84,10 @@ DECL_V3_BASIC(v3i_mul, v3i, *)
 DECL_V3_BASIC(v3i_div, v3i, /)
 
 v3i v3i_scale(v3i v, double scalar) {
+	return (v3i){(double)v.x * scalar, (double)v.y * scalar, (double)v.z * scalar};
+}
+
+v3i v3i_scalei(v3i v, int scalar) {
 	return (v3i){v.x * scalar, v.y * scalar, v.z * scalar};
 }
 

@@ -62,6 +62,7 @@ v3i v3i_mul(v3i, v3i);
 v3i v3i_div(v3i, v3i);
 
 v3i v3i_scale(v3i, double);
+v3i v3i_scalei(v3i, int);
 double v3i_magnitude(v3i);
 double v3i_dot(v3i, v3i);
 
