@@ -60,15 +60,6 @@ texture_t *load_texture(const char *path, json_object *texture_obj,
 	else
 		texture->texture = load_sdl_texture(path);
 
-	switch (*tex_type) {
-		case TEX_TEXTURE:
-		case TEX_CONNECTED:
-		case TEX_SHEET:
-			break;
-		case TEX_VOXEL:
-			break;
-	}
-
 	// transparency
 	if (*tex_type == TEX_VOXEL)
 		texture->transparent = false;
@@ -264,7 +255,7 @@ texture_t *texture_from_key(const char *key) {
 		printf("key not found in TEXTURE_MAP: %s\n", key);
 		exit(1);
 	}
-	
+
 	return TEXTURES[*value];
 }
 

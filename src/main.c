@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "app.h"
 #include "game.h"
 #include "vector.h"
 #include "render.h"
@@ -12,7 +13,7 @@
 #include "textures.h"
 #include "sprites.h"
 
-SDL_Window *window = NULL;
+SDL_Window *WINDOW = NULL;
 
 void init(void);
 void quit_all(void);
@@ -20,7 +21,7 @@ void quit_all(void);
 int main(int argc, char *argv[]) {
 	init();
 
-	game_main();
+	app_run();
 
 	quit_all();
 	
@@ -36,13 +37,13 @@ void init() {
 		exit(1);
 	}
 
-	window = SDL_CreateWindow("sdl-iso-project",
+	WINDOW = SDL_CreateWindow("sdl-iso-project",
 							  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 							  SCREEN_WIDTH, SCREEN_HEIGHT,
 							  SDL_WINDOW_SHOWN);
 
-	if (window == NULL) {
-		printf("window could not be created:\n%s\n", SDL_GetError());
+	if (WINDOW == NULL) {
+		printf("WINDOW could not be created:\n%s\n", SDL_GetError());
 		exit(1);
 	}
 	
@@ -52,8 +53,9 @@ void init() {
 		exit(1);
 	}
 
-	render_init(window);
+	render_init(WINDOW);
 	gui_init();
+	game_init();
 
 	fonts_load();
 	textures_load();
@@ -77,8 +79,8 @@ void quit_all() {
 	block_gen_destroy();
 
 	render_quit();
-	SDL_DestroyWindow(window);
-	window = NULL;
+	SDL_DestroyWindow(WINDOW);
+	WINDOW = NULL;
 
 	IMG_Quit();
 	SDL_Quit();

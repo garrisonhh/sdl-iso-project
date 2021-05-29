@@ -2,6 +2,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_thread.h>
 #include <SDL2/SDL_mutex.h>
+#include "app.h"
 #include "render.h"
 #include "render/gui.h"
 #include "world.h"
@@ -9,14 +10,18 @@
 #include "camera.h"
 #include "mytimer.h"
 
-SDL_sem *MAIN_DONE, *GAME_LOOP_DONE;
 SDL_mutex *RENDER_INFO_LOCK, *LAST_INFO_LOCK;
+SDL_sem *MAIN_DONE = NULL, *GAME_LOOP_DONE = NULL;
 render_info_t *RENDER_INFO = NULL, *LAST_INFO = NULL;
 
-bool QUIT = false;
+bool QUIT;
+
+void game_init() {
+	RENDER_INFO_LOCK = SDL_CreateMutex();
+	LAST_INFO_LOCK = SDL_CreateMutex();
+}
 
 int game_loop(void *arg) {
-
 	world_t *world = world_create(1);
 	world_generate(world);
 
@@ -34,11 +39,13 @@ int game_loop(void *arg) {
 			switch (event.type) {
 				case SDL_QUIT:
 					QUIT = true;
+					APP_STATE = APP_EXIT;
 					break;
 				case SDL_KEYDOWN:
 					switch (event.key.keysym.sym) {
 						case SDLK_ESCAPE:
 							QUIT = true;
+							APP_STATE = APP_MAIN;
 							break;
 						case SDLK_e:
 							camera_rotate(true);
@@ -95,11 +102,15 @@ int game_loop(void *arg) {
 		}
 	}
 
-	if (RENDER_INFO != NULL)
+	if (RENDER_INFO != NULL) {
 		render_info_destroy(RENDER_INFO);
+		RENDER_INFO = NULL;
+	}
 
-	if (LAST_INFO != NULL)
-		render_info_destroy(RENDER_INFO);
+	if (LAST_INFO != NULL) {
+		render_info_destroy(LAST_INFO);
+		LAST_INFO = NULL;
+	}
 
 	world_destroy(world);
 	mytimer_destroy(timer);
@@ -108,11 +119,8 @@ int game_loop(void *arg) {
 }
 
 void game_main() {
-	// threading
 	MAIN_DONE = SDL_CreateSemaphore(1);
 	GAME_LOOP_DONE = SDL_CreateSemaphore(0);
-	RENDER_INFO_LOCK = SDL_CreateMutex();
-	LAST_INFO_LOCK = SDL_CreateMutex();
 
 	SDL_Thread *game_loop_thread = SDL_CreateThread(game_loop, "game_loop", NULL);
 
@@ -120,6 +128,8 @@ void game_main() {
 		printf("spawning game loop thread failed.\n");
 		exit(1);
 	}
+
+	QUIT = false;
 
 	while (!QUIT) {
 		SDL_SemWait(GAME_LOOP_DONE);
@@ -144,4 +154,7 @@ void game_main() {
 	}
 
 	SDL_WaitThread(game_loop_thread, NULL);
+
+	SDL_DestroySemaphore(MAIN_DONE);
+	SDL_DestroySemaphore(GAME_LOOP_DONE);
 }

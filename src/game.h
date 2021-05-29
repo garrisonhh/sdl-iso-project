@@ -3,6 +3,8 @@
 
 #include <SDL2/SDL.h>
 
+void game_init(void);
+
 void game_main(void);
 
 #endif
