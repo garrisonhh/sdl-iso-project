@@ -2,7 +2,6 @@
 #include <json-c/json.h>
 #include <stdbool.h>
 #include "textures.h"
-#include "block_gen.h"
 #include "data_structures/array.h"
 #include "vector.h"
 #include "collision.h"

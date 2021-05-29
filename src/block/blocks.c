@@ -1,11 +1,10 @@
 #include <json-c/json.h>
 #include <stdlib.h>
-#include "content.h"
-#include "textures.h"
-#include "block.h"
-#include "block_collision.h"
-#include "block_types/plant.h"
-#include "data_structures/hashmap.h"
+#include "blocks.h"
+#include "plant.h"
+#include "../content.h"
+#include "../textures.h"
+#include "../data_structures/hashmap.h"
 
 /*
  * this is similar but not identical to textures.c; textures can be reused

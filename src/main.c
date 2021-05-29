@@ -9,7 +9,7 @@
 #include "render.h"
 #include "render/gui.h"
 #include "render/fonts.h"
-#include "block_gen.h"
+#include "block/blocks.h"
 #include "textures.h"
 #include "sprites.h"
 

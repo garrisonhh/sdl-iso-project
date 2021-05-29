@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "vector.h"
 #include "entity.h"
-#include "block.h"
+#include "block/block.h"
 #include "data_structures/array.h"
 #include "data_structures/list.h"
 #include "data_structures/hashmap.h"

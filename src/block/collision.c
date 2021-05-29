@@ -1,7 +1,5 @@
 #include <stdlib.h>
-#include "block_collision.h"
-#include "vector.h"
-#include "data_structures/array.h"
+#include "collision.h"
 
 v3i COLL_SORT_POLARITY = {1, 1, 1};
 

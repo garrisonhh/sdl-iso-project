@@ -8,7 +8,7 @@
 #include "data_structures/list.h"
 #include "data_structures/heap.h"
 #include "world.h"
-#include "block.h"
+#include "block/block.h"
 #include "utils.h"
 
 const double SQRT_2 = sqrt(2);

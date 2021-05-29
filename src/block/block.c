@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include "block.h"
-#include "block_gen.h"
-#include "vector.h"
-#include "world.h"
-#include "block_types/plant.h"
+#include "blocks.h"
+#include "plant.h"
+#include "../vector.h"
+#include "../world.h"
 
 block_t *block_create(size_t block_id) {
 	block_t *block = malloc(sizeof(block_t));

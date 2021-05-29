@@ -3,7 +3,7 @@
 #include "textures.h"
 #include "../render.h"
 #include "../camera.h"
-#include "../block.h"
+#include "../block/block.h"
 #include "../entity.h"
 
 #define SHADOW_ALPHA (0x3F)
