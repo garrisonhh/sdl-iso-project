@@ -17,7 +17,7 @@ menu_state_e MENU_STATE;
 
 // corresponds to menu_state_e
 #define NUM_MENUS 1
-menu_screen_t *MENUS[NUM_MENUS];
+menu_t *MENUS[NUM_MENUS];
 
 bool MENU_QUIT;
 
@@ -54,22 +54,22 @@ void app_menu_init() {
 	int line_h = font_line_height(FONT_MENU);
 
 	for (int i = 0; i < NUM_MENUS; ++i)
-		MENUS[i] = menu_screen_create();
+		MENUS[i] = menu_create();
 
 	// main menu
 	pos = (v2i){20, 20};
-	menu_screen_add_text_button(MENUS[MENU_MAIN], "untitled", pos, NULL);
+	menu_add_text_button(MENUS[MENU_MAIN], "~~~ untitled ~~~", pos, NULL);
 
 	pos.y += line_h * 2;
-	menu_screen_add_text_button(MENUS[MENU_MAIN], "new world", pos, app_menu_new_world);
+	menu_add_text_button(MENUS[MENU_MAIN], "new world", pos, app_menu_new_world);
 
 	pos.y += line_h;
-	menu_screen_add_text_button(MENUS[MENU_MAIN], "exit", pos, app_menu_exit);
+	menu_add_text_button(MENUS[MENU_MAIN], "exit", pos, app_menu_exit);
 }
 
 void app_menu_quit() {
 	for (int i = 0; i < NUM_MENUS; ++i)
-		menu_screen_destroy(MENUS[i]);
+		menu_destroy(MENUS[i]);
 }
 
 void app_menu() {
@@ -85,9 +85,13 @@ void app_menu() {
 			case SDL_QUIT:
 				app_menu_exit();
 				break;
+			case SDL_KEYDOWN:
+				if (event.key.keysym.sym == SDLK_ESCAPE)
+					app_menu_exit();
+				break;
 			case SDL_MOUSEBUTTONUP:
 				v2i pos = {event.button.x, event.button.y};
-				menu_screen_click(MENUS[MENU_STATE], pos);
+				menu_click(MENUS[MENU_STATE], pos);
 				break;
 			}
 		}
@@ -95,9 +99,8 @@ void app_menu() {
 		SDL_SetRenderDrawColor(renderer, 0x0F, 0x2F, 0x3F, 0xFF);
 		SDL_RenderClear(renderer);
 
-		menu_screen_tick(MENUS[MENU_STATE]);
-
-		menu_screen_render(MENUS[MENU_STATE]);
+		menu_tick(MENUS[MENU_STATE]);
+		menu_render(MENUS[MENU_STATE]);
 
 		SDL_RenderPresent(renderer);
 	}

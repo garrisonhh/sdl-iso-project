@@ -16,8 +16,8 @@ menu_button_t *menu_button_create(SDL_Texture *texture, v2i pos, void (*func)(vo
 	return button;
 }
 
-menu_screen_t *menu_screen_create() {
-	menu_screen_t *screen = malloc(sizeof(menu_screen_t));
+menu_t *menu_create() {
+	menu_t *screen = malloc(sizeof(menu_t));
 
 	screen->buttons = array_create(0);
 	screen->mouse_pt = (SDL_Point){-1, -1};
@@ -26,20 +26,20 @@ menu_screen_t *menu_screen_create() {
 	return screen;
 }
 
-void menu_screen_destroy(menu_screen_t *screen) {
+void menu_destroy(menu_t *screen) {
 	array_destroy(screen->buttons, true);
 	free(screen);
 }
 
-void menu_screen_add_button(menu_screen_t *screen, SDL_Texture *texture, v2i pos, void (*func)()) {
+void menu_add_button(menu_t *screen, SDL_Texture *texture, v2i pos, void (*func)()) {
 	array_push(screen->buttons, menu_button_create(texture, pos, func));
 }
 
-void menu_screen_add_text_button(menu_screen_t *screen, const char *text, v2i pos, void (*func)()) {
-	menu_screen_add_button(screen, font_render_static(FONT_MENU, text), pos, func);
+void menu_add_text_button(menu_t *screen, const char *text, v2i pos, void (*func)()) {
+	menu_add_button(screen, font_render_static(FONT_MENU, text), pos, func);
 }
 
-void menu_screen_click(menu_screen_t *screen, v2i pos) {
+void menu_click(menu_t *screen, v2i pos) {
 	SDL_Point point = {pos.x, pos.y};
 	menu_button_t *button;
 
@@ -53,12 +53,12 @@ void menu_screen_click(menu_screen_t *screen, v2i pos) {
 	}
 }
 
-void menu_screen_tick(menu_screen_t *screen) {
+void menu_tick(menu_t *screen) {
 	uint32_t mouse_state = SDL_GetMouseState(&screen->mouse_pt.x, &screen->mouse_pt.y);
 	screen->mouse_held = mouse_state & SDL_BUTTON(SDL_BUTTON_LEFT);
 }
 
-void menu_screen_render(menu_screen_t *screen) {
+void menu_render(menu_t *screen) {
 	menu_button_t *button;
 
 
