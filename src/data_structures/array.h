@@ -2,6 +2,7 @@
 #define DYN_ARRAY_H
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 struct array_t {
 	void **items;
