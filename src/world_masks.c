@@ -194,20 +194,20 @@ unsigned world_connected_mask(block_t *block) {
 	bool swp;
 
 	switch (camera.rotation) {
-		case 1:
-			BIT_SET_SWAP(connected_mask, 0, 2, swp);
-			BIT_SET_SWAP(connected_mask, 1, 3, swp);
-			BIT_SET_SWAP(connected_mask, 2, 3, swp);
-			break;
-		case 2:
-			BIT_SET_SWAP(connected_mask, 0, 1, swp);
-			BIT_SET_SWAP(connected_mask, 2, 3, swp);
-			break;
-		case 3:
-			BIT_SET_SWAP(connected_mask, 0, 2, swp);
-			BIT_SET_SWAP(connected_mask, 1, 3, swp);
-			BIT_SET_SWAP(connected_mask, 0, 1, swp);
-			break;
+	case 1:
+		BIT_SET_SWAP(connected_mask, 0, 2, swp);
+		BIT_SET_SWAP(connected_mask, 1, 3, swp);
+		BIT_SET_SWAP(connected_mask, 2, 3, swp);
+		break;
+	case 2:
+		BIT_SET_SWAP(connected_mask, 0, 1, swp);
+		BIT_SET_SWAP(connected_mask, 2, 3, swp);
+		break;
+	case 3:
+		BIT_SET_SWAP(connected_mask, 0, 2, swp);
+		BIT_SET_SWAP(connected_mask, 1, 3, swp);
+		BIT_SET_SWAP(connected_mask, 0, 1, swp);
+		break;
 	}
 
 	return connected_mask;

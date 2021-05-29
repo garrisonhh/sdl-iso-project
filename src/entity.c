@@ -36,10 +36,10 @@ entity_t *entity_create(entity_type_e type, sprite_t *sprite, v3d size) {
 
 void entity_destroy(entity_t *entity) {
 	switch (entity->type) {
-		case ENTITY_HUMAN:
-			human_destroy(entity->state.human);
-		default:
-			break;
+	case ENTITY_HUMAN:
+		human_destroy(entity->state.human);
+	default:
+		break;
 	}
 
 	free(entity);
@@ -50,11 +50,11 @@ void entity_tick(entity_t *entity, world_t *world, double time) {
 
 	// entity state
 	switch (entity->type) {
-		case ENTITY_BASE:
-			break;
-		case ENTITY_HUMAN:
-			entity_human_tick(entity, time);
-			break;
+	case ENTITY_BASE:
+		break;
+	case ENTITY_HUMAN:
+		entity_human_tick(entity, time);
+		break;
 	}
 
 	// sprite/animation state
@@ -93,24 +93,20 @@ void entity_add_render_packets(array_t *packets, entity_t *entity) {
 	base_packet->sprite.anim = entity->anim_state;
 
 	switch (entity->type) {
-		case ENTITY_BASE:
-			array_push(packets, base_packet);
-
-			break;
-		case ENTITY_HUMAN:;
-			human_t *human = entity->state.human;
-			sprite_t **sprites;
-
-			if (human->tool == NULL)
-				sprites = human->hands;
-			else
-				sprites = human->tool->sprites;
-
-			entity_add_sprite_packet(packets, loc, pos, sprites[0], &human->anim_state);
-			array_push(packets, base_packet);
-			entity_add_sprite_packet(packets, loc, pos, sprites[1], &human->anim_state);
-
-			break;
+	case ENTITY_BASE:
+		array_push(packets, base_packet);
+		break;
+	case ENTITY_HUMAN:;
+		human_t *human = entity->state.human;
+		sprite_t **sprites;
+		if (human->tool == NULL)
+			sprites = human->hands;
+		else
+			sprites = human->tool->sprites;
+		entity_add_sprite_packet(packets, loc, pos, sprites[0], &human->anim_state);
+		array_push(packets, base_packet);
+		entity_add_sprite_packet(packets, loc, pos, sprites[1], &human->anim_state);
+		break;
 	}
 }
 

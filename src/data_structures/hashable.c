@@ -66,11 +66,11 @@ const void *copy_v3i(const void *v3i_ptr) {
 
 hashmap_funcs_t hashmap_funcs(hashable_e hashable) {
 	switch (hashable) {
-		case HASH_UNSIGNED:
-			return (hashmap_funcs_t){
-				.cmp = cmp_unsigned,
-				.hash = hash_unsigned,
-				.copy = copy_unsigned
+	case HASH_UNSIGNED:
+		return (hashmap_funcs_t){
+			.cmp = cmp_unsigned,
+			.hash = hash_unsigned,
+			.copy = copy_unsigned
 			};
 		case HASH_STRING:
 			return (hashmap_funcs_t){

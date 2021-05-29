@@ -85,16 +85,16 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 	}
 
 	switch (coll_data->coll_type) {
-		case BLOCK_COLL_NONE:
-			coll_data->bbox = NULL;
-			break;
-		case BLOCK_COLL_DEFAULT_BOX:
-			coll_data->bbox = &BLOCK_DEFAULT_BOX;
-			break;
-		case BLOCK_COLL_CUSTOM_BOX:
-			coll_data->bbox = malloc(sizeof(bbox_t));
-			*coll_data->bbox = content_get_bbox(block_obj, "bbox");
-			break;
+	case BLOCK_COLL_NONE:
+		coll_data->bbox = NULL;
+		break;
+	case BLOCK_COLL_DEFAULT_BOX:
+		coll_data->bbox = &BLOCK_DEFAULT_BOX;
+		break;
+	case BLOCK_COLL_CUSTOM_BOX:
+		coll_data->bbox = malloc(sizeof(bbox_t));
+		*coll_data->bbox = content_get_bbox(block_obj, "bbox");
+		break;
 	}
 
 	block->coll_data = coll_data;
@@ -110,12 +110,12 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 
 	// block subtype
 	switch (block->type) {
-		case BLOCK_STATELESS:
-			break;
-		case BLOCK_PLANT:
-			block_subtype_name = content_get_string(block_obj, "subtype");
-			block->state.plant = *(plant_t *)hashmap_get(block_subtype_maps[BLOCK_PLANT], block_subtype_name);
-			break;
+	case BLOCK_STATELESS:
+		break;
+	case BLOCK_PLANT:
+		block_subtype_name = content_get_string(block_obj, "subtype");
+		block->state.plant = *(plant_t *)hashmap_get(block_subtype_maps[BLOCK_PLANT], block_subtype_name);
+		break;
 	}
 
 	// tex_state

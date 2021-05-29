@@ -59,29 +59,29 @@ int render_packet_compare(const void *a, const void *b) {
 
 void render_from_packet(render_packet_t *packet) {
 	switch (packet->data.type) {
-		case RP_TEXTURE:
-			switch (packet->texture.texture->type) {
-				case TEX_TEXTURE:
-					render_sdl_texture(packet->texture.texture->texture,
-									   packet->data.pos);
-					break;
-				case TEX_VOXEL:
-					// TODO voxel outline colors?
-					SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
-					render_voxel_texture(packet->texture.texture,
-										 packet->data.pos,
-										 packet->texture.state.voxel_masks);
-					break;
-				case TEX_CONNECTED:
-					render_connected_texture(packet->texture.texture,
-											 packet->data.pos,
-											 packet->texture.state.connected_mask);
-					break;
-				case TEX_SHEET:
-					render_sheet_texture(packet->texture.texture,
-										 packet->data.pos,
-										 packet->texture.state.tex.cell);
-					break;
+	case RP_TEXTURE:
+		switch (packet->texture.texture->type) {
+		case TEX_TEXTURE:
+			render_sdl_texture(packet->texture.texture->texture,
+							   packet->data.pos);
+			break;
+		case TEX_VOXEL:
+			// TODO voxel outline colors?
+			SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
+			render_voxel_texture(packet->texture.texture,
+								 packet->data.pos,
+								 packet->texture.state.voxel_masks);
+			break;
+		case TEX_CONNECTED:
+			render_connected_texture(packet->texture.texture,
+									 packet->data.pos,
+									 packet->texture.state.connected_mask);
+			break;
+		case TEX_SHEET:
+			render_sheet_texture(packet->texture.texture,
+								 packet->data.pos,
+								 packet->texture.state.tex.cell);
+			break;
 			}
 			break;
 		case RP_SPRITE:

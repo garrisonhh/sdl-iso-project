@@ -37,29 +37,28 @@ int game_loop(void *arg) {
 	while (!QUIT) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
-				case SDL_QUIT:
+			case SDL_QUIT:
+				QUIT = true;
+				APP_STATE = APP_EXIT;
+				break;
+			case SDL_KEYDOWN:
+				switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE:
 					QUIT = true;
-					APP_STATE = APP_EXIT;
+					APP_STATE = APP_MAIN_MENU;
 					break;
-				case SDL_KEYDOWN:
-					switch (event.key.keysym.sym) {
-						case SDLK_ESCAPE:
-							QUIT = true;
-							APP_STATE = APP_MAIN_MENU;
-							break;
-						case SDLK_e:
-							camera_rotate(true);
-							break;
-						case SDLK_q:
-							camera_rotate(false);
-							break;
-						case SDLK_F1:
-							gui_toggle_debug();
-							break;
-						case SDLK_F2:
-							player_toggle_godmode();
-							break;
-
+				case SDLK_e:
+					camera_rotate(true);
+					break;
+				case SDLK_q:
+					camera_rotate(false);
+					break;
+				case SDLK_F1:
+					gui_toggle_debug();
+					break;
+				case SDLK_F2:
+					player_toggle_godmode();
+					break;
 					}
 					break;
 				case SDL_MOUSEWHEEL:

@@ -62,16 +62,16 @@ void render_quit() {
 v2i render_block_project(v3i loc) {
 	// modify loc so that it is the back center corner of voxel from camera perspective
 	switch (camera.rotation) {
-		case 1:
-			++loc.x;
-			break;
-		case 2:
-			++loc.x;
-			++loc.y;
-			break;
-		case 3:
-			++loc.y;
-			break;
+	case 1:
+		++loc.x;
+		break;
+	case 2:
+		++loc.x;
+		++loc.y;
+		break;
+	case 3:
+		++loc.y;
+		break;
 	}
 
 	return project_v3i(loc);

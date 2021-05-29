@@ -12,14 +12,14 @@ void app_main_menu(void);
 void app_run() {
 	while (APP_STATE != APP_EXIT) {
 		switch (APP_STATE) {
-			case APP_MAIN_MENU:
-				app_main_menu();
-				break;
-			case APP_GAME:
-				game_main();
-				break;
-			case APP_EXIT:
-				break;
+		case APP_MAIN_MENU:
+			app_main_menu();
+			break;
+		case APP_GAME:
+			game_main();
+			break;
+		case APP_EXIT:
+			break;
 		}
 	}
 }
@@ -41,30 +41,30 @@ void app_main_menu() {
 	while (!QUIT) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
-				case SDL_QUIT:
-					QUIT = true;
-					APP_STATE = APP_EXIT;
+			case SDL_QUIT:
+				QUIT = true;
+				APP_STATE = APP_EXIT;
+				break;
+			case SDL_KEYDOWN:
+				switch (event.key.keysym.sym) {
+				case SDLK_w:
+					choice = (choice - 1 + num_options) % num_options;
 					break;
-				case SDL_KEYDOWN:
-					switch (event.key.keysym.sym) {
-						case SDLK_w:
-							choice = (choice - 1 + num_options) % num_options;
-							break;
-						case SDLK_s:
-							choice = (choice + 1) % num_options;
-							break;
-						case SDLK_RETURN:
-							switch (choice) {
-								case 0:
-									QUIT = true;
-									APP_STATE = APP_GAME;
-									break;
-								case 1:
-									QUIT = true;
-									APP_STATE = APP_EXIT;
-									break;
-							}
-							break;
+				case SDLK_s:
+					choice = (choice + 1) % num_options;
+					break;
+				case SDLK_RETURN:
+					switch (choice) {
+					case 0:
+						QUIT = true;
+						APP_STATE = APP_GAME;
+						break;
+					case 1:
+						QUIT = true;
+						APP_STATE = APP_EXIT;
+						break;
+						}
+						break;
 					}
 					break;
 			}

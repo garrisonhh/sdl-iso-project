@@ -298,20 +298,20 @@ void world_generate(world_t *world) {
 			++loc.z;
 
 			switch (rand() % 30) {
-				case 0:
-					world_set_no_update(world, loc, bush);
-					break;
-				case 1:
-				case 2:
-				case 3:
-					world_set_no_update(world, loc, tall_grass);
-					break;
-				case 4:
-					world_set_no_update(world, loc, flower);
-					break;
-				case 5:
-					world_set_no_update(world, loc, sml_rock);
-					break;
+			case 0:
+				world_set_no_update(world, loc, bush);
+				break;
+			case 1:
+			case 2:
+			case 3:
+				world_set_no_update(world, loc, tall_grass);
+				break;
+			case 4:
+				world_set_no_update(world, loc, flower);
+				break;
+			case 5:
+				world_set_no_update(world, loc, sml_rock);
+				break;
 			}
 
 			if (rand() % 500 == 0)

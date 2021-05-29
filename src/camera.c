@@ -75,16 +75,16 @@ void camera_set_rotation(int rotation) {
 	camera.facing = (v3i){-1, -1, -1};
 
 	switch (camera.rotation) {
-		case 1:
-			camera.facing.x = 1;
-			break;
-		case 2:
-			camera.facing.x = 1;
-			camera.facing.y = 1;
-			break;
-		case 3:
-			camera.facing.y = 1;
-			break;
+	case 1:
+		camera.facing.x = 1;
+		break;
+	case 2:
+		camera.facing.x = 1;
+		camera.facing.y = 1;
+		break;
+	case 3:
+		camera.facing.y = 1;
+		break;
 	}
 
 	camera_update_raycasting();
@@ -125,18 +125,18 @@ v3d camera_rotated_v3d(v3d v) {
 	double swp;
 
 	switch (camera.rotation) {
-		case 1:
-			SWAP(v.x, v.y, swp);
-			v.y = -v.y;
-			break;
-		case 2:
-			v.x = -v.x;
-			v.y = -v.y;
-			break;
-		case 3:
-			SWAP(v.x, v.y, swp);
-			v.x = -v.x;
-			break;
+	case 1:
+		SWAP(v.x, v.y, swp);
+		v.y = -v.y;
+		break;
+	case 2:
+		v.x = -v.x;
+		v.y = -v.y;
+		break;
+	case 3:
+		SWAP(v.x, v.y, swp);
+		v.x = -v.x;
+		break;
 	}
 
 	return v;
@@ -146,18 +146,18 @@ v3d camera_reverse_rotated_v3d(v3d v) {
 	double swp;
 
 	switch (camera.rotation) {
-		case 3:
-			SWAP(v.x, v.y, swp);
-			v.y = -v.y;
-			break;
-		case 2:
-			v.x = -v.x;
-			v.y = -v.y;
-			break;
-		case 1:
-			SWAP(v.x, v.y, swp);
-			v.x = -v.x;
-			break;
+	case 3:
+		SWAP(v.x, v.y, swp);
+		v.y = -v.y;
+		break;
+	case 2:
+		v.x = -v.x;
+		v.y = -v.y;
+		break;
+	case 1:
+		SWAP(v.x, v.y, swp);
+		v.x = -v.x;
+		break;
 	}
 
 	return v;
@@ -167,18 +167,18 @@ v3i camera_rotated_v3i(v3i v) {
 	int swp;
 
 	switch (camera.rotation) {
-		case 1:
-			SWAP(v.x, v.y, swp);
-			v.y = -v.y;
-			break;
-		case 2:
-			v.x = -v.x;
-			v.y = -v.y;
-			break;
-		case 3:
-			SWAP(v.x, v.y, swp);
-			v.x = -v.x;
-			break;
+	case 1:
+		SWAP(v.x, v.y, swp);
+		v.y = -v.y;
+		break;
+	case 2:
+		v.x = -v.x;
+		v.y = -v.y;
+		break;
+	case 3:
+		SWAP(v.x, v.y, swp);
+		v.x = -v.x;
+		break;
 	}
 
 	return v;
@@ -188,18 +188,18 @@ v3i camera_reverse_rotated_v3i(v3i v) {
 	int swp;
 
 	switch (camera.rotation) {
-		case 3:
-			SWAP(v.x, v.y, swp);
-			v.y = -v.y;
-			break;
-		case 2:
-			v.x = -v.x;
-			v.y = -v.y;
-			break;
-		case 1:
-			SWAP(v.x, v.y, swp);
-			v.x = -v.x;
-			break;
+	case 3:
+		SWAP(v.x, v.y, swp);
+		v.y = -v.y;
+		break;
+	case 2:
+		v.x = -v.x;
+		v.y = -v.y;
+		break;
+	case 1:
+		SWAP(v.x, v.y, swp);
+		v.x = -v.x;
+		break;
 	}
 
 	return v;
