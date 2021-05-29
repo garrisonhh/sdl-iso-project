@@ -11,7 +11,7 @@
 struct font_t {
 	SDL_Texture *sheet;
 	v2i char_size, sheet_size;
-	int scale;
+	int scale, margin;
 };
 typedef struct font_t font_t;
 
@@ -23,7 +23,7 @@ font_t load_font(json_object *font_obj) {
 	char font_path[100] = "assets/";
 	v2i char_size, sheet_size;
 	SDL_Texture *sheet;
-	int scale = 1;
+	int scale = 1, margin = 2;
 
 	strcat(font_path, content_get_string(font_obj, "path"));
 
@@ -37,7 +37,10 @@ font_t load_font(json_object *font_obj) {
 	if (content_has_key(font_obj, "scale"))
 		scale = content_get_int(font_obj, "scale");
 
-	return (font_t){sheet, char_size, sheet_size, scale};
+	if (content_has_key(font_obj, "margin"))
+		margin = content_get_int(font_obj, "margin");
+
+	return (font_t){sheet, char_size, sheet_size, scale, margin};
 }
 
 void fonts_load() {
@@ -62,7 +65,7 @@ v2i font_char_size(font_e type) {
 }
 
 int font_line_height(font_e type) {
-	return FONTS[type].char_size.y * FONTS[type].scale;
+	return FONTS[type].char_size.y * FONTS[type].scale + FONTS[type].margin * 2;
 }
 
 void font_render(font_e type, const char *text, v2i pos) {
@@ -75,7 +78,7 @@ void font_render(font_e type, const char *text, v2i pos) {
 		FONTS[type].char_size.x, FONTS[type].char_size.y
 	};
 	SDL_Rect dst_rect = {
-		pos.x, pos.y,
+		pos.x + FONTS[type].margin, pos.y + FONTS[type].margin,
 		char_size.x, char_size.y
 	};
 
@@ -94,7 +97,10 @@ void font_render(font_e type, const char *text, v2i pos) {
 SDL_Texture *font_render_static(font_e type, const char *text) {
 	v2i char_size = font_char_size(type);
 	size_t text_len = strlen(text);
-	v2i text_size = {char_size.x * text_len, char_size.y};
+	v2i text_size = {
+		char_size.x * text_len + FONTS[type].margin * 2,
+		char_size.y + FONTS[type].margin * 2
+	};
 	v2i pos = {0, 0};
 
 	SDL_Texture *texture = SDL_CreateTexture(renderer, RENDER_FORMAT,

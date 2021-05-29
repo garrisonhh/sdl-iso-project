@@ -51,7 +51,7 @@ void app_menu_new_world() {
 
 void app_menu_init() {
 	v2i pos;
-	int line_h = font_line_height(FONT_MENU) + 6;
+	int line_h = font_line_height(FONT_MENU);
 
 	for (int i = 0; i < NUM_MENUS; ++i)
 		MENUS[i] = menu_screen_create();

@@ -6,6 +6,7 @@
 	"menu": {
 		"path": "fonts/CGA8x8thick.png",
 		"char-size": [8, 8],
-		"scale": 2
+		"scale": 2,
+		"margin": 4
 	}
 }
