@@ -79,22 +79,23 @@ void app_menu() {
 	MENU_QUIT = false;
 	SDL_Event event;
 
-	SDL_SetRenderDrawColor(renderer, 0x0F, 0x2F, 0x2F, 0xFF);
-
 	while (!MENU_QUIT) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 			case SDL_QUIT:
 				app_menu_exit();
 				break;
-			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
 				v2i pos = {event.button.x, event.button.y};
 				menu_screen_click(MENUS[MENU_STATE], pos);
 				break;
 			}
 		}
 
+		SDL_SetRenderDrawColor(renderer, 0x0F, 0x2F, 0x3F, 0xFF);
 		SDL_RenderClear(renderer);
+
+		menu_screen_tick(MENUS[MENU_STATE]);
 
 		menu_screen_render(MENUS[MENU_STATE]);
 

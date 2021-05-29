@@ -13,6 +13,8 @@ struct menu_button_t {
 typedef struct menu_button_t menu_button_t;
 
 struct menu_screen_t {
+	SDL_Point mouse_pt;
+	bool mouse_held;
 	array_t *buttons;
 };
 typedef struct menu_screen_t menu_screen_t;
@@ -25,6 +27,7 @@ void menu_screen_add_text_button(menu_screen_t *, const char *text, v2i pos, voi
 
 void menu_screen_click(menu_screen_t *, v2i pos);
 
+void menu_screen_tick(menu_screen_t *);
 void menu_screen_render(menu_screen_t *);
 
 #endif

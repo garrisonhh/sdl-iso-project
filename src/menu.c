@@ -20,6 +20,8 @@ menu_screen_t *menu_screen_create() {
 	menu_screen_t *screen = malloc(sizeof(menu_screen_t));
 
 	screen->buttons = array_create(0);
+	screen->mouse_pt = (SDL_Point){-1, -1};
+	screen->mouse_held = false;
 
 	return screen;
 }
@@ -51,11 +53,27 @@ void menu_screen_click(menu_screen_t *screen, v2i pos) {
 	}
 }
 
+void menu_screen_tick(menu_screen_t *screen) {
+	uint32_t mouse_state = SDL_GetMouseState(&screen->mouse_pt.x, &screen->mouse_pt.y);
+	screen->mouse_held = mouse_state & SDL_BUTTON(SDL_BUTTON_LEFT);
+}
+
 void menu_screen_render(menu_screen_t *screen) {
 	menu_button_t *button;
 
+
 	for (size_t i = 0; i < screen->buttons->size; ++i) {
 		button = screen->buttons->items[i];
+		
+		if (button->func != NULL && SDL_PointInRect(&screen->mouse_pt, &button->rect)) {
+			if (screen->mouse_held) {
+				SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+				SDL_RenderFillRect(renderer, &button->rect);
+			}
+
+			SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+			SDL_RenderDrawRect(renderer, &button->rect);
+		}
 
 		SDL_RenderCopy(renderer, button->texture, NULL, &button->rect);
 	}
