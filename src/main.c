@@ -87,7 +87,9 @@ int game_loop(void *arg) {
 
 		SDL_SemWait(MAIN_DONE);
 
-		gui_update(mytimer_get_fps(timer), num_packets, world);
+		GUI_DATA.fps = mytimer_get_fps(timer);
+		GUI_DATA.packets = num_packets;
+		gui_tick();
 
 		SDL_LockMutex(RENDER_INFO_LOCK);
 		RENDER_INFO = next_render_info;

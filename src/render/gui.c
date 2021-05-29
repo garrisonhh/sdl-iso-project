@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <math.h>
+#include "gui.h"
 #include "fonts.h"
 #include "textures.h"
 #include "../render.h"
@@ -23,6 +24,8 @@ v2i COMPASS_POS, COMPASS_CELL;
 #define NUM_DEBUG_LINES 10
 char DEBUG_LINES[NUM_DEBUG_LINES][64];
 
+gui_data_t GUI_DATA;
+
 // call after render_init
 void gui_init() {
 	STATIC_GUI = SDL_CreateTexture(renderer,
@@ -32,7 +35,7 @@ void gui_init() {
 	SDL_SetTextureBlendMode(STATIC_GUI, SDL_BLENDMODE_BLEND);
 
 	for (int i = 0; i < NUM_DEBUG_LINES; ++i)
-			DEBUG_LINES[i][0] = '\0';
+		DEBUG_LINES[i][0] = '\0';
 }
 
 // call after textures_load
@@ -42,10 +45,10 @@ void gui_load() {
 	COMPASS_CELL = (v2i){0, 0};
 }
 
-void gui_update(double fps, int packets, world_t *world) {
+void gui_tick() {
 	int line = 0;
 
-	sprintf(DEBUG_LINES[line++], "FPS: %3d", D_ROUND(fps));
+	sprintf(DEBUG_LINES[line++], "rendering %i packets @ %3d FPS", GUI_DATA.packets, D_ROUND(GUI_DATA.fps));
 
 	if (COMPASS_CELL.x != camera.rotation) {
 		COMPASS_CELL.x = camera.rotation;
@@ -53,9 +56,7 @@ void gui_update(double fps, int packets, world_t *world) {
 	}
 
 	v3d_sprint(DEBUG_LINES[line++], "POSITION", player_get_pos());
-	v3i_sprint(DEBUG_LINES[line++], "FACING", camera.facing);
 	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);
-	sprintf(DEBUG_LINES[line++], "PACKETS: %i", packets);
 	sprintf(DEBUG_LINES[line++], "GODMODE: %s", (GODMODE ? "on" : "off"));
 }
 
