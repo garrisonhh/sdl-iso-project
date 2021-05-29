@@ -12,7 +12,6 @@ void camera_set_rotation(int);
 // requires camera_init
 camera_t camera = {
 	.viewport = (SDL_Rect){0, 0, 0, 0},
-	.rotation = 0,
 };
 
 void camera_init() {
@@ -33,6 +32,10 @@ void camera_set_pos(v3d pos) {
 	camera.center = v2i_sub(project_v3d_absolute(camera.pos), camera.center_screen);
 }
 
+void camera_update_raycasting() {
+	camera.raycast_r = (camera.viewport.w / VOXEL_HALF_W) + 1;
+}
+
 void camera_set_scale(int scale) {
 	camera.scale = CLAMP(scale, 1, 16);
 
@@ -47,7 +50,7 @@ void camera_set_scale(int scale) {
 	camera.view_circle.loc = camera.center_screen;
 	camera.view_circle.radius = camera.viewport.w >> 2;
 
-	camera.rndr_dist = camera.viewport.w / VOXEL_WIDTH;
+	camera_update_raycasting();
 }
 
 // used for controlling with mouse wheel
@@ -71,6 +74,8 @@ void camera_set_rotation(int rotation) {
 			camera.facing.y = 1;
 			break;
 	}
+
+	camera_update_raycasting();
 }
 
 void camera_rotate(bool clockwise) {

@@ -20,7 +20,8 @@ struct camera_t {
 	// rendering
 	int rotation; // 0-3; cardinal directions
 	v3i facing;
-	int rndr_dist, block_size;
+	int raycast_r;
+	int block_size;
 };
 typedef struct camera_t camera_t;
 
@@ -28,7 +29,7 @@ extern camera_t camera;
 
 void camera_init(void);
 
-void camera_set_block_size(int); // call on init
+void camera_set_block_size(int); // call after world init
 void camera_set_pos(v3d);
 void camera_set_scale(int);
 void camera_scale(bool);

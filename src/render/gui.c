@@ -55,7 +55,6 @@ void gui_update(double fps, int packets, world_t *world) {
 	v3d_sprint(DEBUG_LINES[line++], "POSITION", player_get_pos());
 	v3i_sprint(DEBUG_LINES[line++], "FACING", camera.facing);
 	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);
-	sprintf(DEBUG_LINES[line++], "RNDR DIST: %i", camera.rndr_dist);
 	sprintf(DEBUG_LINES[line++], "PACKETS: %i", packets);
 	sprintf(DEBUG_LINES[line++], "GODMODE: %s", (GODMODE ? "on" : "off"));
 }

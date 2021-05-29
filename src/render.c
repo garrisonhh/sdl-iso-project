@@ -18,6 +18,7 @@
 #include "data_structures/list.h"
 
 const v3d CAMERA_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
+const v3i RAYCAST_ADJUST = {1, 1, 0};
 
 SDL_Renderer *renderer;
 SDL_Texture *foreground, *background;
@@ -176,28 +177,32 @@ bool render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 	return false;
 }
 
-void render_info_voxel_raycast(array_t *packets, world_t *world, v3i center, int min_z) {
-	v3i loc, offset;
-	int x_start;
+void render_info_single_ray(array_t *packets, world_t *world, v3i loc, int min_z) {
+	// TODO check loc exiting world bounds
+	while (loc.z >= min_z && !render_info_add_packets_at(packets, world, loc))
+		loc = v3i_add(loc, camera.facing);
+}
 
+void render_info_voxel_raycast(array_t *packets, world_t *world, v3i center, int max_z, int min_z) {
+	v3i offset;
+	int w;
+
+	// TODO this iteration sucks. redo it, I am tired and not thinking
 	offset = (v3i){0, 0, 0};
+	center = v3i_sub(center, v3i_scalei(camera.facing, max_z - center.z));
 
-	for (offset.y = -camera.rndr_dist; offset.y <= camera.rndr_dist; ++offset.y) {
-		x_start = camera.rndr_dist - abs(offset.y);
+	// center = v3i_add(center, camera_rotated_v3i(v3i_scalei(RAYCAST_ADJUST, (VOXEL_Z_HEIGHT * (max_z - center_z)) / VOXEL_WIDTH)));
+	for (offset.y = -camera.raycast_r; offset.y <= camera.raycast_r; ++offset.y) {
+		w = camera.raycast_r - abs(offset.y);
 
-		for (offset.x = -x_start; offset.x <= x_start; ++offset.x) {
-			loc = v3i_add(center, offset);
-
-			// voxel raycast from start location
-			while (loc.z >= min_z && !render_info_add_packets_at(packets, world, loc))
-				loc = v3i_add(loc, camera.facing);
-		}
+		for (offset.x = -w; offset.x <= w; ++offset.x)
+			render_info_single_ray(packets, world, v3i_add(center, offset), min_z);
 	}
 }
 
 render_info_t *render_gen_info(world_t *world) {
 	ray_t cam_ray;
-	v3i loc, center, cam_loc;
+	v3i loc;
 	render_info_t *info;
 
 	info = malloc(sizeof(render_info_t));
@@ -210,26 +215,25 @@ render_info_t *render_gen_info(world_t *world) {
 	};
 	cam_ray.pos.z += 0.5;
 
-	info->cam_hit = raycast_to_block(world, cam_ray, raycast_block_exists, &loc, NULL);
+	info->cam_hit = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
 	info->cam_viewport = camera.viewport;
 
 	// packets
 	info->bg_packets = array_create(256);
 
-	cam_loc = v3i_from_v3d(camera.pos);
-	center = v3i_sub(cam_loc, v3i_scale(camera.facing, world->block_size - cam_loc.z - 1));
+	loc = v3i_from_v3d(camera.pos);
 
 	if (info->cam_hit) {
-		info->z_split = cam_loc.z;
+		info->z_split = (int)camera.pos.z;
 		info->fg_packets = array_create(256);
 
-		render_info_voxel_raycast(info->fg_packets, world, center, info->z_split);
-		render_info_voxel_raycast(info->bg_packets, world, cam_loc, 0);
+		render_info_voxel_raycast(info->fg_packets, world, loc, world->block_size - 1, info->z_split);
+		render_info_voxel_raycast(info->bg_packets, world, loc, info->z_split, 0);
 	} else {
 		info->z_split = -1;
 		info->fg_packets = NULL;
 
-		render_info_voxel_raycast(info->bg_packets, world, center, 0);
+		render_info_voxel_raycast(info->bg_packets, world, loc, world->block_size - 1, 0);
 	}
 
 	render_info_add_shadows(info, world);

@@ -248,7 +248,7 @@ void world_generate(world_t *world) {
 	if (0) { // debug world
 		size_t grass = block_gen_get_id("grass");
 		v3i loc;
-		//*
+		/*
 		noise3_t *noise;
 		double v, scale;
 
@@ -265,6 +265,14 @@ void world_generate(world_t *world) {
 		}
 
 		noise3_destroy(noise);
+		*/
+
+		loc = (v3i){0, 0, 0};
+
+		FOR_XY(loc.y, loc.x, world->block_size, world->block_size) {
+			v3i_print(NULL, loc);
+			world_set_no_update(world, loc, grass);
+		}
 	} else {
 		v3i loc;
 		double noise_val;
