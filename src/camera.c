@@ -20,6 +20,7 @@ void camera_init() {
 	float screen_h = (float)SCREEN_HEIGHT / (float)VOXEL_HALF_W;
 
 	camera.vray_ratio = screen_w / (screen_w + screen_h);
+	camera.vray_ratio *= 0.95;
 
 	camera.view_circle.radius = SCREEN_HEIGHT >> 2;
 	camera_set_scale(2);

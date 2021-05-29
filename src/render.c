@@ -18,7 +18,7 @@
 #include "data_structures/list.h"
 
 const v3d CAMERA_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
-const v3i RAYCAST_ADJUST = {1, 1, 0};
+const int VRAY_Z_PER_BLOCK = (VOXEL_WIDTH >> 1) / (VOXEL_Z_HEIGHT - (VOXEL_WIDTH >> 1));
 
 SDL_Renderer *renderer;
 SDL_Texture *foreground, *background;
@@ -134,8 +134,7 @@ void render_info_add_block(array_t *packets, block_t *block, v3i loc) {
 		array_push(packets, packet);
 }
 
-// returns whether to stop voxel raycast
-bool render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
+void render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 	double block_y;
 	block_t *block;
 	list_t *bucket;
@@ -167,29 +166,42 @@ bool render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 				LIST_FOREACH(bucket_trav, bucket)
 					entity_add_render_packets(packets, bucket_trav->item);
 		}
-
-		return !block->texture->transparent;
 	} else if (bucket != NULL) {
 		LIST_FOREACH(bucket_trav, bucket)
 			entity_add_render_packets(packets, bucket_trav->item);
 	}
-
-	return false;
 }
 
 void render_info_single_ray(array_t *packets, world_t *world, v3i loc, int min_z) {
 	// TODO check loc exiting world bounds
-	while (loc.z >= min_z && !render_info_add_packets_at(packets, world, loc))
+	int i = 0;
+
+	while (loc.z >= min_z) {
+		render_info_add_packets_at(packets, world, loc);
 		loc = v3i_add(loc, camera.facing);
+
+		// z offset
+		if (i++ == VRAY_Z_PER_BLOCK) {
+			loc.x += camera.facing.x;
+			loc.y += camera.facing.y;
+			i = 0;
+		}
+	}
 }
 
 void render_info_voxel_raycast(array_t *packets, world_t *world, v3i center, int max_z, int min_z) {
 	v3i offset;
 	int col_start, col_end;
 	int i, j;
+	int center_z_offset;
 
 	offset = (v3i){0, 0, 0};
-	center = v3i_sub(center, v3i_scalei(camera.facing, max_z - center.z));
+
+	center_z_offset = max_z - center.z;
+	center = v3i_sub(center, v3i_scalei(camera.facing, center_z_offset));
+
+	center.x -= camera.facing.x * (center_z_offset / VRAY_Z_PER_BLOCK);
+	center.y -= camera.facing.y * (center_z_offset / VRAY_Z_PER_BLOCK);
 
 	for (i = 0; i <= camera.vray_size; ++i) {
 		col_start = abs(i - camera.vray_start);
