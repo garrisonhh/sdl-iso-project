@@ -45,7 +45,7 @@ int game_loop(void *arg) {
 				switch (event.key.keysym.sym) {
 				case SDLK_ESCAPE:
 					QUIT = true;
-					APP_STATE = APP_MAIN_MENU;
+					APP_STATE = APP_MENU;
 					break;
 				case SDLK_e:
 					camera_rotate(true);

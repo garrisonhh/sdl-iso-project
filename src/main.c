@@ -64,16 +64,20 @@ void init() {
 
 	gui_load();
 
+	app_menu_init();
+
 	// draw loading text
 	SDL_RenderPresent(renderer);
 	v2i loading_pos = {0, 0};
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(renderer);
-	font_render_text(FONT_UI, "loading...", loading_pos);
+	font_render(FONT_UI, "loading...", loading_pos);
 	SDL_RenderPresent(renderer);
 }
 
 void quit_all() {
+	app_menu_quit();
+
 	textures_destroy();
 	sprites_destroy();
 	block_gen_destroy();

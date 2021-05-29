@@ -2,18 +2,32 @@
 #include <stdbool.h>
 #include "app.h"
 #include "game.h"
+#include "menu.h"
 #include "render.h"
 #include "render/fonts.h"
+#include "data_structures/array.h"
 
-app_state_e APP_STATE = APP_MAIN_MENU;
+enum menu_state_e {
+	MENU_MAIN = 0,
+};
+typedef enum menu_state_e menu_state_e;
 
-void app_main_menu(void);
+app_state_e APP_STATE = APP_MENU;
+menu_state_e MENU_STATE;
+
+// corresponds to menu_state_e
+#define NUM_MENUS 1
+menu_screen_t *MENUS[NUM_MENUS];
+
+bool MENU_QUIT;
+
+void app_menu(void);
 
 void app_run() {
 	while (APP_STATE != APP_EXIT) {
 		switch (APP_STATE) {
-		case APP_MAIN_MENU:
-			app_main_menu();
+		case APP_MENU:
+			app_menu();
 			break;
 		case APP_GAME:
 			game_main();
@@ -24,78 +38,65 @@ void app_run() {
 	}
 }
 
-void app_main_menu() {
-	bool QUIT = false;
+// menu stuff
+void app_menu_exit() {
+	APP_STATE = APP_EXIT;
+	MENU_QUIT = true;
+}
+
+void app_menu_new_world() {
+	APP_STATE = APP_GAME;
+	MENU_QUIT = true;
+}
+
+void app_menu_init() {
+	v2i pos;
+	int line_h = font_line_height(FONT_MENU) + 6;
+
+	for (int i = 0; i < NUM_MENUS; ++i)
+		MENUS[i] = menu_screen_create();
+
+	// main menu
+	pos = (v2i){20, 20};
+	menu_screen_add_text_button(MENUS[MENU_MAIN], "untitled", pos, NULL);
+
+	pos.y += line_h * 2;
+	menu_screen_add_text_button(MENUS[MENU_MAIN], "new world", pos, app_menu_new_world);
+
+	pos.y += line_h;
+	menu_screen_add_text_button(MENUS[MENU_MAIN], "exit", pos, app_menu_exit);
+}
+
+void app_menu_quit() {
+	for (int i = 0; i < NUM_MENUS; ++i)
+		menu_screen_destroy(MENUS[i]);
+}
+
+void app_menu() {
+	MENU_STATE = MENU_MAIN;
+
+	// menu loop
+	MENU_QUIT = false;
 	SDL_Event event;
 
-	const int num_options = 2;
-	const char *options[] = {
-		"new world",
-		"exit"
-	};
-	v2i pos;
-	int choice = 0;
+	SDL_SetRenderDrawColor(renderer, 0x0F, 0x2F, 0x2F, 0xFF);
 
-	const int line_height = font_line_height(FONT_MENU) + 4;
-	const v2i char_size = font_char_size(FONT_MENU);
-
-	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-
-	while (!QUIT) {
+	while (!MENU_QUIT) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 			case SDL_QUIT:
-				QUIT = true;
-				APP_STATE = APP_EXIT;
+				app_menu_exit();
 				break;
-			case SDL_KEYDOWN:
-				switch (event.key.keysym.sym) {
-				case SDLK_ESCAPE:
-					QUIT = true;
-					APP_STATE = APP_EXIT;
-					break;
-				case SDLK_w:
-				case SDLK_UP:
-					choice = (choice - 1 + num_options) % num_options;
-					break;
-				case SDLK_s:
-				case SDLK_DOWN:
-					choice = (choice + 1) % num_options;
-					break;
-				case SDLK_RETURN:
-					switch (choice) {
-					case 0:
-						QUIT = true;
-						APP_STATE = APP_GAME;
-						break;
-					case 1:
-						QUIT = true;
-						APP_STATE = APP_EXIT;
-						break;
-						}
-						break;
-					}
-					break;
+			case SDL_MOUSEBUTTONDOWN:
+				v2i pos = {event.button.x, event.button.y};
+				menu_screen_click(MENUS[MENU_STATE], pos);
+				break;
 			}
 		}
 
 		SDL_RenderClear(renderer);
 
-		// TODO render static text for this
-		pos = char_size;
-		font_render_text(FONT_MENU, "untitled", pos);
-
-		pos	= (v2i){3 * char_size.x, 3 * line_height};
-
-		for (int i = 0; i < num_options; ++i) {
-			font_render_text(FONT_MENU, options[i], pos);
-			pos.y += line_height;
-		}
-
-		pos.x = char_size.x;
-		pos.y = (3 + choice) * line_height;
-
-		font_render_text(FONT_MENU, ">", pos);
+		menu_screen_render(MENUS[MENU_STATE]);
 
 		SDL_RenderPresent(renderer);
 	}
