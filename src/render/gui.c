@@ -79,7 +79,7 @@ void gui_render() {
 		v2i line_start = {0, 0};
 
 		for (int i = 0; i < NUM_DEBUG_LINES; ++i) {
-			font_render_text(FONT_UI, DEBUG_LINES[i], line_start);
+			font_render(FONT_UI, DEBUG_LINES[i], line_start);
 
 			line_start.y += font_line_height(FONT_UI);
 		}

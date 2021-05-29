@@ -15,6 +15,7 @@ void fonts_load(void);
 v2i font_char_size(font_e type);
 int font_line_height(font_e type);
 
-void font_render_text(font_e type, const char *text, v2i pos);
+void font_render(font_e type, const char *text, v2i pos);
+SDL_Texture *font_render_static(font_e type, const char *text);
 
 #endif

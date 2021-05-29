@@ -65,9 +65,7 @@ int font_line_height(font_e type) {
 	return FONTS[type].char_size.y * FONTS[type].scale;
 }
 
-// TODO static text rendering (generate a new texture)
-
-void font_render_text(font_e type, const char *text, v2i pos) {
+void font_render(font_e type, const char *text, v2i pos) {
 	div_t divided;
 	size_t i = 0;
 	v2i char_size = font_char_size(type);
@@ -91,4 +89,26 @@ void font_render_text(font_e type, const char *text, v2i pos) {
 
 		dst_rect.x += char_size.x;
 	}
+}
+
+SDL_Texture *font_render_static(font_e type, const char *text) {
+	v2i char_size = font_char_size(type);
+	size_t text_len = strlen(text);
+	v2i text_size = {char_size.x * text_len, char_size.y};
+	v2i pos = {0, 0};
+
+	SDL_Texture *texture = SDL_CreateTexture(renderer, RENDER_FORMAT,
+											 SDL_TEXTUREACCESS_TARGET,
+											 text_size.x, text_size.y);
+	SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+
+	SDL_SetRenderTarget(renderer, texture);
+	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
+	SDL_RenderClear(renderer);
+
+	font_render(type, text, pos);
+
+	SDL_SetRenderTarget(renderer, NULL);
+
+	return texture;
 }
