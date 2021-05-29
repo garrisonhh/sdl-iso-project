@@ -1,6 +1,7 @@
 #ifndef FONTS_H
 #define FONTS_H
 
+#include <SDL2/SDL.h>
 #include "../vector.h"
 
 enum font_e {

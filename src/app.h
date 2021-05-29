@@ -2,9 +2,9 @@
 #define APP_H
 
 enum app_state_e {
-	APP_EXIT = 0,
-	APP_MAIN = 1,
-	APP_GAME = 2,
+	APP_EXIT,
+	APP_MAIN_MENU,
+	APP_GAME,
 };
 typedef enum app_state_e app_state_e;
 
