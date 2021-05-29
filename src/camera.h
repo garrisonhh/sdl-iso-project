@@ -20,8 +20,11 @@ struct camera_t {
 	// rendering
 	int rotation; // 0-3; cardinal directions
 	v3i facing;
-	int raycast_r;
 	int block_size;
+	
+	// voxel raycast
+	float vray_ratio;
+	int vray_size, vray_middle, vray_start;
 };
 typedef struct camera_t camera_t;
 

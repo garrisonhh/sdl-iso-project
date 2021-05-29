@@ -185,18 +185,22 @@ void render_info_single_ray(array_t *packets, world_t *world, v3i loc, int min_z
 
 void render_info_voxel_raycast(array_t *packets, world_t *world, v3i center, int max_z, int min_z) {
 	v3i offset;
-	int w;
+	int col_start, col_end;
+	int i, j;
 
-	// TODO this iteration sucks. redo it, I am tired and not thinking
 	offset = (v3i){0, 0, 0};
 	center = v3i_sub(center, v3i_scalei(camera.facing, max_z - center.z));
 
-	// center = v3i_add(center, camera_rotated_v3i(v3i_scalei(RAYCAST_ADJUST, (VOXEL_Z_HEIGHT * (max_z - center_z)) / VOXEL_WIDTH)));
-	for (offset.y = -camera.raycast_r; offset.y <= camera.raycast_r; ++offset.y) {
-		w = camera.raycast_r - abs(offset.y);
+	for (i = 0; i <= camera.vray_size; ++i) {
+		col_start = abs(i - camera.vray_start);
+		col_end = camera.vray_size - abs((camera.vray_size - i) - camera.vray_start);
 
-		for (offset.x = -w; offset.x <= w; ++offset.x)
-			render_info_single_ray(packets, world, v3i_add(center, offset), min_z);
+		for (j = col_start; j <= col_end; ++j) {
+			offset.x = i - camera.vray_middle;
+			offset.y = j - camera.vray_middle;
+
+			render_info_single_ray(packets, world, v3i_add(offset, center), min_z);
+		}
 	}
 }
 

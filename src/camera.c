@@ -16,6 +16,10 @@ camera_t camera = {
 
 void camera_init() {
 	v3d pos = (v3d){0, 0, 0};
+	float screen_w = (float)SCREEN_WIDTH / (float)VOXEL_WIDTH;
+	float screen_h = (float)SCREEN_HEIGHT / (float)VOXEL_HALF_W;
+
+	camera.vray_ratio = screen_w / (screen_w + screen_h);
 
 	camera.view_circle.radius = SCREEN_HEIGHT >> 2;
 	camera_set_scale(2);
@@ -33,7 +37,14 @@ void camera_set_pos(v3d pos) {
 }
 
 void camera_update_raycasting() {
-	camera.raycast_r = (camera.viewport.w / VOXEL_HALF_W) + 1;
+	camera.vray_size = ((float)camera.viewport.w / (float)VOXEL_WIDTH) * (1.0 / camera.vray_ratio);
+	camera.vray_size += 4; // buffer
+
+	camera.vray_middle = camera.vray_size >> 1;
+	camera.vray_start = (float)camera.vray_size * camera.vray_ratio;
+
+	if (camera.rotation & 1)
+		camera.vray_start = camera.vray_size - camera.vray_start;
 }
 
 void camera_set_scale(int scale) {
