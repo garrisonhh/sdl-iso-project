@@ -6,19 +6,15 @@
 
 enum font_e {
 	FONT_UI = 0,
+	FONT_MENU = 1,
 };
 typedef enum font_e font_e;
 
-struct font_t {
-	SDL_Texture *sheet;
-	v2i char_size, sheet_size;
-};
-typedef struct font_t font_t;
-
-extern font_t FONTS[1]; // corresponds to font_e members
-
 void fonts_load(void);
 
-void fonts_render_text(font_e type, const char *text, v2i pos);
+v2i font_char_size(font_e type);
+int font_line_height(font_e type);
+
+void font_render_text(font_e type, const char *text, v2i pos);
 
 #endif

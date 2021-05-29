@@ -30,11 +30,14 @@ void app_main_menu() {
 
 	const int num_options = 2;
 	const char *options[] = {
-		"start",
+		"new world",
 		"exit"
 	};
 	v2i pos;
 	int choice = 0;
+
+	const int line_height = font_line_height(FONT_MENU) + 4;
+	const v2i char_size = font_char_size(FONT_MENU);
 
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
 
@@ -47,10 +50,16 @@ void app_main_menu() {
 				break;
 			case SDL_KEYDOWN:
 				switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE:
+					QUIT = true;
+					APP_STATE = APP_EXIT;
+					break;
 				case SDLK_w:
+				case SDLK_UP:
 					choice = (choice - 1 + num_options) % num_options;
 					break;
 				case SDLK_s:
+				case SDLK_DOWN:
 					choice = (choice + 1) % num_options;
 					break;
 				case SDLK_RETURN:
@@ -73,23 +82,20 @@ void app_main_menu() {
 		SDL_RenderClear(renderer);
 
 		// TODO render static text for this
-		pos = (v2i){0, 0};
-		fonts_render_text(FONT_UI, "untitled", pos);
+		pos = char_size;
+		font_render_text(FONT_MENU, "untitled", pos);
 
-		pos	= (v2i){
-			2 * FONTS[FONT_UI].char_size.x,
-			2 * FONTS[FONT_UI].char_size.y
-		};
+		pos	= (v2i){3 * char_size.x, 3 * line_height};
 
 		for (int i = 0; i < num_options; ++i) {
-			fonts_render_text(FONT_UI, options[i], pos);
-			pos.y += FONTS[FONT_UI].char_size.y;
+			font_render_text(FONT_MENU, options[i], pos);
+			pos.y += line_height;
 		}
 
-		pos.x = 0;
-		pos.y = (2 + choice) * FONTS[FONT_UI].char_size.y;
+		pos.x = char_size.x;
+		pos.y = (3 + choice) * line_height;
 
-		fonts_render_text(FONT_UI, ">", pos);
+		font_render_text(FONT_MENU, ">", pos);
 
 		SDL_RenderPresent(renderer);
 	}

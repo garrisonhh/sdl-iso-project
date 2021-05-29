@@ -69,7 +69,7 @@ void init() {
 	v2i loading_pos = {0, 0};
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(renderer);
-	fonts_render_text(FONT_UI, "loading...", loading_pos);
+	font_render_text(FONT_UI, "loading...", loading_pos);
 	SDL_RenderPresent(renderer);
 }
 

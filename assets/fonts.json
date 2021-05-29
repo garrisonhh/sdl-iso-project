@@ -2,5 +2,10 @@
 	"ui": {
 		"path": "fonts/CGA8x8thick.png",
 		"char-size": [8, 8]
+	},
+	"menu": {
+		"path": "fonts/CGA8x8thick.png",
+		"char-size": [8, 8],
+		"scale": 2
 	}
 }

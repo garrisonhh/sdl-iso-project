@@ -8,12 +8,22 @@
 #include "../textures.h"
 #include "../vector.h"
 
-font_t FONTS[1]; // corresponds to font_e
+struct font_t {
+	SDL_Texture *sheet;
+	v2i char_size, sheet_size;
+	int scale;
+};
+typedef struct font_t font_t;
+
+// corresponds to font_e
+#define NUM_FONTS 2
+font_t FONTS[NUM_FONTS];
 
 font_t load_font(json_object *font_obj) {
 	char font_path[100] = "assets/";
 	v2i char_size, sheet_size;
 	SDL_Texture *sheet;
+	int scale = 1;
 
 	strcat(font_path, content_get_string(font_obj, "path"));
 
@@ -24,34 +34,51 @@ font_t load_font(json_object *font_obj) {
 
 	sheet_size = v2i_div(sheet_size, char_size);
 
-	return (font_t){sheet, char_size, sheet_size};
+	if (content_has_key(font_obj, "scale"))
+		scale = content_get_int(font_obj, "scale");
+
+	return (font_t){sheet, char_size, sheet_size, scale};
 }
 
 void fonts_load() {
 	json_object *file_obj = content_load_file("assets/fonts.json");
 
-	FONTS[FONT_UI] = load_font(content_get_obj(file_obj, "ui"));
+	const char *font_names[NUM_FONTS] = {
+		"ui",
+		"menu"
+	};
+
+	for (int i = 0; i < NUM_FONTS; ++i)
+		FONTS[i] = load_font(content_get_obj(file_obj, font_names[i]));
 
 	content_close_file(file_obj);
 }
 
+v2i font_char_size(font_e type) {
+	return (v2i){
+		FONTS[type].char_size.x * FONTS[type].scale,
+		FONTS[type].char_size.y * FONTS[type].scale,
+	};
+}
+
+int font_line_height(font_e type) {
+	return FONTS[type].char_size.y * FONTS[type].scale;
+}
+
 // TODO static text rendering (generate a new texture)
 
-void fonts_render_text(font_e type, const char *text, v2i pos) {
+void font_render_text(font_e type, const char *text, v2i pos) {
 	div_t divided;
 	size_t i = 0;
+	v2i char_size = font_char_size(type);
 
 	SDL_Rect src_rect = {
-		0,
-		0,
-		FONTS[type].char_size.x,
-		FONTS[type].char_size.y
+		0, 0,
+		FONTS[type].char_size.x, FONTS[type].char_size.y
 	};
 	SDL_Rect dst_rect = {
-		pos.x,
-		pos.y,
-		FONTS[type].char_size.x,
-		FONTS[type].char_size.y
+		pos.x, pos.y,
+		char_size.x, char_size.y
 	};
 
 	while (text[i]) {
@@ -62,6 +89,6 @@ void fonts_render_text(font_e type, const char *text, v2i pos) {
 
 		SDL_RenderCopy(renderer, FONTS[type].sheet, &src_rect, &dst_rect);
 
-		dst_rect.x += FONTS[type].char_size.x;
+		dst_rect.x += char_size.x;
 	}
 }
