@@ -9,13 +9,13 @@
 			"name": "dirt",
 			"path": "blocks/dirt.png",
 			"type": "voxel",
-			"connected-tags": ["tree_trunk"]
+			"connected-tags": ["tree"]
 		},
 		{
 			"name": "grass",
 			"path": "blocks/grass.png",
 			"type": "voxel",
-			"connected-tags": ["tree_trunk"]
+			"connected-tags": ["tree"]
 		},
 		{
 			"name": "stone",
@@ -23,13 +23,6 @@
 			"type": "voxel"
 		},
 
-		{
-			"name": "leaves",
-			"path": "blocks/leaves.png",
-			"type": "texture",
-			"transparent": false,
-			"connected-tags": ["tree_trunk"]
-		},
 		{
 			"name": "bush",
 			"path": "blocks/bush.png",
@@ -42,7 +35,14 @@
 			"path": "blocks/tree_trunk.png",
 			"type": "connected",
 			"transparent": true,
-			"connected-tags": ["tree_trunk"]
+			"connected-tags": ["tree"]
+		},
+		{
+			"name": "leaves",
+			"path": "blocks/leaves.png",
+			"type": "connected",
+			"transparent": false,
+			"connected-tags": ["tree"]
 		},
 
 		{

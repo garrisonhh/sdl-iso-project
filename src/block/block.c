@@ -67,7 +67,11 @@ void block_add_render_info(array_t *packets, block_t *block, v3i loc) {
 	} else if (!block->texture->transparent) {
 		if (block->expose_mask) {
 			packet = render_texture_packet_create(loc, block_project(loc), block->texture);
-			packet->texture.state.tex = block->tex_state;
+
+			if (block->texture->type == TEX_CONNECTED)
+				packet->texture.state.connected_mask = world_connected_mask(block);
+			else
+				packet->texture.state.tex = block->tex_state;
 		} else {
 			packet = render_texture_packet_create(loc, block_project(loc), DARK_VOXEL_TEXTURE);
 			packet->texture.state.voxel_masks = world_voxel_masks(block, loc);
