@@ -9,7 +9,7 @@
 #include "block/block.h"
 #include "block/blocks.h"
 #include "entity.h"
-#include "noise.h"
+#include "procgen/noise.h"
 #include "player.h"
 #include "textures.h"
 #include "utils.h"
