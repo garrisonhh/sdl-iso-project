@@ -2,8 +2,8 @@
 #include <json-c/json.h>
 #include <stdbool.h>
 #include "textures.h"
-#include "data_structures/array.h"
-#include "vector.h"
+#include "lib/array.h"
+#include "lib/vector.h"
 #include "collision.h"
 
 json_object *content_load_file(const char *file_path) {

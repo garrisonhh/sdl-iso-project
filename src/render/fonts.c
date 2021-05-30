@@ -6,7 +6,7 @@
 #include "../render.h"
 #include "../content.h"
 #include "../textures.h"
-#include "../vector.h"
+#include "../lib/vector.h"
 
 struct font_t {
 	SDL_Texture *sheet;

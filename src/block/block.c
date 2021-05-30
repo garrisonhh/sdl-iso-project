@@ -2,7 +2,7 @@
 #include "block.h"
 #include "blocks.h"
 #include "plant.h"
-#include "../vector.h"
+#include "../lib/vector.h"
 #include "../world.h"
 
 block_t *block_create(size_t block_id) {

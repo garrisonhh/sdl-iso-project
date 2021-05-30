@@ -3,8 +3,8 @@
 
 #include <SDL2/SDL.h>
 #include <json-c/json.h>
-#include "vector.h"
-#include "data_structures/array.h"
+#include "lib/vector.h"
+#include "lib/array.h"
 
 // also modify textures_load when modifying this enum
 enum texture_type_e {

@@ -2,7 +2,7 @@
 #define RENDER_PACKET_H
 
 #include "primitives.h"
-#include "../vector.h"
+#include "../lib/vector.h"
 #include "../textures.h"
 #include "../world/masks.h"
 #include "../sprites.h"

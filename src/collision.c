@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "collision.h"
-#include "vector.h"
-#include "utils.h"
+#include "lib/vector.h"
+#include "lib/utils.h"
 
 bool collides(double a, double b, double x) {
 	return (a < x) && (x < b);

@@ -3,12 +3,12 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "vector.h"
+#include "lib/vector.h"
 #include "entity.h"
 #include "block/block.h"
-#include "data_structures/array.h"
-#include "data_structures/list.h"
-#include "data_structures/hashmap.h"
+#include "lib/array.h"
+#include "lib/list.h"
+#include "lib/hashmap.h"
 #include "pathing.h"
 
 #define CHUNK_SIZE 4096 // 0x000 -> 0xFFF

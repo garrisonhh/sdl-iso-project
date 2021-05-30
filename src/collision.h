@@ -2,7 +2,7 @@
 #define COLLISION_H
 
 #include <stdbool.h>
-#include "vector.h"
+#include "lib/vector.h"
 
 struct bbox_t {
 	v3d pos;

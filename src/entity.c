@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "entity.h"
-#include "vector.h"
+#include "lib/vector.h"
 #include "world.h"
 #include "block/blocks.h"
 #include "block/collision.h"
 #include "camera.h"
-#include "utils.h"
+#include "lib/utils.h"
 #include "render.h"
 
 void entity_update_directions(entity_t *);

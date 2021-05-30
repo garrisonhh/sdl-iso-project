@@ -5,7 +5,7 @@
 #include "menu.h"
 #include "render.h"
 #include "render/fonts.h"
-#include "data_structures/array.h"
+#include "lib/array.h"
 
 enum menu_state_e {
 	MENU_MAIN = 0,

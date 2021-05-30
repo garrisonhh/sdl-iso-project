@@ -1,6 +1,6 @@
 #include "animation.h"
 #include "entity.h"
-#include "utils.h"
+#include "lib/utils.h"
 #include "camera.h"
 
 void anim_human_body(entity_t *, animation_t *);

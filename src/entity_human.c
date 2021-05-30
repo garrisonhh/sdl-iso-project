@@ -1,7 +1,7 @@
 #include "entity_human.h"
 #include "entity.h"
 #include "animation.h"
-#include "utils.h"
+#include "lib/utils.h"
 
 human_t *human_create() {
 	human_t *human = malloc(sizeof(human_t));

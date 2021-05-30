@@ -3,7 +3,7 @@
 
 #include "sprites.h"
 #include "animation.h"
-#include "data_structures/array.h"
+#include "lib/array.h"
 
 #define HUMAN_WALK_VELOCITY 5.0
 #define HUMAN_JUMP_VELOCITY 7.5

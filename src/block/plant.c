@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "plant.h"
-#include "../utils.h"
+#include "../lib/utils.h"
 
 void plant_tick(plant_t *plant, double time) {
 	if (!d_close(plant->growth, plant->fullgrown)) {

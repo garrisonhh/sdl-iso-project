@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "app.h"
 #include "game.h"
-#include "vector.h"
+#include "lib/vector.h"
 #include "render.h"
 #include "render/gui.h"
 #include "render/fonts.h"

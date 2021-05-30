@@ -12,9 +12,9 @@
 #include "procgen/noise.h"
 #include "player.h"
 #include "textures.h"
-#include "utils.h"
-#include "data_structures/array.h"
-#include "data_structures/list.h"
+#include "lib/utils.h"
+#include "lib/array.h"
+#include "lib/list.h"
 #include "pathing.h"
 
 chunk_t *chunk_create() {

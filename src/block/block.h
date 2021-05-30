@@ -2,7 +2,7 @@
 #define BLOCK_H
 
 #include <stdlib.h>
-#include "../vector.h"
+#include "../lib/vector.h"
 #include "../textures.h"
 #include "collision.h"
 #include "plant.h"

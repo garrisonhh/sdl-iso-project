@@ -3,7 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <stdbool.h>
-#include "data_structures/array.h"
+#include "lib/array.h"
 #include "render/packet.h"
 
 #define RENDER_FORMAT SDL_PIXELFORMAT_RGBA8888

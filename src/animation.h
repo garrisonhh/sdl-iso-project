@@ -2,7 +2,7 @@
 #define ANIMATION_H
 
 #include <stdbool.h>
-#include "vector.h"
+#include "lib/vector.h"
 #include "sprites.h"
 
 #define ANIMATION_FPS 12.0

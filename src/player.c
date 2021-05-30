@@ -3,9 +3,9 @@
 #include "entity.h"
 #include "entity_human.h"
 #include "world.h"
-#include "vector.h"
+#include "lib/vector.h"
 #include "camera.h"
-#include "utils.h"
+#include "lib/utils.h"
 
 const double SIN_PI_6 = sin(M_PI / 6);
 

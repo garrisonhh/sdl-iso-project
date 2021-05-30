@@ -3,12 +3,12 @@
 #include <json-c/json.h>
 #include <stdlib.h>
 #include <string.h>
-#include "vector.h"
+#include "lib/vector.h"
 #include "content.h"
 #include "render.h"
 #include "textures.h"
 #include "render/textures.h"
-#include "data_structures/hashmap.h"
+#include "lib/hashmap.h"
 
 const SDL_Rect VOXEL_TOP_RECT = {
 	0,

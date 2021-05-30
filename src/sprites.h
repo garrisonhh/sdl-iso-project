@@ -2,7 +2,7 @@
 #define SPRITES_H
 
 #include <SDL2/SDL.h>
-#include "vector.h"
+#include "lib/vector.h"
 
 // also modify textures_load when modifying this enum
 // sprite types define the mapping of animation sheets; how they are ticked

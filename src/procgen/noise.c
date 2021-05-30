@@ -1,8 +1,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "noise.h"
-#include "vector.h"
-#include "utils.h"
+#include "../lib/utils.h"
 
 const v2d RANDOM_VECTORS2[4] = {
 	(v2d){ 1,  1},

@@ -2,7 +2,7 @@
 #define FONTS_H
 
 #include <SDL2/SDL.h>
-#include "../vector.h"
+#include "../lib/vector.h"
 
 enum font_e {
 	FONT_UI = 0,

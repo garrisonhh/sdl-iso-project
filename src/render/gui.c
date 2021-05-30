@@ -9,7 +9,7 @@
 #include "../player.h"
 #include "../sprites.h"
 #include "../world.h"
-#include "../utils.h"
+#include "../lib/utils.h"
 
 const int GUI_WIDTH = SCREEN_WIDTH >> 2;
 const int GUI_HEIGHT = SCREEN_HEIGHT >> 2;

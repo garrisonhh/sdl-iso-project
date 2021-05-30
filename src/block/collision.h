@@ -2,8 +2,8 @@
 #define BLOCK_COLLISION_H
 
 #include "../collision.h"
-#include "../vector.h"
-#include "../data_structures/array.h"
+#include "../lib/vector.h"
+#include "../lib/array.h"
 
 enum block_coll_e {
 	BLOCK_COLL_NONE,		// block does not collide

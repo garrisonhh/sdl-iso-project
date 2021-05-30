@@ -3,13 +3,13 @@
 #include <stdbool.h>
 #include <math.h>
 #include "pathing.h"
-#include "vector.h"
-#include "data_structures/hashmap.h"
-#include "data_structures/list.h"
-#include "data_structures/heap.h"
+#include "lib/vector.h"
+#include "lib/hashmap.h"
+#include "lib/list.h"
+#include "lib/heap.h"
 #include "world.h"
 #include "block/block.h"
-#include "utils.h"
+#include "lib/utils.h"
 
 const double SQRT_2 = sqrt(2);
 

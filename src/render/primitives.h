@@ -1,7 +1,7 @@
 #ifndef RENDER_PRIMITIVES_H
 #define RENDER_PRIMITIVES_H
 
-#include "../vector.h"
+#include "../lib/vector.h"
 
 struct circle_t {
 	v2i loc;

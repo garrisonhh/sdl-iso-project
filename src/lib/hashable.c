@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hashable.h"
-#include "../vector.h"
+#include "../lib/vector.h"
 
 hash_t hash_unsigned(const void *u_num) {
 	hash_t hash = *(unsigned *)u_num;

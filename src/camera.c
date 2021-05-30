@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include "camera.h"
-#include "vector.h"
-#include "utils.h"
+#include "lib/vector.h"
+#include "lib/utils.h"
 
 const int VOXEL_HALF_W = VOXEL_WIDTH >> 1;
 const int VOXEL_4TH_W = VOXEL_WIDTH >> 2;

@@ -2,7 +2,7 @@
 #include "sprites.h"
 #include "content.h"
 #include "textures.h"
-#include "data_structures/hashmap.h"
+#include "lib/hashmap.h"
 
 sprite_t **SPRITES = NULL;
 size_t NUM_SPRITES;

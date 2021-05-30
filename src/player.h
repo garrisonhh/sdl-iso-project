@@ -1,7 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "vector.h"
+#include "lib/vector.h"
 
 typedef struct world_t world_t;
 

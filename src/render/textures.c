@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include "textures.h"
 #include "../render.h"
-#include "../utils.h"
+#include "../lib/utils.h"
 
 int CONNECT_DRAW_ORDER[6] = {0, 2, 4, 1, 3, 5};
 

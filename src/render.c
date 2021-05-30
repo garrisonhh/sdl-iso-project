@@ -7,15 +7,15 @@
 #include "camera.h"
 #include "player.h"
 #include "textures.h"
-#include "vector.h"
+#include "lib/vector.h"
 #include "raycast.h"
-#include "utils.h"
+#include "lib/utils.h"
 #include "world.h"
 #include "world/masks.h"
 #include "world/bucket.h"
-#include "data_structures/array.h"
-#include "data_structures/hashmap.h"
-#include "data_structures/list.h"
+#include "lib/array.h"
+#include "lib/hashmap.h"
+#include "lib/list.h"
 
 const v3d CAMERA_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
 const int VRAY_Z_PER_BLOCK = (VOXEL_WIDTH >> 1) / (VOXEL_Z_HEIGHT - (VOXEL_WIDTH >> 1));

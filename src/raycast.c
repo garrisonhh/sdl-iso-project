@@ -1,9 +1,9 @@
 #include <stdbool.h>
 #include <math.h>
 #include "world.h"
-#include "vector.h"
+#include "lib/vector.h"
 #include "collision.h"
-#include "utils.h"
+#include "lib/utils.h"
 
 // block testing
 bool raycast_block_exists(block_t *block) {

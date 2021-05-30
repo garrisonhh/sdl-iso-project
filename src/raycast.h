@@ -2,7 +2,7 @@
 #define RAYCAST_H
 
 #include "world.h"
-#include "vector.h"
+#include "lib/vector.h"
 #include "collision.h"
 
 bool raycast_block_exists(block_t *);

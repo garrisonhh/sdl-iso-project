@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 #include "../textures.h"
 #include "../sprites.h"
-#include "../vector.h"
+#include "../lib/vector.h"
 #include "../world/masks.h"
 
 void render_sprite(sprite_t *sprite, v2i, v2i cell);

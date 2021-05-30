@@ -4,7 +4,7 @@
 #include <math.h>
 #include "primitives.h"
 #include "../render.h"
-#include "../vector.h"
+#include "../lib/vector.h"
 
 // bresenham's circle algo adapted from https://web.engr.oregonstate.edu/~sllu/bcircle.pdf
 void render_iso_circle(circle_t circle) {

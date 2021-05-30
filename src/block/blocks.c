@@ -4,7 +4,7 @@
 #include "plant.h"
 #include "../content.h"
 #include "../textures.h"
-#include "../data_structures/hashmap.h"
+#include "../lib/hashmap.h"
 
 /*
  * this is similar but not identical to textures.c; textures can be reused

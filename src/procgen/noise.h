@@ -3,7 +3,7 @@
 #define NOISE_H
 
 #include <stddef.h>
-#include "vector.h"
+#include "../lib/vector.h"
 
 typedef struct noise_t noise2_t;
 typedef struct noise_t noise3_t;

@@ -8,7 +8,7 @@
 #include "world.h"
 #include "player.h"
 #include "camera.h"
-#include "mytimer.h"
+#include "lib/mytimer.h"
 
 SDL_mutex *RENDER_INFO_LOCK, *LAST_INFO_LOCK;
 SDL_sem *MAIN_DONE = NULL, *GAME_LOOP_DONE = NULL;

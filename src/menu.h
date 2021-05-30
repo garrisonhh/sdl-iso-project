@@ -2,8 +2,8 @@
 #define MENU_H
 
 #include <SDL2/SDL.h>
-#include "data_structures/array.h"
-#include "vector.h"
+#include "lib/array.h"
+#include "lib/vector.h"
 
 struct menu_button_t {
 	SDL_Texture *texture;
