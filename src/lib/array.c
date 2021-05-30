@@ -43,6 +43,18 @@ void *array_pop(array_t *array) {
 	return value;
 }
 
+void array_del(array_t *array, int index) {
+	for (int i = index + 1; i < array->size; ++i)
+		array->items[i - 1] = array->items[i];
+
+	--array->size;
+
+	if (array->max_size > array->min_size && array->size < array->max_size >> 1) {
+		array->max_size >>= 1;
+		array->items = realloc(array->items, sizeof(void *) * array->max_size);
+	}
+}
+
 void array_remove(array_t *array, void *item) {
 	int i, j;
 
@@ -51,7 +63,7 @@ void array_remove(array_t *array, void *item) {
 			for (j = i + 1; j < array->size; j++)
 				array->items[j - 1] = array->items[j];
 
-			array->size--;
+			--array->size;
 
 			if (array->max_size > array->min_size && array->size < array->max_size >> 1) {
 				array->max_size >>= 1;
