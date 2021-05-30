@@ -34,14 +34,12 @@ struct world_t {
 
 	chunk_t **chunks;
 	unsigned num_chunks, chunk_mask;
-	// size = chunks along 1 dimension
-	// size_power = power of 2 for size
-	// block_size = number of blocks along 1 dimension
-	unsigned size, size_power, block_size;
+	// size = chunks along side of cube
+	// block_size = number of blocks along side of cube
+	unsigned size, size_pow2, block_size;
 };
 typedef struct world_t world_t;
 
-// called from world_bucket functions
 chunk_t *chunk_create();
 void chunk_destroy();
 

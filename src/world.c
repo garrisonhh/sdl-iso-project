@@ -43,15 +43,15 @@ void chunk_destroy(chunk_t *chunk) {
 }
 
 // sizes are a power of 2
-world_t *world_create(unsigned size_power) {
+world_t *world_create(unsigned size_pow2) {
 	world_t *world = malloc(sizeof(world_t));
 
-	world->size_power = size_power;
-	world->size = 1 << world->size_power;
+	world->size_pow2 = size_pow2;
+	world->size = 1 << world->size_pow2;
 	world->block_size = world->size << 4;
 
 	world->chunk_mask = world->size - 1;
-	world->num_chunks = 1 << (world->size_power * 3);
+	world->num_chunks = 1 << (world->size_pow2 * 3);
 	world->chunks = malloc(sizeof(chunk_t *) * world->num_chunks);
 
 	for (int i = 0; i < world->num_chunks; i++)
@@ -95,7 +95,7 @@ bool world_indices(world_t *world, v3i loc, unsigned *chunk_result, unsigned *bl
 	int dim, i;
 
 	for (i = 0; i < 3; i++) {
-		chunk_index <<= world->size_power;
+		chunk_index <<= world->size_pow2;
 		block_index <<= 4;
 
 		dim = v3i_IDX(loc, i);
@@ -148,14 +148,6 @@ void world_get_render_loc(world_t *world, v3i loc, block_t **block_result, list_
 	}
 }
 
-void world_push_update(world_t *world, v3i loc) {
-	v3i *update = malloc(sizeof loc);
-
-	*update = loc;
-
-	array_push(world->mask_updates, update);
-}
-
 // only for internal use
 void world_set_no_update(world_t *world, v3i loc, size_t block_id) {
 	unsigned chunk_index, block_index;
@@ -189,11 +181,14 @@ void world_set_no_update(world_t *world, v3i loc, size_t block_id) {
 
 void world_set(world_t *world, v3i loc, size_t block_id) {
 	v3i offset;
+	v3i *update;
 
 	world_set_no_update(world, loc, block_id);
 
 	FOR_CUBE(offset.x, offset.y, offset.z, -1, 2) {
-		world_push_update(world, v3i_add(loc, offset));
+		update = malloc(sizeof loc);
+		*update = v3i_add(loc, offset);
+		array_push(world->mask_updates, update);
 	}
 }
 
@@ -276,7 +271,7 @@ void world_generate(world_t *world) {
 		}
 	} else {
 		double noise_val;
-		noise2_t *noise = noise2_create(world->block_size, MAX(world->size_power - 1, 0), 5, 0.5);
+		noise2_t *noise = noise2_create(world->block_size, MAX(world->size_pow2 - 1, 0), 5, 0.5);
 
 		size_t dirt = blocks_get_id("dirt");
 		size_t grass = blocks_get_id("grass");
