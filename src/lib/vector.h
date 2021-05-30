@@ -88,6 +88,8 @@ double v3d_magnitude(v3d);
 double v3d_dist(v3d, v3d);
 double v3d_dot(v3d, v3d);
 
+int v3d_compare(v3d, v3d);
+
 void v3d_print(const char *message, v3d v);
 void v3d_sprint(char *string, const char *message, v3d v);
 

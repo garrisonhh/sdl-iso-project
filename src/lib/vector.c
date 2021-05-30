@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "vector.h"
+#include "utils.h"
 
 #define DECL_V2_BASIC(fn_name, fn_type, oper) \
 	fn_type fn_name(fn_type a, fn_type b) {\
@@ -161,6 +162,16 @@ double v3d_dist(v3d a, v3d b) {
 
 double v3d_dot(v3d a, v3d b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+int v3d_compare(v3d a, v3d b) {
+	double v;
+
+	for (int i = 2; i >= 0; --i)
+		if (abs((v = v3d_IDX(a, i) - v3d_IDX(b, i))) < FLOAT_TOLERANCE)
+			return (v > 0 ? 1 : -1);
+
+	return 0;
 }
 
 void v3d_print(const char *message, v3d v) {
