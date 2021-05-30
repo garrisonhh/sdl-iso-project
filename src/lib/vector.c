@@ -168,7 +168,7 @@ int v3d_compare(v3d a, v3d b) {
 	double v;
 
 	for (int i = 2; i >= 0; --i)
-		if (abs((v = v3d_IDX(a, i) - v3d_IDX(b, i))) < FLOAT_TOLERANCE)
+		if (abs((v = v3d_IDX(a, i) - v3d_IDX(b, i))) > FLOAT_TOLERANCE)
 			return (v > 0 ? 1 : -1);
 
 	return 0;
