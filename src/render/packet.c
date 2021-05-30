@@ -66,7 +66,6 @@ void render_from_packet(render_packet_t *packet) {
 							   packet->data.pos);
 			break;
 		case TEX_VOXEL:
-			// TODO voxel outline colors?
 			SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
 			render_voxel_texture(packet->texture.texture,
 								 packet->data.pos,
@@ -82,19 +81,20 @@ void render_from_packet(render_packet_t *packet) {
 								 packet->data.pos,
 								 packet->texture.state.tex.cell);
 			break;
-			}
+		default:
 			break;
-		case RP_SPRITE:
-			render_sprite(packet->sprite.sprite,
-						  packet->data.pos,
-						  packet->sprite.anim.cell);
-			break;
-		case RP_SHADOW:
-			SDL_SetRenderDrawColor(renderer, 0, 0, 0, SHADOW_ALPHA);
-
-			circle_t circle = {packet->data.pos, packet->shadow.radius};
-			render_iso_circle(circle);
-			break;
+		}
+		break;
+	case RP_SPRITE:
+		render_sprite(packet->sprite.sprite,
+					  packet->data.pos,
+					  packet->sprite.anim.cell);
+		break;
+	case RP_SHADOW:
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SHADOW_ALPHA);
+		circle_t circle = {packet->data.pos, packet->shadow.radius};
+		render_iso_circle(circle);
+		break;
 	}
 }
 

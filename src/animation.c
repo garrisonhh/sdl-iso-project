@@ -25,7 +25,7 @@ void anim_state_set(animation_t *state, int pose) {
 
 void anim_tick(entity_t *entity, sprite_t *sprite, animation_t *state, double time) {
 	switch (sprite->type) {
-	case SPRITE_STATIC:
+	default:
 		break;
 	case SPRITE_HUMAN_BODY:
 		anim_human_body(entity, state);

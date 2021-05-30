@@ -18,6 +18,7 @@ typedef enum render_packet_e render_packet_e;
 struct render_packet_data_t {
 	render_packet_e type;
 	v2i pos; // on screen
+	// TODO store and sort by v3d instead, don't use entity y sorting
 	v3i loc; // in world (for sorting)
 };
 typedef struct render_packet_data_t render_packet_data_t;

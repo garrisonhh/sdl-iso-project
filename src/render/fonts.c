@@ -15,8 +15,6 @@ struct font_t {
 };
 typedef struct font_t font_t;
 
-// corresponds to font_e
-#define NUM_FONTS 2
 font_t FONTS[NUM_FONTS];
 
 font_t load_font(json_object *font_obj) {

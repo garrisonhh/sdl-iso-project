@@ -10,8 +10,10 @@
 typedef struct world_t world_t;
 
 enum block_type_e {
-	BLOCK_STATELESS = 0,
-	BLOCK_PLANT = 1,
+	BLOCK_STATELESS,
+	BLOCK_PLANT,
+
+	NUM_BLOCK_TYPES
 };
 typedef enum block_type_e block_type_e;
 

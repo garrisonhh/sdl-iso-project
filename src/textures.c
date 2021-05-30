@@ -100,17 +100,16 @@ void textures_load() {
 	int i;
 
 	// tex_type map
-	const int num_tex_types = 4;
-	char *tex_type_strings[] = {
+	const char *tex_type_strings[] = {
 		"texture",
 		"voxel",
 		"connected",
 		"sheet",
 	};
 	texture_type_e *tex_type;
-	hashmap_t *tex_type_map = hashmap_create(num_tex_types * 2, HASH_STRING);
+	hashmap_t *tex_type_map = hashmap_create(NUM_TEXTURE_TYPES * 2, HASH_STRING);
 
-	for (i = 0; i < num_tex_types; ++i) {
+	for (i = 0; i < NUM_TEXTURE_TYPES; ++i) {
 		tex_type = malloc(sizeof(texture_type_e));
 		*tex_type = (texture_type_e)i;
 		hashmap_set(tex_type_map, tex_type_strings[i], tex_type);
@@ -263,8 +262,7 @@ texture_state_t texture_state_from_type(texture_type_e tex_type) {
 	texture_state_t tex_state;
 
 	switch (tex_type) {
-	case TEX_TEXTURE: // for non-transparent textures
-	case TEX_VOXEL:
+	default: // voxels and non-transparent textures
 		tex_state.outline_mask = 0x0;
 		break;
 	case TEX_CONNECTED:

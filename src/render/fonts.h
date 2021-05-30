@@ -5,8 +5,10 @@
 #include "../lib/vector.h"
 
 enum font_e {
-	FONT_UI = 0,
-	FONT_MENU = 1,
+	FONT_UI,
+	FONT_MENU,
+
+	NUM_FONTS
 };
 typedef enum font_e font_e;
 

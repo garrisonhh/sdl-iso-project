@@ -87,12 +87,12 @@ void blocks_load_block(json_object *block_obj, size_t index,
 	case BLOCK_COLL_NONE:
 		coll_data->bbox = NULL;
 		break;
-	case BLOCK_COLL_DEFAULT_BOX:
-		coll_data->bbox = &BLOCK_DEFAULT_BOX;
-		break;
 	case BLOCK_COLL_CUSTOM_BOX:
 		coll_data->bbox = malloc(sizeof(bbox_t));
 		*coll_data->bbox = content_get_bbox(block_obj, "bbox");
+		break;
+	default:
+		coll_data->bbox = &BLOCK_DEFAULT_BOX;
 		break;
 	}
 
@@ -109,11 +109,11 @@ void blocks_load_block(json_object *block_obj, size_t index,
 
 	// block subtype
 	switch (block->type) {
-	case BLOCK_STATELESS:
-		break;
 	case BLOCK_PLANT:
 		block_subtype_name = content_get_string(block_obj, "subtype");
 		block->state.plant = *(plant_t *)hashmap_get(block_subtype_maps[BLOCK_PLANT], block_subtype_name);
+		break;
+	default:
 		break;
 	}
 
@@ -136,16 +136,15 @@ void blocks_load() {
 	int i;
 
 	// construct coll_type hashmap
-	const int num_coll_types = 3;
 	char *coll_type_strings[] = {
 		"none",
 		"default",
 		"custom",
 	};
 	block_coll_e *coll_type;
-	hashmap_t *coll_type_map = hashmap_create(num_coll_types * 2, HASH_STRING);
+	hashmap_t *coll_type_map = hashmap_create(NUM_BLOCK_COLL_TYPES * 2, HASH_STRING);
 
-	for (i = 0; i < num_coll_types; ++i) {
+	for (i = 0; i < NUM_BLOCK_COLL_TYPES; ++i) {
 		coll_type = malloc(sizeof(block_coll_e));
 		*coll_type = i;
 
@@ -153,15 +152,14 @@ void blocks_load() {
 	}
 
 	// construct block_type hashmap
-	const int num_block_types = 2;
 	char *block_type_strings[] = {
 		"stateless",
 		"plant",
 	};
 	block_type_e *block_type;
-	hashmap_t *block_type_map = hashmap_create(num_block_types * 2, HASH_STRING);
+	hashmap_t *block_type_map = hashmap_create(NUM_BLOCK_TYPES * 2, HASH_STRING);
 
-	for (i = 0; i < num_block_types; ++i) {
+	for (i = 0; i < NUM_BLOCK_TYPES; ++i) {
 		block_type = malloc(sizeof(block_coll_e));
 		*block_type = i;
 
@@ -177,7 +175,7 @@ void blocks_load() {
 	block_subtypes = content_get_obj(file, "subtypes");
 
 	// load subtypes (indexed to block_type_e values)
-	hashmap_t *block_subtype_maps[num_block_types];
+	hashmap_t *block_subtype_maps[NUM_BLOCK_TYPES];
 	array_t *subtype_arr;
 
 	block_subtype_maps[BLOCK_STATELESS] = NULL;

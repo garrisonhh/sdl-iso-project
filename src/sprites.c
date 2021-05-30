@@ -63,7 +63,6 @@ void sprites_load() {
 	size_t i;
 
 	// sprite type map
-	const int num_sprite_types = 4;
 	char *sprite_type_strings[] = {
 		"static",
 		"human-body",
@@ -71,9 +70,9 @@ void sprites_load() {
 		"human-tool",
 	};
 	sprite_type_e *sprite_type;
-	hashmap_t *sprite_type_map = hashmap_create(num_sprite_types * 2, HASH_STRING);
+	hashmap_t *sprite_type_map = hashmap_create(NUM_SPRITE_TYPES * 2, HASH_STRING);
 
-	for (i = 0; i < num_sprite_types; ++i) {
+	for (i = 0; i < NUM_SPRITE_TYPES; ++i) {
 		sprite_type = malloc(sizeof(sprite_type_e));
 		*sprite_type = (sprite_type_e)i;
 		hashmap_set(sprite_type_map, sprite_type_strings[i], sprite_type);

@@ -8,10 +8,12 @@
 
 // also modify textures_load when modifying this enum
 enum texture_type_e {
-	TEX_TEXTURE = 0,
-	TEX_VOXEL = 1,
-	TEX_CONNECTED = 2,
-	TEX_SHEET = 3,
+	TEX_TEXTURE,
+	TEX_VOXEL,
+	TEX_CONNECTED,
+	TEX_SHEET,
+	
+	NUM_TEXTURE_TYPES
 };
 typedef enum texture_type_e texture_type_e;   
 

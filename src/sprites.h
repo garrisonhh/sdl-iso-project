@@ -7,10 +7,12 @@
 // also modify textures_load when modifying this enum
 // sprite types define the mapping of animation sheets; how they are ticked
 enum sprite_type_e {
-	SPRITE_STATIC = 0,
-	SPRITE_HUMAN_BODY = 1,
-	SPRITE_HUMAN_HANDS = 2,
-	SPRITE_HUMAN_TOOL = 3,
+	SPRITE_STATIC,
+	SPRITE_HUMAN_BODY,
+	SPRITE_HUMAN_HANDS,
+	SPRITE_HUMAN_TOOL,
+
+	NUM_SPRITE_TYPES
 };
 typedef enum sprite_type_e sprite_type_e;
 

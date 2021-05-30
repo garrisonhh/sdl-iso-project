@@ -67,11 +67,11 @@ void menu_render(menu_t *screen) {
 		
 		if (button->func != NULL && SDL_PointInRect(&screen->mouse_pt, &button->rect)) {
 			if (screen->mouse_held) {
-				SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+				SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x7F);
 				SDL_RenderFillRect(renderer, &button->rect);
 			}
 
-			SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+			SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0x7F);
 			SDL_RenderDrawRect(renderer, &button->rect);
 		}
 
