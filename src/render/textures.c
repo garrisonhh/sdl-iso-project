@@ -1,11 +1,7 @@
 #include <SDL2/SDL.h>
 #include "textures.h"
 #include "../render.h"
-#include "../vector.h"
 #include "../utils.h"
-#include "../world_masks.h"
-#include "../textures.h"
-#include "../sprites.h"
 
 int CONNECT_DRAW_ORDER[6] = {0, 2, 4, 1, 3, 5};
 

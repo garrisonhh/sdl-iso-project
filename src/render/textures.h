@@ -5,7 +5,7 @@
 #include "../textures.h"
 #include "../sprites.h"
 #include "../vector.h"
-#include "../world_masks.h"
+#include "../world/masks.h"
 
 void render_sprite(sprite_t *sprite, v2i, v2i cell);
 void render_sdl_texture(SDL_Texture *, v2i);

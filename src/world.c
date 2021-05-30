@@ -4,8 +4,8 @@
 #include <time.h>
 #include <math.h>
 #include "world.h"
-#include "world_masks.h"
-#include "world_bucket.h"
+#include "world/masks.h"
+#include "world/bucket.h"
 #include "block/block.h"
 #include "block/blocks.h"
 #include "entity.h"

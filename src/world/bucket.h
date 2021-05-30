@@ -1,9 +1,9 @@
 #ifndef WORLD_BUCKET_H
 #define WORLD_BUCKET_H
 
-#include "entity.h"
-#include "vector.h"
-#include "data_structures/list.h"
+#include "../entity.h"
+#include "../vector.h"
+#include "../data_structures/list.h"
 
 typedef struct world_t world_t;
 void world_bucket_add(world_t *world, v3i loc, entity_t *entity);

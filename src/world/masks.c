@@ -1,9 +1,9 @@
 #include <stdbool.h>
-#include "world.h"
-#include "world_masks.h"
-#include "utils.h"
-#include "vector.h"
-#include "camera.h"
+#include "masks.h"
+#include "../world.h"
+#include "../utils.h"
+#include "../vector.h"
+#include "../camera.h"
 
 const int EXPOSE_ROT_BITS[4][3] = {
 	{1, 3, 4},

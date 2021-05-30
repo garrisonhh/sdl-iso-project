@@ -1,7 +1,7 @@
 #ifndef WORLD_MASKS_H
 #define WORLD_MASKS_H
 
-#include "vector.h"
+#include "../vector.h"
 
 typedef struct world_t world_t;
 typedef struct block_t block_t;

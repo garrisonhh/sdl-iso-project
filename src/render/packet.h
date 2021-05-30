@@ -4,7 +4,7 @@
 #include "primitives.h"
 #include "../vector.h"
 #include "../textures.h"
-#include "../world_masks.h"
+#include "../world/masks.h"
 #include "../sprites.h"
 #include "../animation.h"
 

@@ -1,5 +1,5 @@
-#include "world.h"
-#include "camera.h"
+#include "../world.h"
+#include "../camera.h"
 
 double world_bucket_y(entity_t *entity) {
 	return -((entity->ray.pos.x * camera.facing.x) + (entity->ray.pos.y * camera.facing.y));
