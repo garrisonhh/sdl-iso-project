@@ -210,8 +210,8 @@ void generate_tree(world_t *world, v3i loc) {
 	double radius;
 	v3i leaf_loc;
 
-	trunk = block_gen_get_id("tree trunk");
-	leaves = block_gen_get_id("leaves");
+	trunk = blocks_get_id("tree trunk");
+	leaves = blocks_get_id("leaves");
 
 	max_v = 3 + rand() % 2;
 
@@ -241,13 +241,14 @@ void generate_tree(world_t *world, v3i loc) {
 }
 
 void world_generate(world_t *world) {
+	v3i loc;
+
 	srand(time(0));
 
 	timeit_start();
 
 	if (0) { // debug world
-		size_t grass = block_gen_get_id("grass");
-		v3i loc;
+		size_t grass = blocks_get_id("grass");
 		/*
 		noise3_t *noise;
 		double v, scale;
@@ -274,16 +275,15 @@ void world_generate(world_t *world) {
 			world_set_no_update(world, loc, grass);
 		}
 	} else {
-		v3i loc;
 		double noise_val;
 		noise2_t *noise = noise2_create(world->block_size, MAX(world->size_power - 1, 0), 5, 0.5);
 
-		size_t dirt = block_gen_get_id("dirt");
-		size_t grass = block_gen_get_id("grass");
-		size_t bush = block_gen_get_id("bush");
-		size_t tall_grass = block_gen_get_id("tall grass");
-		size_t flower = block_gen_get_id("flower");
-		size_t sml_rock = block_gen_get_id("small rock");
+		size_t dirt = blocks_get_id("dirt");
+		size_t grass = blocks_get_id("grass");
+		size_t bush = blocks_get_id("bush");
+		size_t tall_grass = blocks_get_id("tall grass");
+		size_t flower = blocks_get_id("flower");
+		size_t sml_rock = blocks_get_id("small rock");
 		// larger rocks don't look good in forest umgebung
 
 		FOR_XY(loc.x, loc.y, world->block_size, world->block_size) {
@@ -322,8 +322,6 @@ void world_generate(world_t *world) {
 	}
 
 	timeit_end("world generated");
-
-	v3i loc;
 
 	FOR_CUBE(loc.x, loc.y, loc.z, 0, world->block_size)
 		world_update_masks(world, loc);

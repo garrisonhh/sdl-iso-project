@@ -8,7 +8,7 @@
 block_t *block_create(size_t block_id) {
 	block_t *block = malloc(sizeof(block_t));
 
-	*block = *block_gen_get(block_id);
+	*block = *blocks_get(block_id);
 
 	return block;
 }

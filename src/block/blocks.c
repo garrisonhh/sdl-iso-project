@@ -23,7 +23,7 @@ bbox_t BLOCK_DEFAULT_BOX = {
 };
 block_coll_data_t WALL_COLL_DATA; // collision data for world borders
 
-hashmap_t *block_gen_load_plants(array_t *plant_objects) {
+hashmap_t *blocks_load_plants(array_t *plant_objects) {
 	hashmap_t *plant_models;
 	json_object *plant_obj;
 	plant_t *plant;
@@ -48,7 +48,7 @@ hashmap_t *block_gen_load_plants(array_t *plant_objects) {
 	return plant_models;
 }
 
-void block_gen_load_block(json_object *block_obj, size_t index,
+void blocks_load_block(json_object *block_obj, size_t index,
 						  hashmap_t *coll_type_map,
 						  hashmap_t *block_type_map,
 						  hashmap_t **block_subtype_maps) {
@@ -132,7 +132,7 @@ void block_gen_load_block(json_object *block_obj, size_t index,
 	hashmap_set(BLOCK_MAP, name, block_id);
 }
 
-void block_gen_load() {
+void blocks_load() {
 	int i;
 
 	// construct coll_type hashmap
@@ -183,7 +183,7 @@ void block_gen_load() {
 	block_subtype_maps[BLOCK_STATELESS] = NULL;
 
 	subtype_arr = content_get_array(block_subtypes, "plant");
-	block_subtype_maps[BLOCK_PLANT] = block_gen_load_plants(subtype_arr);
+	block_subtype_maps[BLOCK_PLANT] = blocks_load_plants(subtype_arr);
 	array_destroy(subtype_arr, false);
 
 	// set up globals
@@ -194,7 +194,7 @@ void block_gen_load() {
 
 	// load blocks
 	for (i = 0; i < block_objects->size; ++i)
-		block_gen_load_block(block_objects->items[i], i, coll_type_map, block_type_map, block_subtype_maps);
+		blocks_load_block(block_objects->items[i], i, coll_type_map, block_type_map, block_subtype_maps);
 
 	// clean up and exit
 	hashmap_destroy(block_subtype_maps[BLOCK_PLANT], true);
@@ -210,7 +210,7 @@ void block_gen_load() {
 	};
 }
 
-void block_gen_destroy() {
+void blocks_destroy() {
 	for (size_t i = 0; i < NUM_BLOCKS; i++) {
 		if (BLOCK_COLL_DATA[i]->bbox != NULL && BLOCK_COLL_DATA[i]->bbox != &BLOCK_DEFAULT_BOX)
 			free(BLOCK_COLL_DATA[i]->bbox);
@@ -225,7 +225,7 @@ void block_gen_destroy() {
 	BLOCK_MAP = NULL;
 }
 
-size_t block_gen_get_id(char *key) {
+size_t blocks_get_id(char *key) {
 	size_t *value;
 
 	if ((value = hashmap_get(BLOCK_MAP, key)) == NULL) {
@@ -236,6 +236,6 @@ size_t block_gen_get_id(char *key) {
 	return *value;
 }
 
-block_t *block_gen_get(size_t id) {
+block_t *blocks_get(size_t id) {
 	return BLOCKS[id];
 }

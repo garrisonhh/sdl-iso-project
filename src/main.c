@@ -60,7 +60,7 @@ void init() {
 	fonts_load();
 	textures_load();
 	sprites_load();
-	block_gen_load();
+	blocks_load();
 
 	gui_load();
 
@@ -80,7 +80,7 @@ void quit_all() {
 
 	textures_destroy();
 	sprites_destroy();
-	block_gen_destroy();
+	blocks_destroy();
 
 	render_quit();
 	SDL_DestroyWindow(WINDOW);
