@@ -1,6 +1,6 @@
 #include "animation.h"
-#include "entity.h"
 #include "lib/utils.h"
+#include "entity/entity.h"
 #include "camera.h"
 
 void anim_human_body(entity_t *, animation_t *);
@@ -58,22 +58,22 @@ void anim_tick(entity_t *entity, sprite_t *sprite, animation_t *state, double ti
 }
 
 bool anim_entity_walking(entity_t *entity) {
-	return entity->dir_z == DIR_LEVEL && !d_close(v3d_magnitude(entity->ray.dir), 0.0);
+	return entity->data.dir_z == DIR_LEVEL && !d_close(v3d_magnitude(entity->data.ray.dir), 0.0);
 }
 
 void anim_entity_update_directions(entity_t *entity) {
 	double dir;
 	v3i facing;
 
-	if (!d_close(fabs(entity->ray.dir.x) + fabs(entity->ray.dir.y), 0)) {
-		entity->last_dir.x = entity->ray.dir.x - entity->ray.dir.y;
-		entity->last_dir.y = entity->ray.dir.x + entity->ray.dir.y;
+	if (!d_close(fabs(entity->data.ray.dir.x) + fabs(entity->data.ray.dir.y), 0)) {
+		entity->data.last_dir.x = entity->data.ray.dir.x - entity->data.ray.dir.y;
+		entity->data.last_dir.y = entity->data.ray.dir.x + entity->data.ray.dir.y;
 	}
 
-	entity->last_dir.z = entity->ray.dir.z;
+	entity->data.last_dir.z = entity->data.ray.dir.z;
 
 	for (int i = 0; i < 3; ++i) {
-		dir = v3d_IDX(entity->last_dir, i);
+		dir = v3d_IDX(entity->data.last_dir, i);
 
 		if (d_close(dir, 0.0))
 			v3i_IDX(facing, i) = 0;
@@ -86,38 +86,38 @@ void anim_entity_update_directions(entity_t *entity) {
 	facing = camera_rotated_v3i(facing);
 
 	if (facing.z < 0)
-		entity->dir_z = DIR_DOWN;
+		entity->data.dir_z = DIR_DOWN;
 	else if (facing.z > 0)
-		entity->dir_z = DIR_UP;
+		entity->data.dir_z = DIR_UP;
 	else
-		entity->dir_z = DIR_LEVEL;
+		entity->data.dir_z = DIR_LEVEL;
 
 	if (facing.y < 0) {
 		if (facing.x < 0)
-			entity->dir_xy = DIR_BACK_LEFT;
+			entity->data.dir_xy = DIR_BACK_LEFT;
 		else if (facing.x > 0)
-			entity->dir_xy = DIR_BACK_RIGHT;
+			entity->data.dir_xy = DIR_BACK_RIGHT;
 		else
-			entity->dir_xy = DIR_BACK;
+			entity->data.dir_xy = DIR_BACK;
 	} else if (facing.y > 0) {
 		if (facing.x < 0)
-			entity->dir_xy = DIR_FRONT_LEFT;
+			entity->data.dir_xy = DIR_FRONT_LEFT;
 		else if (facing.x > 0)
-			entity->dir_xy = DIR_FRONT_RIGHT;
+			entity->data.dir_xy = DIR_FRONT_RIGHT;
 		else
-			entity->dir_xy = DIR_FRONT;
+			entity->data.dir_xy = DIR_FRONT;
 	} else {
 		if (facing.x < 0)
-			entity->dir_xy = DIR_LEFT;
+			entity->data.dir_xy = DIR_LEFT;
 		else if (facing.x > 0)
-			entity->dir_xy = DIR_RIGHT;
+			entity->data.dir_xy = DIR_RIGHT;
 	}
 }
 
 void anim_human_body(entity_t *entity, animation_t *state) {
 	int pose;
 
-	switch (entity->dir_xy) {
+	switch (entity->data.dir_xy) {
 	case DIR_FRONT:
 		pose = 0;
 		break;
@@ -146,7 +146,7 @@ void anim_human_body(entity_t *entity, animation_t *state) {
 void anim_human_hands(entity_t *entity, animation_t *state) {
 	int pose;
 
-	switch (entity->dir_xy) {
+	switch (entity->data.dir_xy) {
 	case DIR_FRONT:
 		pose = 0;
 		break;
@@ -175,8 +175,8 @@ void anim_human_hands(entity_t *entity, animation_t *state) {
 void anim_human_tool(entity_t *entity, animation_t *state) {
 	int pose;
 
-	if (entity->state.human->using_tool) {
-		switch (entity->dir_xy) {
+	if (entity->data.state.human->using_tool) {
+		switch (entity->data.dir_xy) {
 		case DIR_FRONT:
 			pose = 4;
 			break;
@@ -203,7 +203,7 @@ void anim_human_tool(entity_t *entity, animation_t *state) {
 			break;
 		}
 	} else {
-		switch (entity->dir_xy) {
+		switch (entity->data.dir_xy) {
 		case DIR_FRONT:
 			pose = 0;
 			break;

@@ -7,7 +7,7 @@
 
 #define ANIMATION_FPS 12.0
 
-typedef struct entity_t entity_t;
+typedef union entity_t entity_t;
 typedef struct animation_t animation_t;
 
 enum dir_xy_e {

@@ -8,7 +8,7 @@
 #include "world/bucket.h"
 #include "block/block.h"
 #include "block/blocks.h"
-#include "entity.h"
+#include "entity/entity.h"
 #include "procgen/noise.h"
 #include "player.h"
 #include "textures.h"
@@ -198,8 +198,8 @@ void world_set(world_t *world, v3i loc, size_t block_id) {
 }
 
 void world_spawn(world_t *world, entity_t *entity, v3d pos) {
-	entity->ray.pos = pos;
-	world_bucket_add(world, v3i_from_v3d(entity->ray.pos), entity);
+	entity->data.ray.pos = pos;
+	world_bucket_add(world, v3i_from_v3d(entity->data.ray.pos), entity);
 	list_push(world->entities, entity);
 }
 
@@ -343,9 +343,9 @@ void world_tick(world_t *world, double time) {
 	LIST_FOREACH(node, world->entities) {
 		entity = node->item;
 
-		last_loc = v3i_from_v3d(entity->ray.pos);
+		last_loc = v3i_from_v3d(entity->data.ray.pos);
 		entity_tick(entity, world, time);
-		this_loc = v3i_from_v3d(entity->ray.pos);
+		this_loc = v3i_from_v3d(entity->data.ray.pos);
 
 		if (v3i_compare(last_loc, this_loc)) {
 			world_bucket_remove(world, last_loc, entity);

@@ -1,7 +1,7 @@
 #ifndef WORLD_BUCKET_H
 #define WORLD_BUCKET_H
 
-#include "../entity.h"
+#include "../entity/entity.h"
 #include "../lib/vector.h"
 #include "../lib/list.h"
 

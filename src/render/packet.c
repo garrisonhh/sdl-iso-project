@@ -4,7 +4,7 @@
 #include "../render.h"
 #include "../camera.h"
 #include "../block/block.h"
-#include "../entity.h"
+#include "../entity/entity.h"
 
 #define SHADOW_ALPHA (0x3F)
 

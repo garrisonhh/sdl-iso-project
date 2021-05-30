@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "lib/vector.h"
-#include "entity.h"
+#include "entity/entity.h"
 #include "block/block.h"
 #include "lib/array.h"
 #include "lib/list.h"

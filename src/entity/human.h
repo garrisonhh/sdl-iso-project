@@ -1,9 +1,9 @@
 #ifndef ENTITY_HUMAN_H
 #define ENTITY_HUMAN_H
 
-#include "sprites.h"
-#include "animation.h"
-#include "lib/array.h"
+#include "../sprites.h"
+#include "../animation.h"
+#include "../lib/array.h"
 
 #define HUMAN_WALK_VELOCITY 5.0
 #define HUMAN_JUMP_VELOCITY 7.5
@@ -18,6 +18,7 @@ struct human_t {
 	tool_t *tool;
 	animation_t anim_state; // shared between both tool/hand sprites
 	bool using_tool;
+	bool on_ground;
 };
 typedef struct human_t human_t;
 

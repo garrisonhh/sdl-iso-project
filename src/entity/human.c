@@ -1,7 +1,6 @@
-#include "entity_human.h"
+#include "human.h"
 #include "entity.h"
-#include "animation.h"
-#include "lib/utils.h"
+#include "../lib/utils.h"
 
 human_t *human_create() {
 	human_t *human = malloc(sizeof(human_t));
@@ -33,13 +32,13 @@ entity_t *entity_human_create() {
 
 	entity_t *entity = entity_create(ENTITY_HUMAN, sprite_from_key("harry_body"), size);
 
-	entity->state.human = human_create();
+	entity->data.state.human = human_create();
 
 	return entity;
 }
 
 void entity_human_tick(entity_t *entity, double time) {
-	human_t *human = entity->state.human;
+	human_t *human = entity->data.state.human;
 
 	if (human->tool == NULL) {
 		anim_tick(entity, human->hands[0], &human->anim_state, time);
@@ -52,6 +51,6 @@ void entity_human_tick(entity_t *entity, double time) {
 }
 
 void entity_human_use_tool(entity_t *entity) {
-	entity->state.human->using_tool = true;
-	entity->state.human->anim_state.done = false;
+	entity->data.state.human->using_tool = true;
+	entity->data.state.human->anim_state.done = false;
 }

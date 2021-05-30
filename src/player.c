@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <math.h>
-#include "entity.h"
-#include "entity_human.h"
+#include "entity/entity.h"
+#include "entity/human.h"
 #include "world.h"
 #include "lib/vector.h"
 #include "camera.h"
@@ -56,15 +56,15 @@ void player_tick() {
 		move = v3d_scale(move, HUMAN_WALK_VELOCITY);
 	}
 
-	PLAYER->ray.dir.x = move.x;
-	PLAYER->ray.dir.y = move.y;
+	PLAYER->data.ray.dir.x = move.x;
+	PLAYER->data.ray.dir.y = move.y;
 
 	if (GODMODE) {
 		if (jump)
-			PLAYER->ray.dir.z = HUMAN_WALK_VELOCITY;
+			PLAYER->data.ray.dir.z = HUMAN_WALK_VELOCITY;
 	} else {
-		if (PLAYER->on_ground && jump)
-			PLAYER->ray.dir.z += HUMAN_JUMP_VELOCITY;
+		if (PLAYER->data.on_ground && jump)
+			PLAYER->data.ray.dir.z += HUMAN_JUMP_VELOCITY;
 	}
 
 	// tool
@@ -86,10 +86,10 @@ void player_tick() {
 					v2i_IDX(dir, i) = 0;
 			}
 
-			PLAYER->last_dir.x = dir.x;
-			PLAYER->last_dir.y = dir.y;
+			PLAYER->data.last_dir.x = dir.x;
+			PLAYER->data.last_dir.y = dir.y;
 
-			PLAYER->last_dir = camera_reverse_rotated_v3d(PLAYER->last_dir);
+			PLAYER->data.last_dir = camera_reverse_rotated_v3d(PLAYER->data.last_dir);
 		}
 
 		entity_human_use_tool(PLAYER);
@@ -101,5 +101,5 @@ void player_toggle_godmode() {
 }
 
 v3d player_get_pos() {
-	return PLAYER->ray.pos;
+	return PLAYER->data.ray.pos;
 }
