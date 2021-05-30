@@ -284,7 +284,6 @@ void world_generate(world_t *world) {
 		size_t tall_grass = blocks_get_id("tall grass");
 		size_t flower = blocks_get_id("flower");
 		size_t sml_rock = blocks_get_id("small rock");
-		// larger rocks don't look good in forest umgebung
 
 		FOR_XY(loc.x, loc.y, world->block_size, world->block_size) {
 			noise_val = pow((1.0 + noise2_at(noise, loc.x, loc.y)) / 2, 3.0);

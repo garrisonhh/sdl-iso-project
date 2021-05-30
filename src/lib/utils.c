@@ -5,6 +5,8 @@
 #include <sys/time.h>
 #include "utils.h"
 
+const float SQRT2 = sqrt(2.0);
+
 struct timeval LAST_TIMEIT = {
 	.tv_sec = 0, 
 	.tv_usec = 0

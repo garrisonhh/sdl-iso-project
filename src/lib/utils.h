@@ -53,7 +53,7 @@
 
 #define D_ROUND(d) ((int)(d + 0.5l))
 
-// TODO ERR_MSG()
+extern const float SQRT2;
 
 bool d_close(double a, double b);
 double randf(void); // returns values between 0 and 1

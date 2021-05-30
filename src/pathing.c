@@ -11,8 +11,6 @@
 #include "block/block.h"
 #include "lib/utils.h"
 
-const double SQRT_2 = sqrt(2);
-
 path_node_t *path_node_create(v3i pos) {
 	path_node_t *node = malloc(sizeof(path_node_t));
 
@@ -60,7 +58,7 @@ double path_heuristic(v3i a, v3i b) {
 	dmax = MAX(delta.x, delta.y);
 	dmin = MIN(delta.x, delta.y);
 
-	return (dmin * SQRT_2) + (dmax - dmin) + (delta.z << 1);
+	return (dmin * SQRT2) + (dmax - dmin) + (delta.z << 1);
 }
 
 void path_node_connect(path_node_t *a, path_node_t *b) {
