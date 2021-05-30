@@ -15,6 +15,7 @@ SDL_sem *MAIN_DONE = NULL, *GAME_LOOP_DONE = NULL;
 render_info_t *RENDER_INFO = NULL, *LAST_INFO = NULL;
 
 bool QUIT;
+int NEW_WORLD_SIZE = 0;
 
 void game_init() {
 	RENDER_INFO_LOCK = SDL_CreateMutex();
@@ -22,7 +23,7 @@ void game_init() {
 }
 
 int game_loop(void *arg) {
-	world_t *world = world_create(1);
+	world_t *world = world_create(NEW_WORLD_SIZE);
 	world_generate(world);
 
 	player_init(world);

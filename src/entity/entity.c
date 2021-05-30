@@ -19,6 +19,7 @@ void entity_destroy(entity_t *entity) {
 	}
 }
 
+// TODO rename to entity_populate?
 void entity_data_populate(entity_t *entity, entity_type_e type, sprite_t *sprite, v3d size) {
 	entity->data.type = type;
 

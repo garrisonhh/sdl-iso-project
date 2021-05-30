@@ -6,20 +6,23 @@
 #include "render.h"
 #include "render/fonts.h"
 #include "lib/array.h"
+#include "lib/utils.h"
 
 enum menu_state_e {
-	MENU_MAIN = 0,
+	MENU_MAIN,
+	MENU_NEW_WORLD,
+
+	NUM_MENUS
 };
 typedef enum menu_state_e menu_state_e;
 
 app_state_e APP_STATE = APP_MENU;
 menu_state_e MENU_STATE;
 
-// corresponds to menu_state_e
-#define NUM_MENUS 1
 menu_t *MENUS[NUM_MENUS];
 
 bool MENU_QUIT;
+char *WORLD_SIZE_TEXT;
 
 void app_menu(void);
 
@@ -38,38 +41,88 @@ void app_run() {
 	}
 }
 
-// menu stuff
+// main menu buttons
 void app_menu_exit() {
 	APP_STATE = APP_EXIT;
 	MENU_QUIT = true;
 }
 
 void app_menu_new_world() {
+	MENU_STATE = MENU_NEW_WORLD;
+}
+
+// new world buttons
+void app_menu_check_world_size() {
+	sprintf(WORLD_SIZE_TEXT, "%i", NEW_WORLD_SIZE);
+}
+
+void app_menu_inc_world_size() {
+	NEW_WORLD_SIZE = MIN(NEW_WORLD_SIZE + 1, 5);
+	app_menu_check_world_size();
+}
+
+void app_menu_dec_world_size() {
+	NEW_WORLD_SIZE = MAX(NEW_WORLD_SIZE - 1, 0);
+	app_menu_check_world_size();
+}
+
+void app_menu_generate_world() {
 	APP_STATE = APP_GAME;
 	MENU_QUIT = true;
 }
 
 void app_menu_init() {
-	v2i pos;
+	v2i pos, aligned = {20, 20};
 	int line_h = font_line_height(FONT_MENU);
+	int char_w = font_char_size(FONT_MENU).x;
+	menu_t *menu;
 
 	for (int i = 0; i < NUM_MENUS; ++i)
 		MENUS[i] = menu_create();
 
+	WORLD_SIZE_TEXT = malloc(sizeof(char) * 10);
+	app_menu_check_world_size();
+
 	// main menu
-	pos = (v2i){20, 20};
-	menu_add_text_button(MENUS[MENU_MAIN], "~~~ untitled ~~~", pos, NULL);
+	menu = MENUS[MENU_MAIN];
+
+	pos = aligned;
+	menu_add_text_label(menu, ">>> untitled <<<", pos);
 
 	pos.y += line_h * 2;
-	menu_add_text_button(MENUS[MENU_MAIN], "new world", pos, app_menu_new_world);
+	menu_add_text_button(menu, "new world", pos, app_menu_new_world);
 
 	pos.y += line_h;
-	menu_add_text_button(MENUS[MENU_MAIN], "exit", pos, app_menu_exit);
+	menu_add_text_button(menu, "exit", pos, app_menu_exit);
+	
+	// new world
+	menu = MENUS[MENU_NEW_WORLD];
+
+	pos = aligned;
+	menu_add_text_label(menu, ">>> new world <<<", pos);
+
+	pos.y += line_h * 2;
+	menu_add_text_label(menu, "size:", pos);
+
+	pos.x += char_w * 10;
+	menu_add_text_button(menu, "<", pos, app_menu_dec_world_size);
+
+	pos.x += char_w * 2;
+	menu_add_dynamic_text(menu, &WORLD_SIZE_TEXT, pos);
+
+	pos.x += char_w * 2;
+	menu_add_text_button(menu, ">", pos, app_menu_inc_world_size);
+
+	pos.x = aligned.x;
+	pos.y += line_h;
+	menu_add_text_button(menu, "generate", pos, app_menu_generate_world);
 }
 
 void app_menu_quit() {
 	for (int i = 0; i < NUM_MENUS; ++i)
 		menu_destroy(MENUS[i]);
+
+	free(WORLD_SIZE_TEXT);
 }
 
 void app_menu() {
