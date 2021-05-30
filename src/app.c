@@ -53,7 +53,7 @@ void app_menu_new_world() {
 
 // new world buttons
 void app_menu_check_world_size() {
-	sprintf(WORLD_SIZE_TEXT, "%i", NEW_WORLD_SIZE);
+	sprintf(WORLD_SIZE_TEXT, "%i (%i)", NEW_WORLD_SIZE, 16 << NEW_WORLD_SIZE);
 }
 
 void app_menu_inc_world_size() {
@@ -80,7 +80,7 @@ void app_menu_init() {
 	for (int i = 0; i < NUM_MENUS; ++i)
 		MENUS[i] = menu_create();
 
-	WORLD_SIZE_TEXT = malloc(sizeof(char) * 10);
+	WORLD_SIZE_TEXT = malloc(sizeof(char) * 30);
 	app_menu_check_world_size();
 
 	// main menu
@@ -110,7 +110,7 @@ void app_menu_init() {
 	pos.x += char_w * 2;
 	menu_add_dynamic_text(menu, &WORLD_SIZE_TEXT, pos);
 
-	pos.x += char_w * 2;
+	pos.x += char_w * 7;
 	menu_add_text_button(menu, ">", pos, app_menu_inc_world_size);
 
 	pos.x = aligned.x;

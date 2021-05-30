@@ -33,10 +33,11 @@ struct world_t {
 	path_network_t *path_net;
 
 	chunk_t **chunks;
-	unsigned num_chunks, chunk_mask;
+	size_t num_chunks;
+	unsigned chunk_mask;
 	// size = chunks along side of cube
 	// block_size = number of blocks along side of cube
-	unsigned size, size_pow2, block_size;
+	int size, size_pow2, block_size;
 };
 typedef struct world_t world_t;
 
@@ -45,7 +46,7 @@ void chunk_destroy();
 
 void world_check_chunk(world_t *, unsigned index);
 
-world_t *world_create(unsigned);
+world_t *world_create(int);
 void world_destroy(world_t *);
 
 void world_generate(world_t *);

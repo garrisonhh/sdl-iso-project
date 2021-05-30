@@ -43,7 +43,7 @@ void chunk_destroy(chunk_t *chunk) {
 }
 
 // sizes are a power of 2
-world_t *world_create(unsigned size_pow2) {
+world_t *world_create(int size_pow2) {
 	world_t *world = malloc(sizeof(world_t));
 
 	world->size_pow2 = size_pow2;
