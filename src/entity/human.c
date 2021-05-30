@@ -3,54 +3,19 @@
 #include "../lib/utils.h"
 
 human_t *human_create() {
+	v3d size = (v3d){0.7, 0.7, 1.0};
 	human_t *human = malloc(sizeof(human_t));
+
+	entity_data_populate((entity_t *)human, ENTITY_HUMAN, sprite_from_key("harry_body"), size);
 
 	human->hands[0] = sprite_from_key("harry_back");
 	human->hands[1] = sprite_from_key("harry_front");
 
-	human->tool = NULL;
-
-	human->tool = malloc(sizeof(tool_t));
-
-	human->tool->sprites[0] = sprite_from_key("axe_back");
-	human->tool->sprites[1] = sprite_from_key("axe_front");
-
 	human->anim_state = anim_empty_state();
-	human->using_tool = false;
 
 	return human;
 }
 
-void human_destroy(human_t *human) {
-	if (human->tool != NULL)
-		free(human->tool);
-	free(human);
-}
-
-entity_t *entity_human_create() {
-	v3d size = (v3d){0.7, 0.7, 1.0};
-
-	entity_t *entity = entity_create(ENTITY_HUMAN, sprite_from_key("harry_body"), size);
-
-	entity->data.state.human = human_create();
-
-	return entity;
-}
-
-void entity_human_tick(entity_t *entity, double time) {
-	human_t *human = entity->data.state.human;
-
-	if (human->tool == NULL) {
-		anim_tick(entity, human->hands[0], &human->anim_state, time);
-	} else {
-		anim_tick(entity, human->tool->sprites[0], &human->anim_state, time);
-
-		if (human->using_tool && human->anim_state.done)
-			human->using_tool = false;
-	}
-}
-
-void entity_human_use_tool(entity_t *entity) {
-	entity->data.state.human->using_tool = true;
-	entity->data.state.human->anim_state.done = false;
+void human_tick(human_t *human, double time) {
+	anim_tick((entity_t *)human, human->hands[0], &human->anim_state, time);
 }

@@ -9,24 +9,17 @@
 #include "../collision.h"
 #include "../sprites.h"
 #include "../animation.h"
-#include "human.h"
 
 typedef struct world_t world_t;
 
 enum entity_type_e {
 	ENTITY_BASE,
 	ENTITY_HUMAN,
-
-	NUM_ENTITY_TYPES
 };
 typedef enum entity_type_e entity_type_e;
 
 struct entity_data_t {
-	// state TODO move
 	entity_type_e type;
-	union entity_state {
-		human_t *human;
-	} state;
 
 	// sprite + animation
 	sprite_t *sprite;
@@ -36,22 +29,32 @@ struct entity_data_t {
 	dir_xy_e dir_xy;
 	dir_z_e dir_z;
 
-	// collision
+	// physics
 	ray_t ray;
 	v3d size, center;
-	bool on_ground;
+	bool on_ground; // for gravity application
 };
 typedef struct entity_data_t entity_data_t;
 
-// an entity is a physics object with an animatable sprite
+struct human_t {
+	entity_data_t _data;
+
+	sprite_t *hands[2];
+	animation_t anim_state;
+};
+typedef struct human_t human_t;
+
 union entity_t {
 	entity_data_t data;
+	human_t human;
 };
 typedef union entity_t entity_t;
 
-entity_t *entity_create(entity_type_e type, sprite_t *sprites, v3d size);
 void entity_destroy(entity_t *);
+void entity_data_populate(entity_t *, entity_type_e, sprite_t *, v3d size);
 
 void entity_tick(entity_t *, world_t *, double time);
+
+void entity_add_render_info(array_t *packets, entity_t *);
 
 #endif

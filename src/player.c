@@ -19,15 +19,15 @@ const v3d RIGHT = {1.0, -1.0, 0.0};
 void player_init(world_t *world) {
 	v3d pos = (v3d){5.0, 5.0, 15.0};
 
-	PLAYER = entity_human_create();
+	PLAYER = (entity_t *)human_create();
 	KEYBOARD = SDL_GetKeyboardState(NULL);
 
 	world_spawn(world, PLAYER, pos);
 }
 
 void player_tick() {
-	v2i mouse_pos;
-	uint32_t mouse = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
+	//v2i mouse_pos;
+	//uint32_t mouse = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
 
 	// movement
 	v3d move = {0, 0, 0};
@@ -68,6 +68,7 @@ void player_tick() {
 	}
 
 	// tool
+	/*
 	if (mouse & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 		if (d_close(move.x + move.y, 0)) {
 			v2d pos;
@@ -94,6 +95,7 @@ void player_tick() {
 
 		entity_human_use_tool(PLAYER);
 	}
+	*/
 }
 
 void player_toggle_godmode() {

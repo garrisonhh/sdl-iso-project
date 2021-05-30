@@ -5,7 +5,7 @@
 
 void anim_human_body(entity_t *, animation_t *);
 void anim_human_hands(entity_t *, animation_t *);
-void anim_human_tool(entity_t *, animation_t *);
+//void anim_human_tool(entity_t *, animation_t *);
 void anim_entity_update_directions(entity_t *);
 
 animation_t anim_empty_state() {
@@ -34,7 +34,7 @@ void anim_tick(entity_t *entity, sprite_t *sprite, animation_t *state, double ti
 		anim_human_hands(entity, state);
 		break;
 	case SPRITE_HUMAN_TOOL:
-		anim_human_tool(entity, state);
+		//anim_human_tool(entity, state);
 		break;
 	}
 
@@ -172,10 +172,11 @@ void anim_human_hands(entity_t *entity, animation_t *state) {
 		anim_state_set(state, pose);
 }
 
+/*
 void anim_human_tool(entity_t *entity, animation_t *state) {
 	int pose;
 
-	if (entity->data.state.human->using_tool) {
+	if (entity->human->using_tool) {
 		switch (entity->data.dir_xy) {
 		case DIR_FRONT:
 			pose = 4;
@@ -226,3 +227,4 @@ void anim_human_tool(entity_t *entity, animation_t *state) {
 	if (state->cell.y != pose)
 		anim_state_set(state, pose);
 }
+*/

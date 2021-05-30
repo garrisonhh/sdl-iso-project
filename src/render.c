@@ -4,18 +4,18 @@
 #include <math.h>
 #include "render.h"
 #include "render/gui.h"
-#include "camera.h"
-#include "player.h"
-#include "textures.h"
-#include "lib/vector.h"
-#include "raycast.h"
-#include "lib/utils.h"
 #include "world.h"
 #include "world/masks.h"
 #include "world/bucket.h"
+#include "lib/vector.h"
+#include "lib/utils.h"
 #include "lib/array.h"
 #include "lib/hashmap.h"
 #include "lib/list.h"
+#include "camera.h"
+#include "player.h"
+#include "textures.h"
+#include "raycast.h"
 
 const v3d CAMERA_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
 const int VRAY_Z_PER_BLOCK = (VOXEL_WIDTH >> 1) / (VOXEL_Z_HEIGHT - (VOXEL_WIDTH >> 1));
@@ -93,100 +93,6 @@ void render_info_add_shadows(render_info_t *info, world_t *world) {
 	}
 }
 
-void render_info_sprite_packet(array_t *packets, v3i loc, v2i pos,
-							  sprite_t *sprite, animation_t *anim_state) {
-	render_packet_t *packet = render_sprite_packet_create(loc, pos, sprite);
-
-	packet->sprite.anim = *anim_state;
-
-	array_push(packets, packet);
-}
-
-void render_info_add_entity(array_t *packets, entity_t *entity) {
-	v3i loc;
-	v3d pos;
-	v2i screen_pos;
-
-	loc = v3i_from_v3d(entity->data.ray.pos);
-	pos = entity->data.ray.pos;
-	pos.z -= entity->data.center.z;
-	screen_pos = project_v3d(pos);
-
-	render_packet_t *base_packet = render_sprite_packet_create(loc, screen_pos, entity->data.sprite);
-	
-	base_packet->sprite.anim = entity->data.anim_state;
-
-	switch (entity->data.type) {
-	case ENTITY_BASE:
-		array_push(packets, base_packet);
-		break;
-	case ENTITY_HUMAN:;
-		human_t *human = entity->data.state.human;
-		sprite_t **sprites;
-
-		if (human->tool == NULL)
-			sprites = human->hands;
-		else
-			sprites = human->tool->sprites;
-
-		render_info_sprite_packet(packets, loc, screen_pos, sprites[0], &human->anim_state);
-		array_push(packets, base_packet);
-		render_info_sprite_packet(packets, loc, screen_pos, sprites[1], &human->anim_state);
-		break;
-	default:
-		break;
-	}
-}
-
-v2i render_block_project(v3i loc) {
-	// modify loc so that it is the back center corner of voxel from camera perspective
-	switch (camera.rotation) {
-	case 1:
-		++loc.x;
-		break;
-	case 2:
-		++loc.x;
-		++loc.y;
-		break;
-	case 3:
-		++loc.y;
-		break;
-	}
-
-	return project_v3i(loc);
-}
-
-void render_info_add_block(array_t *packets, block_t *block, v3i loc) {
-	render_packet_t *packet = NULL;
-
-	if (block->texture->type == TEX_VOXEL) {
-		voxel_masks_t voxel_masks = world_voxel_masks(block, loc);
-
-		if (voxel_masks.expose || voxel_masks.dark) {
-			packet = render_texture_packet_create(loc, render_block_project(loc), block->texture);
-			packet->texture.state.voxel_masks = voxel_masks;
-		}
-	} else if (world_exposed(block)) {
-		packet = render_texture_packet_create(loc, render_block_project(loc), block->texture);
-
-		if (block->texture->type == TEX_CONNECTED)
-			packet->texture.state.connected_mask = world_connected_mask(block);
-		else
-			packet->texture.state.tex = block->tex_state;
-	} else if (!block->texture->transparent) {
-		if (block->expose_mask) {
-			packet = render_texture_packet_create(loc, render_block_project(loc), block->texture);
-			packet->texture.state.tex = block->tex_state;
-		} else {
-			packet = render_texture_packet_create(loc, render_block_project(loc), DARK_VOXEL_TEXTURE);
-			packet->texture.state.voxel_masks = world_voxel_masks(block, loc);
-		}
-	}
-
-	if (packet != NULL)
-		array_push(packets, packet);
-}
-
 void render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 	double block_y;
 	block_t *block;
@@ -202,26 +108,26 @@ void render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 			bucket_trav = bucket->root;
 
 			while (bucket_trav != NULL && world_bucket_y(bucket_trav->item) < block_y) {
-				render_info_add_entity(packets, bucket_trav->item);
+				entity_add_render_info(packets, bucket_trav->item);
 				bucket_trav = bucket_trav->next;
 			}
 
-			render_info_add_block(packets, block, loc);
+			block_add_render_info(packets, block, loc);
 			
 			while (bucket_trav != NULL) {
-				render_info_add_entity(packets, bucket_trav->item);
+				entity_add_render_info(packets, bucket_trav->item);
 				bucket_trav = bucket_trav->next;
 			}
 		} else { // draw entities over block regardless
-			render_info_add_block(packets, block, loc);
+			block_add_render_info(packets, block, loc);
 
 			if (bucket != NULL)
 				LIST_FOREACH(bucket_trav, bucket)
-					render_info_add_entity(packets, bucket_trav->item);
+					entity_add_render_info(packets, bucket_trav->item);
 		}
 	} else if (bucket != NULL) {
 		LIST_FOREACH(bucket_trav, bucket)
-			render_info_add_entity(packets, bucket_trav->item);
+			entity_add_render_info(packets, bucket_trav->item);
 	}
 }
 

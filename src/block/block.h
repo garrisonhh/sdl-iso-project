@@ -2,10 +2,10 @@
 #define BLOCK_H
 
 #include <stdlib.h>
+#include "../block/collision.h"
+#include "../block/plant.h"
 #include "../lib/vector.h"
 #include "../textures.h"
-#include "collision.h"
-#include "plant.h"
 
 typedef struct world_t world_t;
 
@@ -41,5 +41,7 @@ block_t *block_create(size_t);
 void block_destroy(block_t *);
 
 void block_tick(block_t *, world_t *, double time);
+
+void block_add_render_info(array_t *packets, block_t *block, v3i loc);
 
 #endif
