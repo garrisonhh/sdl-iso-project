@@ -258,20 +258,11 @@ texture_t *texture_from_key(const char *key) {
 	return TEXTURES[*value];
 }
 
-texture_state_t texture_state_from_type(texture_type_e tex_type) {
+texture_state_t texture_zeroed_state() {
 	texture_state_t tex_state;
 
-	switch (tex_type) {
-	default: // voxels and non-transparent textures
-		tex_state.outline_mask = 0x0;
-		break;
-	case TEX_CONNECTED:
-		tex_state.connected_mask = 0x0;
-		break;
-	case TEX_SHEET:
-			tex_state.cell = (v2i){0, 0};
-			break;
-	}
+	for (size_t i = 0; i < sizeof tex_state; ++i)
+		((uint8_t *)&tex_state)[i] = 0;
 
 	return tex_state;
 }

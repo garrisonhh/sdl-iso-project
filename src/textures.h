@@ -47,7 +47,7 @@ void textures_destroy(void);
 SDL_Texture *load_sdl_texture(const char *path);
 
 texture_t *texture_from_key(const char *);
-texture_state_t texture_state_from_type(texture_type_e tex_type);
+texture_state_t texture_zeroed_state(void);
 
 #endif
 
