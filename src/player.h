@@ -11,6 +11,8 @@ void player_init(world_t *);
 
 void player_tick(void);
 
+void player_click(world_t *, v2i);
+
 v3d player_get_pos(void);
 void player_toggle_godmode(void);
 

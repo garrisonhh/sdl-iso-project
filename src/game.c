@@ -65,6 +65,12 @@ int game_loop(void *arg) {
 				case SDL_MOUSEWHEEL:
 					camera_scale(event.wheel.y > 0);
 					break;
+			case SDL_MOUSEBUTTONDOWN:
+				if (event.button.button == SDL_BUTTON_LEFT) {
+					v2i pos = {event.button.x, event.button.y};
+					player_click(world, pos);
+				}
+				break;
 			}
 		}
 

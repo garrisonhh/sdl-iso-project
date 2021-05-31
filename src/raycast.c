@@ -1,8 +1,10 @@
 #include <stdbool.h>
 #include <math.h>
 #include "world.h"
-#include "lib/vector.h"
+#include "render.h"
+#include "camera.h"
 #include "collision.h"
+#include "lib/vector.h"
 #include "lib/utils.h"
 
 // block testing
@@ -14,8 +16,7 @@ bool raycast_block_exists(block_t *block) {
 // if the ray starts inside of a block, axis will be -1
 // **this does NOT limit itself to the scope of the ray**
 bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), v3i *block_hit, int *axis_hit) {
-	int i, polarity;
-	int axis, next_axis;
+	int i, polarity, axis;
 	double t_max_target, dim_pos, dim_abs_dir;
 	v3i loc, step;
 	v3d t_max, t_delta;
@@ -60,13 +61,44 @@ bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), 
 				axis = i;
 
 		// increase by step and delta on axis
-		next_axis = v3i_IDX(loc, axis) + v3i_IDX(step, axis);
-		v3i_IDX(loc, axis) = next_axis;
+		v3i_IDX(loc, axis) += v3i_IDX(step, axis);
 
-		if (next_axis < 0 || next_axis >= world->block_size)
+		if ((v3i_IDX(step, axis) < 0 && v3i_IDX(loc, axis) < 0)
+		 || (v3i_IDX(step, axis) > 0 && v3i_IDX(loc, axis) >= world->block_size)) {
 			return false;
+		}
 
-		v3d_IDX(t_max, axis) = v3d_IDX(t_max, axis) + v3d_IDX(t_delta, axis);
+		v3d_IDX(t_max, axis) += v3d_IDX(t_delta, axis);
 	}
 }
 
+bool raycast_screen_pos(world_t *world, v2i screen_pos, v3i *block_hit, int *axis_hit) {
+	double a, b;
+	ray_t ray;
+	v2d cartesian;
+
+	// reverse projection
+	cartesian = v2d_from_v2i(screen_pos);
+	cartesian.x = (cartesian.x / (double)camera.scale) + (double)camera.center.x;
+	cartesian.y = (cartesian.y / (double)camera.scale) + (double)camera.center.y;
+
+	a = (cartesian.x * 2.0) / (double)VOXEL_WIDTH;
+	b = (cartesian.y * 4.0) / (double)VOXEL_WIDTH;
+
+	ray.pos = (v3d){
+		(b - a) * 0.5,
+		(b + a) * 0.5,
+		0.0
+	};
+	ray.dir = (v3d){0, 0, 0};
+	ray.dir = v3d_sub(ray.dir, CAMERA_VIEW_DIR);
+
+	// adjust ray to start at world block height
+	// TODO ray interaction with fg/bg splitting?
+	ray.pos = v3d_add(ray.pos, v3d_scale(ray.dir, (double)world->block_size / ray.dir.z));
+
+	v3d_print("raycasting from", ray.pos);
+	v3d_print("raycasting towards", ray.dir);
+
+	return raycast_to_block(world, ray, raycast_block_exists, block_hit, axis_hit);
+}

@@ -9,5 +9,6 @@ bool raycast_block_exists(block_t *);
 
 bool raycast_to_block(world_t *, ray_t, bool (*block_test)(block_t *),
 					  v3i *block_hit, int *axis_hit);
+bool raycast_screen_pos(world_t *, v2i screen_pos, v3i *block_hit, int *axis_hit);
 
 #endif

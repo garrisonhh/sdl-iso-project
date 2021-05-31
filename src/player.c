@@ -3,8 +3,9 @@
 #include "entity/entity.h"
 #include "entity/human.h"
 #include "world.h"
-#include "lib/vector.h"
 #include "camera.h"
+#include "raycast.h"
+#include "lib/vector.h"
 #include "lib/utils.h"
 
 const double SIN_PI_6 = sin(M_PI / 6);
@@ -96,6 +97,15 @@ void player_tick() {
 		entity_human_use_tool(PLAYER);
 	}
 	*/
+}
+
+void player_click(world_t *world, v2i mouse_pos) {
+	v3i loc;
+	int axis;
+
+	if (raycast_screen_pos(world, mouse_pos, &loc, &axis)) {
+		printf("hit (%i, %i, %i) on axis %i!\n", loc.x, loc.y, loc.z, axis);
+	}
 }
 
 void player_toggle_godmode() {

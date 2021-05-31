@@ -17,7 +17,7 @@
 #include "textures.h"
 #include "raycast.h"
 
-const v3d CAMERA_VIEW_DIR = {VOXEL_HEIGHT, VOXEL_HEIGHT, VOXEL_WIDTH};
+const v3d CAMERA_VIEW_DIR = {VOXEL_WIDTH >> 1, VOXEL_WIDTH >> 1, VOXEL_Z_HEIGHT};
 const int VRAY_Z_PER_BLOCK = (VOXEL_WIDTH >> 1) / (VOXEL_Z_HEIGHT - (VOXEL_WIDTH >> 1));
 
 SDL_Renderer *renderer;

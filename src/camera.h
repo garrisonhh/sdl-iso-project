@@ -20,7 +20,7 @@ struct camera_t {
 	// rendering
 	int rotation; // 0-3; cardinal directions
 	v3i facing;
-	int block_size;
+	int block_size; // TODO it is weird that I store this here, figure out why I did this
 	
 	// voxel raycast
 	float vray_ratio;
