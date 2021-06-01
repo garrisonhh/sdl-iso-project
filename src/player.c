@@ -107,7 +107,7 @@ void player_click(world_t *world, v2i mouse_pos) {
 	const char axes[3] = "XYZ";
 
 	ray = (ray_t){
-		.pos = un_project(mouse_pos, world->block_size),
+		.pos = un_project(mouse_pos, (double)world->block_size - 0.5),
 		.dir = camera.view_dir
 	};
 

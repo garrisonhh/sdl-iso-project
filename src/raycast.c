@@ -12,9 +12,14 @@ bool raycast_block_exists(block_t *block) {
 	return block != NULL;
 }
 
-// finds location of first block hit and axis hit
-// if the ray starts inside of a block, axis will be -1
-// **this does NOT limit itself to the scope of the ray**
+/*
+ * finds location of first block hit and axis hit
+ * if the ray starts inside of a block, axis will be -1
+ * 
+ * beware of submitting a ray which has a position where coordinates are close to int values,
+ * this can cause floating point errors which make the algorithm inaccurate. unsure why.
+ * **this does NOT limit itself to the scope of the ray**
+ */
 bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), v3i *block_hit, int *axis_hit) {
 	int i, polarity, axis;
 	double t_max_target, dim_pos, dim_abs_dir;
@@ -56,11 +61,11 @@ bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), 
 		// find axis with minimum t
 		axis = 2;
 
-		for (i = 1; i >= 0; i--)
+		for (i = 1; i >= 0; --i)
 			if (v3d_IDX(t_max, i) < v3d_IDX(t_max, axis))
 				axis = i;
 
-		// increase by step and delta on axis
+		// increment loc by step and t_max by t_delta on axis
 		v3i_IDX(loc, axis) += v3i_IDX(step, axis);
 
 		if ((v3i_IDX(step, axis) < 0 && v3i_IDX(loc, axis) < 0)
