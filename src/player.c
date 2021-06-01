@@ -100,12 +100,7 @@ void player_tick() {
 }
 
 void player_click(world_t *world, v2i mouse_pos) {
-	v3i loc;
-	int axis;
-
-	if (raycast_screen_pos(world, mouse_pos, &loc, &axis)) {
-		printf("hit (%i, %i, %i) on axis %i!\n", loc.x, loc.y, loc.z, axis);
-	}
+	un_project(mouse_pos, PLAYER->data.ray.pos.z);
 }
 
 void player_toggle_godmode() {

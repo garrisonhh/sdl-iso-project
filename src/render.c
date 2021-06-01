@@ -17,7 +17,6 @@
 #include "textures.h"
 #include "raycast.h"
 
-const v3d CAMERA_VIEW_DIR = {VOXEL_WIDTH >> 1, VOXEL_WIDTH >> 1, VOXEL_Z_HEIGHT};
 const int VRAY_Z_PER_BLOCK = (VOXEL_WIDTH >> 1) / (VOXEL_Z_HEIGHT - (VOXEL_WIDTH >> 1));
 
 SDL_Renderer *renderer;
@@ -177,17 +176,14 @@ void render_info_voxel_raycast(array_t *packets, world_t *world, v3i center, int
 
 render_info_t *render_gen_info(world_t *world) {
 	ray_t cam_ray;
-	v3i loc;
+	v3i cam_loc;
 	render_info_t *info;
 
 	info = malloc(sizeof(render_info_t));
 
 	// camera
-	info->cam_hit = false;
-	cam_ray = (ray_t){
-		camera.pos,
-		camera_reverse_rotated_v3d(CAMERA_VIEW_DIR)
-	};
+	cam_ray = (ray_t){camera.pos, (v3d){0, 0, 0}};
+	cam_ray.dir = v3d_scale(camera.view_dir, -1.0);
 	cam_ray.pos.z += 0.5;
 
 	info->cam_hit = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
@@ -196,19 +192,19 @@ render_info_t *render_gen_info(world_t *world) {
 	// packets
 	info->bg_packets = array_create(256);
 
-	loc = v3i_from_v3d(camera.pos);
+	cam_loc = v3i_from_v3d(camera.pos);
 
 	if (info->cam_hit) {
 		info->z_split = (int)camera.pos.z;
 		info->fg_packets = array_create(256);
 
-		render_info_voxel_raycast(info->fg_packets, world, loc, world->block_size - 1, info->z_split);
-		render_info_voxel_raycast(info->bg_packets, world, loc, info->z_split, 0);
+		render_info_voxel_raycast(info->fg_packets, world, cam_loc, world->block_size - 1, info->z_split);
+		render_info_voxel_raycast(info->bg_packets, world, cam_loc, info->z_split, 0);
 	} else {
 		info->z_split = -1;
 		info->fg_packets = NULL;
 
-		render_info_voxel_raycast(info->bg_packets, world, loc, world->block_size - 1, 0);
+		render_info_voxel_raycast(info->bg_packets, world, cam_loc, world->block_size - 1, 0);
 	}
 
 	render_info_add_shadows(info, world);

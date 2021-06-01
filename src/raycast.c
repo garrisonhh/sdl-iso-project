@@ -71,34 +71,3 @@ bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), 
 		v3d_IDX(t_max, axis) += v3d_IDX(t_delta, axis);
 	}
 }
-
-bool raycast_screen_pos(world_t *world, v2i screen_pos, v3i *block_hit, int *axis_hit) {
-	double a, b;
-	ray_t ray;
-	v2d cartesian;
-
-	// reverse projection
-	cartesian = v2d_from_v2i(screen_pos);
-	cartesian.x = (cartesian.x / (double)camera.scale) + (double)camera.center.x;
-	cartesian.y = (cartesian.y / (double)camera.scale) + (double)camera.center.y;
-
-	a = (cartesian.x * 2.0) / (double)VOXEL_WIDTH;
-	b = (cartesian.y * 4.0) / (double)VOXEL_WIDTH;
-
-	ray.pos = (v3d){
-		(b - a) * 0.5,
-		(b + a) * 0.5,
-		0.0
-	};
-	ray.dir = (v3d){0, 0, 0};
-	ray.dir = v3d_sub(ray.dir, CAMERA_VIEW_DIR);
-
-	// adjust ray to start at world block height
-	// TODO ray interaction with fg/bg splitting?
-	ray.pos = v3d_add(ray.pos, v3d_scale(ray.dir, (double)world->block_size / ray.dir.z));
-
-	v3d_print("raycasting from", ray.pos);
-	v3d_print("raycasting towards", ray.dir);
-
-	return raycast_to_block(world, ray, raycast_block_exists, block_hit, axis_hit);
-}

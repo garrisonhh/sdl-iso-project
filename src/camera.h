@@ -20,6 +20,7 @@ struct camera_t {
 	// rendering
 	int rotation; // 0-3; cardinal directions
 	v3i facing;
+	v3d view_dir;
 	int block_size; // TODO it is weird that I store this here, figure out why I did this
 	
 	// voxel raycast
@@ -40,6 +41,7 @@ void camera_rotate(bool);
 
 v2i project_v3i(v3i);
 v2i project_v3d(v3d);
+v3d un_project(v2i, double z);
 
 v3d camera_rotated_v3d(v3d);
 v3d camera_reverse_rotated_v3d(v3d);
