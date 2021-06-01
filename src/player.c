@@ -100,7 +100,25 @@ void player_tick() {
 }
 
 void player_click(world_t *world, v2i mouse_pos) {
-	un_project(mouse_pos, PLAYER->data.ray.pos.z);
+	int axis;
+	v3i block_loc;
+	ray_t ray;
+
+	const char axes[3] = "XYZ";
+
+	ray = (ray_t){
+		.pos = un_project(mouse_pos, world->block_size),
+		.dir = camera.view_dir
+	};
+
+	// TODO this raycast is inaccurate
+	if (raycast_to_block(world, ray, raycast_block_exists, &block_loc, &axis)) {
+		printf("raycast:\n");
+		v3i_print("hit block", block_loc);
+		printf("hit side: %c\n", axes[axis]);
+	}
+
+	printf("\n");
 }
 
 void player_toggle_godmode() {

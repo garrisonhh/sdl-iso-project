@@ -242,7 +242,7 @@ void world_generate(world_t *world) {
 
 	timeit_start();
 
-	if (0) { // debug world
+	if (1) { // debug world
 		size_t grass = blocks_get_id("grass");
 		/*
 		noise3_t *noise;
@@ -266,7 +266,6 @@ void world_generate(world_t *world) {
 		loc = (v3i){0, 0, 0};
 
 		FOR_XY(loc.y, loc.x, world->block_size, world->block_size) {
-			v3i_print(NULL, loc);
 			world_set_no_update(world, loc, grass);
 		}
 	} else {

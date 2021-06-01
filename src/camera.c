@@ -3,7 +3,7 @@
 #include "lib/vector.h"
 #include "lib/utils.h"
 
-v3d CAMERA_BASE_VIEW_DIR = {-VOXEL_WIDTH >> 1, -VOXEL_WIDTH >> 1, -VOXEL_Z_HEIGHT};
+v3d CAMERA_BASE_VIEW_DIR = {-VOXEL_HEIGHT, -VOXEL_HEIGHT, -VOXEL_WIDTH};
 
 const int VOXEL_HALF_W = VOXEL_WIDTH >> 1;
 const int VOXEL_4TH_W = VOXEL_WIDTH >> 2;
@@ -17,10 +17,10 @@ camera_t camera = {
 };
 
 void camera_init() {
-	// camera constants
+	// constants
 	CAMERA_BASE_VIEW_DIR = v3d_normalize(CAMERA_BASE_VIEW_DIR);
 
-	// camera struct
+	// camera
 	v3d pos = (v3d){0, 0, 0};
 	float screen_w = (float)SCREEN_WIDTH / (float)VOXEL_WIDTH;
 	float screen_h = (float)SCREEN_HEIGHT / (float)VOXEL_HALF_W;
@@ -132,29 +132,22 @@ v3d un_project(v2i v, double z) {
 	v2d cartesian;
 	v3d pos;
 
-	printf("unprojecting %i %i\n", v.x, v.y);
-
-	// find cartesian coordinates (descale)
+	// find cartesian coordinates (unscale)
 	cartesian = v2d_from_v2i(v);
 	cartesian.x = (cartesian.x / (double)camera.scale) + (double)camera.center.x;
 	cartesian.y = (cartesian.y / (double)camera.scale) + (double)camera.center.y;
 
-	printf("cartesian %f %f\n", cartesian.x, cartesian.y);
-
 	a = (cartesian.x * 2.0) / (double)VOXEL_WIDTH;
 	b = (cartesian.y * 4.0) / (double)VOXEL_WIDTH;
 
+	// find position at z = 0
 	pos.x = (b + a) * 0.5;
 	pos.y = (b - a) * 0.5;
+	pos.z = 0.0;
 
-	v3d_print("base coordinates", pos);
-
-	pos.x -= CAMERA_BASE_VIEW_DIR.x * z;
-	pos.y -= CAMERA_BASE_VIEW_DIR.y * z;
-	pos.z = z;
+	// adjust position to camera position
 	pos = camera_reverse_rotated_v3d(pos);
-
-	v3d_print("adjusted coordinates", pos);
+	pos = v3d_add(pos, v3d_scale(camera.view_dir, (z / camera.view_dir.z)));
 
 	return pos;
 }
