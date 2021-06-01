@@ -3,9 +3,10 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "lib/vector.h"
+#include "world/generate.h"
 #include "entity/entity.h"
 #include "block/block.h"
+#include "lib/vector.h"
 #include "lib/array.h"
 #include "lib/list.h"
 #include "lib/hashmap.h"
@@ -46,13 +47,15 @@ void chunk_destroy();
 
 void world_check_chunk(world_t *, unsigned index);
 
-world_t *world_create(int);
+world_t *world_create(int size_pow2, world_gen_type_e);
 void world_destroy(world_t *);
 
-void world_generate(world_t *);
 void world_tick(world_t *, double time);
+
 void world_spawn(world_t *, entity_t *, v3d pos);
 block_t *world_get(world_t *, v3i loc);
+void world_set(world_t *, v3i loc, size_t block_id);
+void world_set_no_update(world_t *, v3i loc, size_t block_id);
 void world_get_render_loc(world_t *, v3i loc, block_t **block_result, list_t **bucket_result);
 bool world_indices(world_t *world, v3i loc, unsigned *chunk_index, unsigned *block_index);
 

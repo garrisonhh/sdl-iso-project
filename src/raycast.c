@@ -22,12 +22,13 @@ bool raycast_block_exists(block_t *block) {
  */
 bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), v3i *block_hit, int *axis_hit) {
 	int i, polarity, axis;
-	double t_max_target, dim_pos, dim_abs_dir;
+	double t_max_target;
+	double dim_pos, dim_abs_dir;
+	double axis_diff;
 	v3i loc, step;
 	v3d t_max, t_delta;
 
 	// find initial vars
-	axis = -1;
 	loc = v3i_from_v3d(ray.pos);
 	step = polarity_of_v3d(ray.dir);
 
@@ -61,9 +62,12 @@ bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), 
 		// find axis with minimum t
 		axis = 2;
 
-		for (i = 1; i >= 0; --i)
-			if (v3d_IDX(t_max, i) < v3d_IDX(t_max, axis))
+		for (i = 1; i >= 0; --i) {
+			axis_diff = v3d_IDX(t_max, axis) - v3d_IDX(t_max, i);
+
+			if (!d_close(axis_diff, 0.0) && axis_diff > 0.0)
 				axis = i;
+		}
 
 		// increment loc by step and t_max by t_delta on axis
 		v3i_IDX(loc, axis) += v3i_IDX(step, axis);

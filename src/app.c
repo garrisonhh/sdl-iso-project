@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include "app.h"
 #include "game.h"
+#include "world.h"
 #include "menu.h"
 #include "render.h"
 #include "render/fonts.h"
@@ -71,6 +72,14 @@ void app_menu_generate_world() {
 	MENU_QUIT = true;
 }
 
+void app_menu_world_flat() {
+	WORLD_TYPE = WORLD_FLAT;
+}
+
+void app_menu_world_alien() {
+	WORLD_TYPE = WORLD_ALIEN;
+}
+
 void app_menu_init() {
 	v2i pos, aligned = {20, 20};
 	int line_h = font_line_height(FONT_MENU);
@@ -83,7 +92,9 @@ void app_menu_init() {
 	WORLD_SIZE_TEXT = malloc(sizeof(char) * 30);
 	app_menu_check_world_size();
 
-	// main menu
+	/*
+	 * main menu
+	 */
 	menu = MENUS[MENU_MAIN];
 
 	pos = aligned;
@@ -95,12 +106,15 @@ void app_menu_init() {
 	pos.y += line_h;
 	menu_add_text_button(menu, "exit", pos, app_menu_exit);
 	
-	// new world
+	/*
+	 * new world
+	 */
 	menu = MENUS[MENU_NEW_WORLD];
 
 	pos = aligned;
 	menu_add_text_label(menu, ">>> new world <<<", pos);
 
+	// choose size
 	pos.y += line_h * 2;
 	menu_add_text_label(menu, "size:", pos);
 
@@ -113,8 +127,20 @@ void app_menu_init() {
 	pos.x += char_w * 7;
 	menu_add_text_button(menu, ">", pos, app_menu_inc_world_size);
 
+	// choose world type
 	pos.x = aligned.x;
 	pos.y += line_h;
+	menu_add_text_label(menu, "type:", pos);
+
+	pos.x += char_w * 10;
+	menu_add_text_button(menu, "flat", pos, app_menu_world_flat);
+
+	pos.x += char_w * 7;
+	menu_add_text_button(menu, "alien", pos, app_menu_world_alien);
+
+	// generate
+	pos.x = aligned.x;
+	pos.y += line_h * 2;
 	menu_add_text_button(menu, "generate", pos, app_menu_generate_world);
 }
 

@@ -2,10 +2,10 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_thread.h>
 #include <SDL2/SDL_mutex.h>
+#include "game.h"
 #include "app.h"
 #include "render.h"
 #include "render/gui.h"
-#include "world.h"
 #include "player.h"
 #include "camera.h"
 #include "lib/mytimer.h"
@@ -14,8 +14,10 @@ SDL_mutex *RENDER_INFO_LOCK, *LAST_INFO_LOCK;
 SDL_sem *MAIN_DONE = NULL, *GAME_LOOP_DONE = NULL;
 render_info_t *RENDER_INFO = NULL, *LAST_INFO = NULL;
 
-bool QUIT;
 int NEW_WORLD_SIZE = 0;
+world_gen_type_e WORLD_TYPE = WORLD_FLAT;
+
+bool QUIT;
 
 void game_init() {
 	RENDER_INFO_LOCK = SDL_CreateMutex();
@@ -23,8 +25,7 @@ void game_init() {
 }
 
 int game_loop(void *arg) {
-	world_t *world = world_create(NEW_WORLD_SIZE);
-	world_generate(world);
+	world_t *world = world_create(NEW_WORLD_SIZE, WORLD_TYPE);
 
 	player_init(world);
 	camera_set_block_size(world->block_size);

@@ -6,6 +6,7 @@
 #include "world.h"
 #include "world/masks.h"
 #include "world/bucket.h"
+#include "world/generate.h"
 #include "block/block.h"
 #include "block/blocks.h"
 #include "entity/entity.h"
@@ -43,7 +44,10 @@ void chunk_destroy(chunk_t *chunk) {
 }
 
 // sizes are a power of 2
-world_t *world_create(int size_pow2) {
+world_t *world_create(int size_pow2, world_gen_type_e world_type) {
+	v3i loc;
+
+	// fill in obj
 	world_t *world = malloc(sizeof(world_t));
 
 	world->size_pow2 = size_pow2;
@@ -62,7 +66,14 @@ world_t *world_create(int size_pow2) {
 	world->buckets = list_create();
 	world->entities = list_create();
 
-	world->path_net = NULL; // set in generate
+	// generate
+	world_generate(world, world_type);
+
+	FOR_CUBE(loc.x, loc.y, loc.z, 0, world->block_size)
+		world_update_masks(world, loc);
+
+	world->path_net = NULL;
+	//world->path_net = path_generate_world_network(world);
 
 	return world;
 }
@@ -148,7 +159,6 @@ void world_get_render_loc(world_t *world, v3i loc, block_t **block_result, list_
 	}
 }
 
-// only for internal use
 void world_set_no_update(world_t *world, v3i loc, size_t block_id) {
 	unsigned chunk_index, block_index;
 	
@@ -233,97 +243,6 @@ void generate_tree(world_t *world, v3i loc) {
 
 		loc.z++;
 	}
-}
-
-void world_generate(world_t *world) {
-	v3i loc;
-
-	srand(time(0));
-
-	timeit_start();
-
-	if (1) { // debug world
-		size_t grass = blocks_get_id("grass");
-		/*
-		noise3_t *noise;
-		double v, scale;
-
-		noise = noise3_create(world->block_size, 1, 1, 0.35);
-
-		FOR_CUBE(loc.x, loc.y, loc.z, 0, world->block_size) {
-			v = noise3_at(noise, loc.x, loc.y, loc.z);
-			v = 1.0 - fabs(v);
-
-			scale = 4.0 *  (1.0 - 2.0 * ((double)loc.z / (double)(world->block_size - 1)));
-
-			if (v * scale >= 1.0)
-				world_set_no_update(world, loc, grass);
-		}
-
-		noise3_destroy(noise);
-		*/
-
-		loc = (v3i){0, 0, 0};
-
-		FOR_XY(loc.y, loc.x, world->block_size, world->block_size) {
-			world_set_no_update(world, loc, grass);
-		}
-	} else {
-		double noise_val;
-		noise2_t *noise = noise2_create(world->block_size, MAX(world->size_pow2 - 1, 0), 5, 0.5);
-
-		size_t dirt = blocks_get_id("dirt");
-		size_t grass = blocks_get_id("grass");
-		size_t bush = blocks_get_id("bush");
-		size_t tall_grass = blocks_get_id("tall grass");
-		size_t flower = blocks_get_id("flower");
-		size_t sml_rock = blocks_get_id("small rock");
-
-		FOR_XY(loc.x, loc.y, world->block_size, world->block_size) {
-			noise_val = pow((1.0 + noise2_at(noise, loc.x, loc.y)) / 2, 3.0);
-			noise_val *= MIN(world->block_size, 64);
-
-			for (loc.z = 0; loc.z < (int)noise_val; loc.z++)
-				world_set_no_update(world, loc, dirt);
-			
-			world_set_no_update(world, loc, grass);
-
-			++loc.z;
-
-			switch (rand() % 30) {
-			case 0:
-				world_set_no_update(world, loc, bush);
-				break;
-			case 1:
-			case 2:
-			case 3:
-				world_set_no_update(world, loc, tall_grass);
-				break;
-			case 4:
-				world_set_no_update(world, loc, flower);
-				break;
-			case 5:
-				world_set_no_update(world, loc, sml_rock);
-				break;
-			}
-
-			if (rand() % 500 == 0)
-				generate_tree(world, loc);
-		}
-
-		noise2_destroy(noise);
-	}
-
-	timeit_end("world generated");
-
-	FOR_CUBE(loc.x, loc.y, loc.z, 0, world->block_size)
-		world_update_masks(world, loc);
-
-	timeit_end("block masks updated");
-
-	timeit_start();
-	world->path_net = path_generate_world_network(world);
-	timeit_end("path network created");
 }
 
 void world_tick(world_t *world, double time) {
