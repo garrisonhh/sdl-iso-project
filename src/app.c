@@ -23,7 +23,11 @@ menu_state_e MENU_STATE;
 menu_t *MENUS[NUM_MENUS];
 
 bool MENU_QUIT;
+
 char *WORLD_SIZE_TEXT;
+char *WORLD_TYPE_TEXT;
+
+const char *WORLD_TYPE_NAMES[NUM_WORLD_TYPES] = {"flat", "alien"};
 
 void app_menu(void);
 
@@ -72,16 +76,17 @@ void app_menu_generate_world() {
 	MENU_QUIT = true;
 }
 
-void app_menu_world_flat() {
-	WORLD_TYPE = WORLD_FLAT;
+void app_menu_check_world_type() {
+	strcpy(WORLD_TYPE_TEXT, WORLD_TYPE_NAMES[WORLD_TYPE]);
 }
 
-void app_menu_world_alien() {
-	WORLD_TYPE = WORLD_ALIEN;
+void app_menu_next_world_type() {
+	WORLD_TYPE = (WORLD_TYPE + 1) % NUM_WORLD_TYPES;
+	app_menu_check_world_type();
 }
 
 void app_menu_init() {
-	v2i pos, aligned = {20, 20};
+	v2i pos, aligned = {30, 20};
 	int line_h = font_line_height(FONT_MENU);
 	int char_w = font_char_size(FONT_MENU).x;
 	menu_t *menu;
@@ -90,7 +95,9 @@ void app_menu_init() {
 		MENUS[i] = menu_create();
 
 	WORLD_SIZE_TEXT = malloc(sizeof(char) * 30);
+	WORLD_TYPE_TEXT = malloc(sizeof(char) * 30);
 	app_menu_check_world_size();
+	app_menu_check_world_type();
 
 	/*
 	 * main menu
@@ -118,13 +125,13 @@ void app_menu_init() {
 	pos.y += line_h * 2;
 	menu_add_text_label(menu, "size:", pos);
 
-	pos.x += char_w * 10;
+	pos.x += char_w * 8;
+	menu_add_dynamic_text(menu, &WORLD_SIZE_TEXT, pos);
+
+	pos.x += char_w * 8;
 	menu_add_text_button(menu, "<", pos, app_menu_dec_world_size);
 
 	pos.x += char_w * 2;
-	menu_add_dynamic_text(menu, &WORLD_SIZE_TEXT, pos);
-
-	pos.x += char_w * 7;
 	menu_add_text_button(menu, ">", pos, app_menu_inc_world_size);
 
 	// choose world type
@@ -132,11 +139,11 @@ void app_menu_init() {
 	pos.y += line_h;
 	menu_add_text_label(menu, "type:", pos);
 
-	pos.x += char_w * 10;
-	menu_add_text_button(menu, "flat", pos, app_menu_world_flat);
+	pos.x += char_w * 8;
+	menu_add_dynamic_text(menu, &WORLD_TYPE_TEXT, pos);
 
-	pos.x += char_w * 7;
-	menu_add_text_button(menu, "alien", pos, app_menu_world_alien);
+	pos.x += char_w * 8;
+	menu_add_text_button(menu, ">", pos, app_menu_next_world_type);
 
 	// generate
 	pos.x = aligned.x;
@@ -152,9 +159,13 @@ void app_menu_quit() {
 }
 
 void app_menu() {
-	MENU_STATE = MENU_MAIN;
+	SDL_Rect fill_rect = {
+		20, 0,
+		(SCREEN_WIDTH >> 2) + 20, SCREEN_HEIGHT
+	};
 
 	// menu loop
+	MENU_STATE = MENU_MAIN;
 	MENU_QUIT = false;
 	SDL_Event event;
 
@@ -177,6 +188,9 @@ void app_menu() {
 
 		SDL_SetRenderDrawColor(renderer, 0x0F, 0x2F, 0x3F, 0xFF);
 		SDL_RenderClear(renderer);
+
+		SDL_SetRenderDrawColor(renderer, 0x1F, 0x1F, 0x1F, 0x7F);
+		SDL_RenderFillRect(renderer, &fill_rect);
 
 		menu_tick(MENUS[MENU_STATE]);
 		menu_render(MENUS[MENU_STATE]);

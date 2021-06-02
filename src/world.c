@@ -93,7 +93,7 @@ void world_destroy(world_t *world) {
 	list_destroy(world->buckets, false);
 	list_destroy(world->entities, false);
 
-	path_network_destroy(world->path_net);
+	//path_network_destroy(world->path_net);
 
 	free(world->chunks);
 	free(world);
