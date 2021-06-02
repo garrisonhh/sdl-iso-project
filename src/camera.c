@@ -93,7 +93,7 @@ void camera_set_rotation(int rotation) {
 		break;
 	}
 
-	camera.view_dir = camera_rotated_v3d(CAMERA_BASE_VIEW_DIR);
+	camera.view_dir = camera_reverse_rotated_v3d(CAMERA_BASE_VIEW_DIR);
 	camera_update_raycasting();
 }
 
