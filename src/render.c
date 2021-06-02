@@ -17,8 +17,6 @@
 #include "textures.h"
 #include "raycast.h"
 
-const int VRAY_Z_PER_BLOCK = (VOXEL_WIDTH >> 1) / (VOXEL_Z_HEIGHT - (VOXEL_WIDTH >> 1));
-
 SDL_Renderer *RENDERER;
 SDL_Texture *FOREGROUND, *BACKGROUND;
 
@@ -92,7 +90,8 @@ void render_info_add_shadows(render_info_t *info, world_t *world) {
 	}
 }
 
-void render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
+// returns whether block has been hit for voxel raycasting
+bool render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 	double block_y;
 	block_t *block;
 	list_t *bucket;
@@ -124,26 +123,27 @@ void render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 				LIST_FOREACH(bucket_trav, bucket)
 					entity_add_render_info(packets, bucket_trav->item);
 		}
+
+		return true;
 	} else if (bucket != NULL) {
 		LIST_FOREACH(bucket_trav, bucket)
 			entity_add_render_info(packets, bucket_trav->item);
 	}
+
+	return false;
 }
 
 void render_info_single_ray(array_t *packets, world_t *world, v3i loc, int min_z) {
-	// TODO check loc exiting world bounds
-	int i = 0;
+	int i;
 
-	while (loc.z >= min_z) {
-		render_info_add_packets_at(packets, world, loc);
+	while (!render_info_add_packets_at(packets, world, loc)) {
 		loc = v3i_add(loc, camera.facing);
 
-		// z offset
-		if (i++ == VRAY_Z_PER_BLOCK) {
-			loc.x += camera.facing.x;
-			loc.y += camera.facing.y;
-			i = 0;
-		}
+		// check out of bounds
+		for (i = 0; i < 3; ++i)
+			if ((v3i_IDX(camera.facing, i) < 0 && v3i_IDX(loc, i) < 0)
+			 || (v3i_IDX(camera.facing, i) > 0 && v3i_IDX(loc, i) >= world->block_size))
+				return;
 	}
 }
 
@@ -151,15 +151,12 @@ void render_info_voxel_raycast(array_t *packets, world_t *world, v3i center, int
 	v3i offset;
 	int col_start, col_end;
 	int i, j;
-	int center_z_offset;
+	int z_diff;
 
 	offset = (v3i){0, 0, 0};
 
-	center_z_offset = max_z - center.z;
-	center = v3i_sub(center, v3i_scalei(camera.facing, center_z_offset));
-
-	center.x -= camera.facing.x * (center_z_offset / VRAY_Z_PER_BLOCK);
-	center.y -= camera.facing.y * (center_z_offset / VRAY_Z_PER_BLOCK);
+	z_diff = max_z - center.z;
+	center = v3i_from_v3d(v3d_sub(v3d_from_v3i(center), v3d_scale(camera.view_dir, z_diff)));
 
 	for (i = 0; i <= camera.vray_size; ++i) {
 		col_start = abs(i - camera.vray_start);
@@ -191,25 +188,24 @@ render_info_t *render_gen_info(world_t *world) {
 
 	// packets
 	info->bg_packets = array_create(256);
+	info->fg_packets = (info->cam_hit ? array_create(256) : NULL);
+
+	render_info_add_shadows(info, world);
 
 	cam_loc = v3i_from_v3d(camera.pos);
 
 	if (info->cam_hit) {
 		info->z_split = (int)camera.pos.z;
-		info->fg_packets = array_create(256);
 
 		render_info_voxel_raycast(info->fg_packets, world, cam_loc, world->block_size - 1, info->z_split);
 		render_info_voxel_raycast(info->bg_packets, world, cam_loc, info->z_split, 0);
 	} else {
 		info->z_split = -1;
-		info->fg_packets = NULL;
 
 		render_info_voxel_raycast(info->bg_packets, world, cam_loc, world->block_size - 1, 0);
 	}
 
-	render_info_add_shadows(info, world);
-
-	// sort
+	// sort packets
 	array_qsort(info->bg_packets, render_packet_compare);
 
 	if (info->cam_hit)

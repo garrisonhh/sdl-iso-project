@@ -1,9 +1,10 @@
+#include <math.h>
 #include <stdbool.h>
 #include "camera.h"
 #include "lib/vector.h"
 #include "lib/utils.h"
 
-v3d CAMERA_BASE_VIEW_DIR = {-VOXEL_HEIGHT, -VOXEL_HEIGHT, -VOXEL_WIDTH};
+v3d CAMERA_BASE_VIEW_DIR;
 
 const int VOXEL_HALF_W = VOXEL_WIDTH >> 1;
 const int VOXEL_4TH_W = VOXEL_WIDTH >> 2;
@@ -18,6 +19,9 @@ camera_t camera = {
 
 void camera_init() {
 	// constants
+	CAMERA_BASE_VIEW_DIR.x = -hypot(VOXEL_WIDTH >> 1, VOXEL_WIDTH >> 2);
+	CAMERA_BASE_VIEW_DIR.y = CAMERA_BASE_VIEW_DIR.x;
+	CAMERA_BASE_VIEW_DIR.z = -VOXEL_Z_HEIGHT;
 	CAMERA_BASE_VIEW_DIR = v3d_normalize(CAMERA_BASE_VIEW_DIR);
 
 	// camera
@@ -29,6 +33,7 @@ void camera_init() {
 	camera.vray_ratio *= 0.95;
 
 	camera.view_circle.radius = SCREEN_HEIGHT >> 2;
+
 	camera_set_scale(2);
 	camera_set_pos(pos);
 	camera_set_rotation(0);
@@ -45,7 +50,7 @@ void camera_set_pos(v3d pos) {
 
 void camera_update_raycasting() {
 	camera.vray_size = ((float)camera.viewport.w / (float)VOXEL_WIDTH) * (1.0 / camera.vray_ratio);
-	camera.vray_size += 6; // buffer
+	//camera.vray_size += 6; // buffer
 
 	camera.vray_middle = camera.vray_size >> 1;
 	camera.vray_start = (float)camera.vray_size * camera.vray_ratio;
@@ -94,6 +99,7 @@ void camera_set_rotation(int rotation) {
 	}
 
 	camera.view_dir = camera_reverse_rotated_v3d(CAMERA_BASE_VIEW_DIR);
+
 	camera_update_raycasting();
 }
 
