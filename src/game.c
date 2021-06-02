@@ -22,13 +22,14 @@ bool QUIT;
 void game_init() {
 	RENDER_INFO_LOCK = SDL_CreateMutex();
 	LAST_INFO_LOCK = SDL_CreateMutex();
+
+	render_game_init();
 }
 
 int game_loop(void *arg) {
 	world_t *world = world_create(NEW_WORLD_SIZE, WORLD_TYPE);
 
 	player_init(world);
-	camera_set_block_size(world->block_size);
 
 	SDL_Event event;
 	render_info_t *next_render_info;

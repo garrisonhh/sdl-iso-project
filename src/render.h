@@ -31,6 +31,8 @@ struct render_info_t {
 typedef struct render_info_t render_info_t;
 
 void render_init(SDL_Window *);
+void render_game_init(void);
+void render_game_quit(void);
 void render_quit(void);
 
 render_info_t *render_gen_info(world_t *world);

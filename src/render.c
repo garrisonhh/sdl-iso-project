@@ -44,7 +44,10 @@ void render_init(SDL_Window *window) {
 								   SDL_TEXTUREACCESS_TARGET,
 								   SCREEN_WIDTH, SCREEN_HEIGHT);
 	SDL_SetTextureBlendMode(BACKGROUND, SDL_BLENDMODE_BLEND);
+}
 
+// call from game.c
+void render_game_init() {
 	camera_init();
 }
 
@@ -90,8 +93,9 @@ void render_info_add_shadows(render_info_t *info, world_t *world) {
 	}
 }
 
-// returns whether block has been hit for voxel raycasting
-bool render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
+// TODO I think this is the sticking point, try optimizing render packet sorting so this
+// function can be eliminated completely if possible
+void render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 	double block_y;
 	block_t *block;
 	list_t *bucket;
@@ -123,20 +127,18 @@ bool render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 				LIST_FOREACH(bucket_trav, bucket)
 					entity_add_render_info(packets, bucket_trav->item);
 		}
-
-		return true;
 	} else if (bucket != NULL) {
 		LIST_FOREACH(bucket_trav, bucket)
 			entity_add_render_info(packets, bucket_trav->item);
 	}
-
-	return false;
 }
 
 void render_info_single_ray(array_t *packets, world_t *world, v3i loc, int min_z) {
 	int i;
 
-	while (!render_info_add_packets_at(packets, world, loc)) {
+	while (loc.z >= min_z) {
+		render_info_add_packets_at(packets, world, loc);
+
 		loc = v3i_add(loc, camera.facing);
 
 		// check out of bounds
@@ -147,33 +149,52 @@ void render_info_single_ray(array_t *packets, world_t *world, v3i loc, int min_z
 	}
 }
 
-void render_info_voxel_raycast(array_t *packets, world_t *world, v3i center, int max_z, int min_z) {
+// if max_z is negative, uses camera-defined max_z
+void render_info_voxel_raycast(array_t *packets, world_t *world, int max_z, int min_z) {
+	const v3i limits = camera.render_limits;
+
+	size_t num_locs = ((limits.x + 1) * (limits.y + 1))
+					+ ((limits.x + 1) * limits.z)
+					+ (limits.y * limits.z);
+	v3i locs[num_locs];
+	int i, index = 0;
 	v3i offset;
-	int col_start, col_end;
-	int i, j;
-	int z_diff;
 
-	offset = (v3i){0, 0, 0};
+	// x-y
+	offset.z = 0;
 
-	z_diff = max_z - center.z;
-	center = v3i_from_v3d(v3d_sub(v3d_from_v3i(center), v3d_scale(camera.view_dir, z_diff)));
+	for (offset.x = 0; offset.x <= limits.x; ++offset.x)
+		for (offset.y = 0; offset.y <= limits.y; ++offset.y)
+			locs[index++] = offset;
+	
+	// x-z
+	offset.y = 0;
 
-	for (i = 0; i <= camera.vray_size; ++i) {
-		col_start = abs(i - camera.vray_start);
-		col_end = camera.vray_size - abs((camera.vray_size - i) - camera.vray_start);
+	for (offset.x = 0; offset.x <= limits.x; ++offset.x)
+		for (offset.z = 1; offset.z <= limits.z; ++offset.z)
+			locs[index++] = offset;
 
-		for (j = col_start; j <= col_end; ++j) {
-			offset.x = i - camera.vray_middle;
-			offset.y = j - camera.vray_middle;
+	// y-z
+	offset.x = 0;
 
-			render_info_single_ray(packets, world, v3i_add(offset, center), min_z);
-		}
+	for (offset.y = 1; offset.y <= limits.y; ++offset.y)
+		for (offset.z = 1; offset.z <= limits.z; ++offset.z)
+			locs[index++] = offset;
+
+	for (i = 0; i < num_locs; ++i) {
+		// adjust value
+		locs[i] = v3i_sub(camera.render_center, camera_reverse_rotated_v3i(locs[i]));
+
+		if (!(max_z < 0) && locs[i].z > max_z)
+			locs[i] = v3i_add(locs[i], v3i_scalei(camera.facing, locs[i].z - max_z));
+
+		// raycast
+		render_info_single_ray(packets, world, locs[i], min_z);
 	}
 }
 
 render_info_t *render_gen_info(world_t *world) {
 	ray_t cam_ray;
-	v3i cam_loc;
 	render_info_t *info;
 
 	info = malloc(sizeof(render_info_t));
@@ -189,20 +210,17 @@ render_info_t *render_gen_info(world_t *world) {
 	// packets
 	info->bg_packets = array_create(256);
 	info->fg_packets = (info->cam_hit ? array_create(256) : NULL);
+	info->z_split = (info->cam_hit ? (int)camera.pos.z : -1);
+
+	camera_update_limits(world->block_size);
 
 	render_info_add_shadows(info, world);
 
-	cam_loc = v3i_from_v3d(camera.pos);
-
 	if (info->cam_hit) {
-		info->z_split = (int)camera.pos.z;
-
-		render_info_voxel_raycast(info->fg_packets, world, cam_loc, world->block_size - 1, info->z_split);
-		render_info_voxel_raycast(info->bg_packets, world, cam_loc, info->z_split, 0);
+		render_info_voxel_raycast(info->fg_packets, world, -1, info->z_split + 1);
+		render_info_voxel_raycast(info->bg_packets, world, info->z_split, 0);
 	} else {
-		info->z_split = -1;
-
-		render_info_voxel_raycast(info->bg_packets, world, cam_loc, world->block_size - 1, 0);
+		render_info_voxel_raycast(info->bg_packets, world, -1, 0);
 	}
 
 	// sort packets

@@ -37,7 +37,7 @@ void world_gen_flat(world_t *world) {
 void world_gen_alien(world_t *world) {
 	v3i loc;
 	size_t stone = blocks_get_id("stone");
-	noise3_t *noise = noise3_create(world->block_size, world->size_pow2, 3, 0.35);
+	noise3_t *noise = noise3_create(world->block_size, MAX(world->size_pow2 - 1, 0), 2, 0.25);
 
 	FOR_CUBE(loc.x, loc.y, loc.z, 0, world->block_size) {
 		if (noise3_at(noise, loc.x, loc.y, loc.z) > 0) {

@@ -21,11 +21,7 @@ struct camera_t {
 	int rotation; // 0-3; cardinal directions
 	v3i facing;
 	v3d view_dir;
-	int block_size; // TODO it is weird that I store this here, figure out why I did this
-	
-	// voxel raycast
-	float vray_ratio;
-	int vray_size, vray_middle, vray_start;
+	v3i world_limits, render_center, render_limits;
 };
 typedef struct camera_t camera_t;
 
@@ -33,7 +29,8 @@ extern camera_t camera;
 
 void camera_init(void);
 
-void camera_set_block_size(int); // call after world init
+// call before voxel raycasting
+void camera_update_limits(int block_size);
 void camera_set_pos(v3d);
 void camera_set_scale(int);
 void camera_scale(bool);

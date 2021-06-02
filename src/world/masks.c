@@ -175,7 +175,7 @@ voxel_masks_t world_voxel_masks(block_t *block, v3i loc) {
 
 	// dark
 	for (i = 0; i < 3; ++i)
-		if (v3i_IDX(loc, i) == (v3i_IDX(camera.facing, i) > 0 ? 0 : camera.block_size - 1))
+		if (v3i_IDX(loc, i) == v3i_IDX(camera.world_limits, i))
 			BIT_SET_TRUE(masks.dark, i);
 
 	if (loc.z == (int)camera.pos.z && !BIT_GET(masks.expose, 2))

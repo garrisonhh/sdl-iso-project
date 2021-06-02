@@ -26,11 +26,6 @@ void camera_init() {
 
 	// camera
 	v3d pos = (v3d){0, 0, 0};
-	float screen_w = (float)SCREEN_WIDTH / (float)VOXEL_WIDTH;
-	float screen_h = (float)SCREEN_HEIGHT / (float)VOXEL_HALF_W;
-
-	camera.vray_ratio = screen_w / (screen_w + screen_h);
-	camera.vray_ratio *= 0.95;
 
 	camera.view_circle.radius = SCREEN_HEIGHT >> 2;
 
@@ -39,24 +34,23 @@ void camera_init() {
 	camera_set_rotation(0);
 }
 
-void camera_set_block_size(int block_size) {
-	camera.block_size = block_size;
+void camera_update_limits(int block_size) {
+	camera.render_center = v3i_add(v3i_from_v3d(camera.pos), camera_reverse_rotated_v3i(camera.render_limits));
+
+	// x/y/z limits where dark voxel textures should show up
+	camera.world_limits = camera.render_center;
+
+	for (int i = 0; i < 3; ++i) {
+		if (v3i_IDX(camera.facing, i) > 0 && v3i_IDX(camera.world_limits, i) < 0)
+			v3i_IDX(camera.world_limits, i) = 0;
+		else if ((v3i_IDX(camera.facing, i) < 0 && v3i_IDX(camera.world_limits, i) >= block_size))
+			v3i_IDX(camera.world_limits, i) = block_size - 1;
+	}
 }
 
 void camera_set_pos(v3d pos) {
 	camera.pos = pos;
 	camera.center = v2i_sub(project_v3d_absolute(camera.pos), camera.center_screen);
-}
-
-void camera_update_raycasting() {
-	camera.vray_size = ((float)camera.viewport.w / (float)VOXEL_WIDTH) * (1.0 / camera.vray_ratio);
-	//camera.vray_size += 6; // buffer
-
-	camera.vray_middle = camera.vray_size >> 1;
-	camera.vray_start = (float)camera.vray_size * camera.vray_ratio;
-
-	if (camera.rotation & 1)
-		camera.vray_start = camera.vray_size - camera.vray_start;
 }
 
 void camera_set_scale(int scale) {
@@ -70,10 +64,12 @@ void camera_set_scale(int scale) {
 		camera.viewport.h >> 1,
 	};
 
+	camera.render_limits.x = ((double)camera.viewport.w / (double)VOXEL_WIDTH) + 2;
+	camera.render_limits.y = camera.render_limits.x;
+	camera.render_limits.z = ((double)camera.viewport.h / (double)VOXEL_Z_HEIGHT) + 2;
+
 	camera.view_circle.loc = camera.center_screen;
 	camera.view_circle.radius = camera.viewport.w >> 2;
-
-	camera_update_raycasting();
 }
 
 // used for controlling with mouse wheel
@@ -99,8 +95,6 @@ void camera_set_rotation(int rotation) {
 	}
 
 	camera.view_dir = camera_reverse_rotated_v3d(CAMERA_BASE_VIEW_DIR);
-
-	camera_update_raycasting();
 }
 
 void camera_rotate(bool clockwise) {
@@ -108,7 +102,7 @@ void camera_rotate(bool clockwise) {
 }
 
 // project functions are high FPS impact and very visually important, so if the
-// code looks stupid/repetitive/weirldy formed that is why lol
+// code looks stupid/repetitive/weirdly formed that is why lol
 v2i project_v3i(v3i v) {
 	v = camera_rotated_v3i(v);
 
