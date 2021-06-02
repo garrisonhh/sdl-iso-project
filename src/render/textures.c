@@ -64,7 +64,7 @@ void render_sdl_texture(SDL_Texture *texture, v2i pos) {
 	draw_rect.x += pos.x;
 	draw_rect.y += pos.y;
 
-	SDL_RenderCopy(renderer, texture, NULL, &draw_rect);
+	SDL_RenderCopy(RENDERER, texture, NULL, &draw_rect);
 }
 
 void render_sprite(sprite_t *sprite, v2i pos, v2i cell) {
@@ -81,7 +81,7 @@ void render_sprite(sprite_t *sprite, v2i pos, v2i cell) {
 		sprite->size.y
 	};
 
-	SDL_RenderCopy(renderer, sprite->sheet, &src_rect, &dst_rect);
+	SDL_RenderCopy(RENDERER, sprite->sheet, &src_rect, &dst_rect);
 }
 
 void render_sprite_no_offset(sprite_t *sprite, v2i pos, v2i cell) {
@@ -98,7 +98,7 @@ void render_sprite_no_offset(sprite_t *sprite, v2i pos, v2i cell) {
 		sprite->size.y
 	};
 
-	SDL_RenderCopy(renderer, sprite->sheet, &src_rect, &dst_rect);
+	SDL_RenderCopy(RENDERER, sprite->sheet, &src_rect, &dst_rect);
 }
 
 // surfaces are in right-left-top order
@@ -127,7 +127,7 @@ SDL_Texture *render_cached_voxel_texture(SDL_Surface *surfaces[3]) {
 		}
 	}
 
-	texture = SDL_CreateTextureFromSurface(renderer, voxel_surface);
+	texture = SDL_CreateTextureFromSurface(RENDERER, voxel_surface);
 	SDL_FreeSurface(voxel_surface);
 
 	return texture;
@@ -147,12 +147,12 @@ void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 
 	if (exposed) {
 		src_rect.x = VOXEL_WIDTH * (exposed - 1);
-		SDL_RenderCopy(renderer, texture->texture, &src_rect, &dst_rect);
+		SDL_RenderCopy(RENDERER, texture->texture, &src_rect, &dst_rect);
 	}
 
 	if (masks.dark) {
 		src_rect.x = VOXEL_WIDTH * (masks.dark - 1);
-		SDL_RenderCopy(renderer, DARK_VOXEL_TEXTURE->texture, &src_rect, &dst_rect);
+		SDL_RenderCopy(RENDERER, DARK_VOXEL_TEXTURE->texture, &src_rect, &dst_rect);
 	}
 
 	if (masks.outline) {
@@ -165,7 +165,7 @@ void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 		if (BIT_GET(masks.expose, 2)) {
 			for (i = 0; i < 2; ++i) {
 				if (BIT_GET(masks.outline, i)) {
-					SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
+					SDL_RenderDrawLine(RENDERER, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
 												 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
 				}
 			}
@@ -173,14 +173,14 @@ void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 
 		for (i = 2; i < 4; ++i) {
 			if (BIT_GET(masks.expose, 1 ^ (i & 1)) & BIT_GET(masks.outline, i)) {
-				SDL_RenderDrawLine(renderer, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
+				SDL_RenderDrawLine(RENDERER, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
 											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
 			}
 		}
 
 		for (i = 4; i < 6; ++i) {
 			if (BIT_GET(masks.expose, 1 ^ (i & 1)) & BIT_GET(masks.outline, i)) {
-				SDL_RenderDrawLine(renderer,
+				SDL_RenderDrawLine(RENDERER,
 								   offset.x + OUTLINES[i][0].x,
 								   offset.y + OUTLINES[i][0].y,
 								   offset.x + OUTLINES[i][1].x,
@@ -203,12 +203,12 @@ void render_connected_texture(texture_t *texture, v2i pos, unsigned connected_ma
 		.w = VOXEL_WIDTH,
 		.h = VOXEL_HEIGHT
 	};
-	SDL_RenderCopy(renderer, texture->texture, &src_rect, &dst_rect);
+	SDL_RenderCopy(RENDERER, texture->texture, &src_rect, &dst_rect);
 
 	for (int i = 0; i < 6; ++i) {
 		if (BIT_GET(connected_mask, CONNECT_DRAW_ORDER[i])) {
 			src_rect.x = VOXEL_WIDTH * CONNECT_DRAW_ORDER[i];
-			SDL_RenderCopy(renderer, texture->texture, &src_rect, &dst_rect);
+			SDL_RenderCopy(RENDERER, texture->texture, &src_rect, &dst_rect);
 		}
 	}
 }
@@ -227,5 +227,5 @@ void render_sheet_texture(texture_t *texture, v2i pos, v2i cell) {
 		VOXEL_HEIGHT
 	};
 
-	SDL_RenderCopy(renderer, texture->texture, &cell_rect, &draw_rect);
+	SDL_RenderCopy(RENDERER, texture->texture, &cell_rect, &draw_rect);
 }

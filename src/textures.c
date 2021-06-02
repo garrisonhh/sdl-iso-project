@@ -198,7 +198,7 @@ SDL_Texture *load_sdl_texture(const char *path) {
 		exit(1);
 	}
 
-	texture = SDL_CreateTextureFromSurface(renderer, surface);
+	texture = SDL_CreateTextureFromSurface(RENDERER, surface);
 	
 	if (texture == NULL) {
 		printf("unable to create texture from %s:\n%s\n", path, SDL_GetError());

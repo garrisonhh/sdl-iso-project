@@ -28,7 +28,7 @@ gui_data_t GUI_DATA;
 
 // call after render_init
 void gui_init() {
-	STATIC_GUI = SDL_CreateTexture(renderer,
+	STATIC_GUI = SDL_CreateTexture(RENDERER,
 							RENDER_FORMAT,
 							SDL_TEXTUREACCESS_TARGET,
 							GUI_WIDTH, GUI_HEIGHT);
@@ -62,18 +62,18 @@ void gui_tick() {
 
 void gui_render() {
 	if (UPDATE_STATIC) {
-		SDL_SetRenderTarget(renderer, STATIC_GUI);
+		SDL_SetRenderTarget(RENDERER, STATIC_GUI);
 
-		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-		SDL_RenderClear(renderer);
+		SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0x00);
+		SDL_RenderClear(RENDERER);
 
 		render_sprite_no_offset(COMPASS, COMPASS_POS, COMPASS_CELL); 
 		
-		SDL_SetRenderTarget(renderer, NULL);
+		SDL_SetRenderTarget(RENDERER, NULL);
 		UPDATE_STATIC = false;
 	}
 
-	SDL_RenderCopy(renderer, STATIC_GUI, NULL, NULL);
+	SDL_RenderCopy(RENDERER, STATIC_GUI, NULL, NULL);
 
 	if (DEBUG) {
 		v2i line_start = {0, 0};

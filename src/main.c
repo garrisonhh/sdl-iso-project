@@ -67,12 +67,12 @@ void init() {
 	app_menu_init();
 
 	// draw loading text
-	SDL_RenderPresent(renderer);
+	SDL_RenderPresent(RENDERER);
 	v2i loading_pos = {0, 0};
-	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-	SDL_RenderClear(renderer);
+	SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderClear(RENDERER);
 	font_render(FONT_UI, "loading...", loading_pos);
-	SDL_RenderPresent(renderer);
+	SDL_RenderPresent(RENDERER);
 }
 
 void quit_all() {

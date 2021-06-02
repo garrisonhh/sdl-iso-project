@@ -17,8 +17,7 @@
 
 #define BG_GRAY 0x1F
 
-extern SDL_Renderer *renderer;
-extern const v3d CAMERA_VIEW_DIR;
+extern SDL_Renderer *RENDERER;
 
 typedef struct world_t world_t;
 

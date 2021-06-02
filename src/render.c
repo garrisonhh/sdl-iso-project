@@ -19,43 +19,43 @@
 
 const int VRAY_Z_PER_BLOCK = (VOXEL_WIDTH >> 1) / (VOXEL_Z_HEIGHT - (VOXEL_WIDTH >> 1));
 
-SDL_Renderer *renderer;
-SDL_Texture *foreground, *background;
+SDL_Renderer *RENDERER;
+SDL_Texture *FOREGROUND, *BACKGROUND;
 
 void render_init(SDL_Window *window) {
-	renderer = SDL_CreateRenderer(window, -1,
+	RENDERER = SDL_CreateRenderer(window, -1,
 								  SDL_RENDERER_ACCELERATED
 								  | SDL_RENDERER_PRESENTVSYNC
 								  | SDL_RENDERER_TARGETTEXTURE);
-	if (renderer == NULL) {
-		printf("unable to create renderer:\n%s\n", SDL_GetError());
+	if (RENDERER == NULL) {
+		printf("unable to create RENDERER:\n%s\n", SDL_GetError());
 		exit(1);
 	}
 
-	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-	SDL_RenderSetIntegerScale(renderer, true);
+	SDL_SetRenderDrawBlendMode(RENDERER, SDL_BLENDMODE_BLEND);
+	SDL_RenderSetIntegerScale(RENDERER, true);
 
-	foreground = SDL_CreateTexture(renderer,
+	FOREGROUND = SDL_CreateTexture(RENDERER,
 								   RENDER_FORMAT,
 								   SDL_TEXTUREACCESS_TARGET,
 								   SCREEN_WIDTH, SCREEN_HEIGHT);
-	SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(FOREGROUND, SDL_BLENDMODE_BLEND);
 
-	background = SDL_CreateTexture(renderer,
+	BACKGROUND = SDL_CreateTexture(RENDERER,
 								   RENDER_FORMAT,
 								   SDL_TEXTUREACCESS_TARGET,
 								   SCREEN_WIDTH, SCREEN_HEIGHT);
-	SDL_SetTextureBlendMode(background, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(BACKGROUND, SDL_BLENDMODE_BLEND);
 
 	camera_init();
 }
 
 void render_quit() {
-	// foreground and background are free'd by DestroyRenderer
-	SDL_DestroyRenderer(renderer);
-	renderer = NULL;
-	foreground = NULL;
-	background = NULL;
+	// FOREGROUND and BACKGROUND are free'd by DestroyRenderer
+	SDL_DestroyRenderer(RENDERER);
+	RENDERER = NULL;
+	FOREGROUND = NULL;
+	BACKGROUND = NULL;
 }
 
 void render_info_add_shadows(render_info_t *info, world_t *world) {
@@ -230,30 +230,30 @@ void render_info_destroy(render_info_t *info) {
 void render_from_info(render_info_t *info) {
 	size_t i;
 
-	SDL_SetRenderTarget(renderer, background);
-	SDL_SetRenderDrawColor(renderer, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF); // background
-	SDL_RenderClear(renderer);
+	SDL_SetRenderTarget(RENDERER, BACKGROUND);
+	SDL_SetRenderDrawColor(RENDERER, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF); // BACKGROUND
+	SDL_RenderClear(RENDERER);
 
 	for (i = 0; i < info->bg_packets->size; ++i)
 		render_from_packet(info->bg_packets->items[i]);
 
 	if (info->cam_hit) {
-		SDL_SetRenderTarget(renderer, foreground);
-		SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
-		SDL_RenderClear(renderer);
+		SDL_SetRenderTarget(RENDERER, FOREGROUND);
+		SDL_SetRenderDrawColor(RENDERER, 0xFF, 0x00, 0x00, 0x00);
+		SDL_RenderClear(RENDERER);
 
 		for (i = 0; i < info->fg_packets->size; ++i)
 			render_from_packet(info->fg_packets->items[i]);
 
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-		SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
+		SDL_SetRenderDrawBlendMode(RENDERER, SDL_BLENDMODE_NONE);
+		SDL_SetRenderDrawColor(RENDERER, 0xFF, 0x00, 0x00, 0x00);
 		render_iso_circle(camera.view_circle);
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawBlendMode(RENDERER, SDL_BLENDMODE_BLEND);
 	}
 
-	SDL_SetRenderTarget(renderer, NULL);
-	SDL_RenderCopy(renderer, background, &info->cam_viewport, NULL);
+	SDL_SetRenderTarget(RENDERER, NULL);
+	SDL_RenderCopy(RENDERER, BACKGROUND, &info->cam_viewport, NULL);
 
 	if (info->cam_hit)
-		SDL_RenderCopy(renderer, foreground, &info->cam_viewport, NULL);
+		SDL_RenderCopy(RENDERER, FOREGROUND, &info->cam_viewport, NULL);
 }

@@ -86,7 +86,7 @@ void font_render(font_e type, const char *text, v2i pos) {
 		src_rect.x = divided.rem * FONTS[type].char_size.x;
 		src_rect.y = divided.quot * FONTS[type].char_size.y;
 
-		SDL_RenderCopy(renderer, FONTS[type].sheet, &src_rect, &dst_rect);
+		SDL_RenderCopy(RENDERER, FONTS[type].sheet, &src_rect, &dst_rect);
 
 		dst_rect.x += char_size.x;
 	}
@@ -101,18 +101,18 @@ SDL_Texture *font_render_static(font_e type, const char *text) {
 	};
 	v2i pos = {0, 0};
 
-	SDL_Texture *texture = SDL_CreateTexture(renderer, RENDER_FORMAT,
+	SDL_Texture *texture = SDL_CreateTexture(RENDERER, RENDER_FORMAT,
 											 SDL_TEXTUREACCESS_TARGET,
 											 text_size.x, text_size.y);
 	SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
 
-	SDL_SetRenderTarget(renderer, texture);
-	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-	SDL_RenderClear(renderer);
+	SDL_SetRenderTarget(RENDERER, texture);
+	SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0x00);
+	SDL_RenderClear(RENDERER);
 
 	font_render(type, text, pos);
 
-	SDL_SetRenderTarget(renderer, NULL);
+	SDL_SetRenderTarget(RENDERER, NULL);
 
 	return texture;
 }

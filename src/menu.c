@@ -130,16 +130,16 @@ void menu_render(menu_t *screen) {
 		if (element->data.type == ELEM_BUTTON) {
 			if (SDL_PointInRect(&screen->mouse_pt, &element->data.rect)) {
 				if (screen->mouse_held) {
-					SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x7F);
-					SDL_RenderFillRect(renderer, &element->data.rect);
+					SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0x7F);
+					SDL_RenderFillRect(RENDERER, &element->data.rect);
 				}
 
-				SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0x7F);
-				SDL_RenderDrawRect(renderer, &element->data.rect);
+				SDL_SetRenderDrawColor(RENDERER, 0xFF, 0xFF, 0xFF, 0x7F);
+				SDL_RenderDrawRect(RENDERER, &element->data.rect);
 			}
 		}
 
 		if (element->data.texture != NULL)
-			SDL_RenderCopy(renderer, element->data.texture, NULL, &element->data.rect);
+			SDL_RenderCopy(RENDERER, element->data.texture, NULL, &element->data.rect);
 	}
 }

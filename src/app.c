@@ -186,15 +186,15 @@ void app_menu() {
 			}
 		}
 
-		SDL_SetRenderDrawColor(renderer, 0x0F, 0x2F, 0x3F, 0xFF);
-		SDL_RenderClear(renderer);
+		SDL_SetRenderDrawColor(RENDERER, 0x0F, 0x2F, 0x3F, 0xFF);
+		SDL_RenderClear(RENDERER);
 
-		SDL_SetRenderDrawColor(renderer, 0x1F, 0x1F, 0x1F, 0x7F);
-		SDL_RenderFillRect(renderer, &fill_rect);
+		SDL_SetRenderDrawColor(RENDERER, 0x1F, 0x1F, 0x1F, 0x7F);
+		SDL_RenderFillRect(RENDERER, &fill_rect);
 
 		menu_tick(MENUS[MENU_STATE]);
 		menu_render(MENUS[MENU_STATE]);
 
-		SDL_RenderPresent(renderer);
+		SDL_RenderPresent(RENDERER);
 	}
 }

@@ -23,15 +23,15 @@ void render_iso_circle(circle_t circle) {
 	dy = 1;
 	r_err = 0;
 
-	SDL_RenderDrawLine(renderer, circle.loc.x + x, circle.loc.y,
+	SDL_RenderDrawLine(RENDERER, circle.loc.x + x, circle.loc.y,
 								 circle.loc.x - x, circle.loc.y);
 	
 	while (x >= y) {
 		if (toggle && y > 1) {
 			halfy = y >> 1;
-			SDL_RenderDrawLine(renderer, circle.loc.x + x, circle.loc.y + halfy,
+			SDL_RenderDrawLine(RENDERER, circle.loc.x + x, circle.loc.y + halfy,
 										 circle.loc.x - x, circle.loc.y + halfy);
-			SDL_RenderDrawLine(renderer, circle.loc.x + x, circle.loc.y - halfy,
+			SDL_RenderDrawLine(RENDERER, circle.loc.x + x, circle.loc.y - halfy,
 										 circle.loc.x - x, circle.loc.y - halfy);
 
 		}
@@ -39,9 +39,9 @@ void render_iso_circle(circle_t circle) {
 
 		if (draw_flipped && toggle_flipped) {
 			halfx = x >> 1;
-			SDL_RenderDrawLine(renderer, circle.loc.x + y, circle.loc.y + halfx,
+			SDL_RenderDrawLine(RENDERER, circle.loc.x + y, circle.loc.y + halfx,
 										 circle.loc.x - y, circle.loc.y + halfx);
-			SDL_RenderDrawLine(renderer, circle.loc.x + y, circle.loc.y - halfx,
+			SDL_RenderDrawLine(RENDERER, circle.loc.x + y, circle.loc.y - halfx,
 										 circle.loc.x - y, circle.loc.y - halfx);
 		}
 		draw_flipped = false;

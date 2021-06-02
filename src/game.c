@@ -156,7 +156,7 @@ void game_main() {
 		SDL_UnlockMutex(RENDER_INFO_LOCK);
 
 		gui_render();
-		SDL_RenderPresent(renderer);
+		SDL_RenderPresent(RENDERER);
 		SDL_SemPost(MAIN_DONE);
 	}
 
