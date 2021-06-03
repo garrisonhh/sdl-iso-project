@@ -1,5 +1,6 @@
 #include <json-c/json.h>
 #include <stdlib.h>
+#include <string.h>
 #include "blocks.h"
 #include "plant.h"
 #include "../content.h"
@@ -118,7 +119,7 @@ void blocks_load_block(json_object *block_obj, size_t index,
 	}
 
 	// tex_state
-	block->tex_state = texture_zeroed_state();
+	memset(&block->tex_state, 0, sizeof block->tex_state);
 
 	if (block->texture->type == TEX_SHEET && content_has_key(block_obj, "sheet-cell"))
 		block->tex_state.cell = content_get_v2i(block_obj, "sheet-cell");

@@ -257,12 +257,3 @@ texture_t *texture_from_key(const char *key) {
 
 	return TEXTURES[*value];
 }
-
-texture_state_t texture_zeroed_state() {
-	texture_state_t tex_state;
-
-	for (size_t i = 0; i < sizeof tex_state; ++i)
-		((uint8_t *)&tex_state)[i] = 0;
-
-	return tex_state;
-}
