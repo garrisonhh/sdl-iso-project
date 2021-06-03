@@ -16,7 +16,8 @@ const int GUI_HEIGHT = SCREEN_HEIGHT >> 2;
 SDL_Texture *STATIC_GUI;
 
 bool UPDATE_STATIC = true; // gui_render will only re-draw static gui elements if this is true
-bool DEBUG = false;
+bool DISP_DEBUG = false;
+bool DEBUG_EXEC = false;
 
 sprite_t *COMPASS;
 v2i COMPASS_POS, COMPASS_CELL;
@@ -28,6 +29,10 @@ gui_data_t GUI_DATA;
 
 // call after render_init
 void gui_init() {
+#ifdef DEBUG
+	DEBUG_EXEC = true;
+#endif
+
 	STATIC_GUI = SDL_CreateTexture(RENDERER,
 							RENDER_FORMAT,
 							SDL_TEXTUREACCESS_TARGET,
@@ -48,13 +53,13 @@ void gui_load() {
 void gui_tick() {
 	int line = 0;
 
-	sprintf(DEBUG_LINES[line++], "rendering %i packets @ %3d FPS", GUI_DATA.packets, D_ROUND(GUI_DATA.fps));
-
 	if (COMPASS_CELL.x != camera.rotation) {
 		COMPASS_CELL.x = camera.rotation;
 		UPDATE_STATIC = true;
 	}
 
+	sprintf(DEBUG_LINES[line++], "rendering %i packets @ %3d FPS", GUI_DATA.packets, D_ROUND(GUI_DATA.fps));
+	sprintf(DEBUG_LINES[line++], "BUILD: %s", (DEBUG_EXEC ? "debug" : "release"));
 	v3d_sprint(DEBUG_LINES[line++], "POSITION", player_get_pos());
 	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);
 	sprintf(DEBUG_LINES[line++], "GODMODE: %s", (GODMODE ? "on" : "off"));
@@ -75,7 +80,7 @@ void gui_render() {
 
 	SDL_RenderCopy(RENDERER, STATIC_GUI, NULL, NULL);
 
-	if (DEBUG) {
+	if (DISP_DEBUG) {
 		v2i line_start = {0, 0};
 
 		for (int i = 0; i < NUM_DEBUG_LINES; ++i) {
@@ -87,5 +92,5 @@ void gui_render() {
 }
 
 void gui_toggle_debug() {
-	DEBUG = !DEBUG;
+	DISP_DEBUG = !DISP_DEBUG;
 }
