@@ -6,6 +6,7 @@
 #include "app.h"
 #include "game.h"
 #include "lib/vector.h"
+#include "lib/utils.h"
 #include "render.h"
 #include "render/gui.h"
 #include "render/fonts.h"
@@ -15,10 +16,19 @@
 
 SDL_Window *WINDOW = NULL;
 
+#ifdef _WIN32
+// I hate programming C on windows.
+#define MAIN WinMain
+#else
+#define MAIN main
+#endif
+
 void init(void);
 void quit_all(void);
 
-int main(int argc, char *argv[]) {
+int MAIN(int argc, char **argv) {
+	printf("hello world\n");
+
 	init();
 
 	app_run();
@@ -31,7 +41,6 @@ int main(int argc, char *argv[]) {
 void init() {
 	vector_check_structs();
 
-	// sdl
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		printf("SDL could not initialize:\n%s\n", SDL_GetError());
 		exit(1);
@@ -66,12 +75,7 @@ void init() {
 
 	app_menu_init();
 
-	// draw loading text
-	SDL_RenderPresent(RENDERER);
-	v2i loading_pos = {0, 0};
-	SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0xFF);
-	SDL_RenderClear(RENDERER);
-	font_render(FONT_UI, "loading...", loading_pos);
+	// makes sure the first frame (loading screen) renders properly
 	SDL_RenderPresent(RENDERER);
 }
 
@@ -88,4 +92,13 @@ void quit_all() {
 
 	IMG_Quit();
 	SDL_Quit();
+}
+
+void load_screen() {
+	// draw loading text
+	v2i loading_pos = {0, 0};
+	SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderClear(RENDERER);
+	font_render(FONT_UI, "loading...", loading_pos);
+	SDL_RenderPresent(RENDERER);
 }

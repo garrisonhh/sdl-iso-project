@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <json-c/json.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include "textures.h"
 #include "lib/array.h"

@@ -1,4 +1,5 @@
 #include <json-c/json.h>
+#include <stdio.h>
 #include "sprites.h"
 #include "content.h"
 #include "textures.h"

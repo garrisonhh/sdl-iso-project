@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "menu.h"
 #include "render.h"
 #include "render/fonts.h"

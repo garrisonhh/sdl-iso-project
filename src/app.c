@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include "app.h"
 #include "game.h"
@@ -180,6 +181,7 @@ void app_menu() {
 					app_menu_exit();
 				break;
 			case SDL_MOUSEBUTTONUP:
+				;
 				v2i pos = {event.button.x, event.button.y};
 				menu_click(MENUS[MENU_STATE], pos);
 				break;

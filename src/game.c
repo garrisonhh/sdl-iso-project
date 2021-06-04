@@ -2,6 +2,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_thread.h>
 #include <SDL2/SDL_mutex.h>
+#include <stdio.h>
 #include "game.h"
 #include "app.h"
 #include "render.h"

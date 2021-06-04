@@ -6,7 +6,32 @@ a sandbox game inspired by dwarf fortress and gnomoria with a focus on RPG reali
 
 ## getting started
 
-this project is built using premake. to compile, `cd build/` and then `premake5` with your preferred target. I use gnu make, so the `gmake2` target is most likely to work. an executable named `Iso` will be generated in the root folder of the project.
+this project is built using [premake](https://premake.github.io/) with gcc and make.
+
+dependencies 
+
+### linux
+
+on arch-based systems it's likely everything is installed, if not pacman has everything you need. on ubuntu, the required libraries are on the major package managers.
+
+### windows
+
+once you download and install the dependencies, make sure the library `include/` and `libs/` directories of all of the libraries are discoverable to gcc. I did this by dropping my include and libs folders into the mingw include and libs folders, and then setting the environment variables `C_INCLUDE_PATH` and `LIBRARY_PATH` to the mingw paths.
+
+### build
+
+using bash or powershell, cd to wherever you would like to store the project folder and run the following:
+
+```bash
+git clone https://github.com/garrisonhh/sdl-iso-project.git
+cd sdl-iso-project/build
+premake5 gmake2
+
+# if you're using windows with mingw, replace make with mingw32-make
+make config=release
+```
+
+the executable will now be generated in the root folder of the project. make sure to run it from the root directory, or the assets will not load properly.
 
 ## dependencies
 
