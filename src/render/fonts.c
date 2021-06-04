@@ -4,6 +4,7 @@
 #include <string.h>
 #include "fonts.h"
 #include "../render.h"
+#include "../meta.h"
 #include "../content.h"
 #include "../textures.h"
 #include "../lib/vector.h"
@@ -18,14 +19,11 @@ typedef struct font_t font_t;
 font_t FONTS[NUM_FONTS];
 
 font_t load_font(json_object *font_obj) {
-	char font_path[100] = "assets/";
 	v2i char_size, sheet_size;
 	SDL_Texture *sheet;
 	int scale = 1, margin = 2;
 
-	strcat(font_path, content_get_string(font_obj, "path"));
-
-	sheet = load_sdl_texture(font_path);
+	sheet = load_sdl_texture(content_get_string(font_obj, "path"));
 	char_size = content_get_v2i(font_obj, "char-size");
 	
 	SDL_QueryTexture(sheet, NULL, NULL, &sheet_size.x, &sheet_size.y);
@@ -42,7 +40,7 @@ font_t load_font(json_object *font_obj) {
 }
 
 void fonts_load() {
-	json_object *file_obj = content_load_file("assets/fonts.json");
+	json_object *file_obj = content_load_file("fonts.json");
 
 	const char *font_names[NUM_FONTS] = {
 		"ui",

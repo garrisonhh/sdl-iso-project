@@ -7,7 +7,9 @@
 #include "lib/vector.h"
 #include "collision.h"
 
-json_object *content_load_file(const char *file_path);
+void content_asset_path(char *dest, const char *rel_path);
+
+json_object *content_load_file(const char *);
 void content_close_file(json_object *);
 
 bool content_has_key(json_object *obj, const char *key);

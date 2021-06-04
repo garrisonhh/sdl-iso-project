@@ -3,15 +3,32 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "textures.h"
+#include "collision.h"
+#include "meta.h"
 #include "lib/array.h"
 #include "lib/vector.h"
-#include "collision.h"
 
-json_object *content_load_file(const char *file_path) {
-	json_object *file_obj = json_object_from_file(file_path);
+void content_asset_path(char *dest, const char *rel_path) {
+	char buffer[PATH_LEN];
+
+	sprintf(buffer, BASE_DIRECTORY "/assets");
+
+	if (rel_path[0] != '/')
+		strcat(buffer, "/");
+
+	strcat(buffer, rel_path);
+	strcpy(dest, buffer);
+}
+
+json_object *content_load_file(const char *asset_path) {
+	json_object *file_obj;
+	char path[PATH_LEN];
+
+	content_asset_path(path, asset_path);
+	file_obj = json_object_from_file(path);
 
 	if (file_obj == NULL) {
-		printf("json file at \"%s\" could not be loaded.\n", file_path);
+		printf("json file at \"%s\" could not be loaded.\n", path);
 		exit(1);
 	}
 

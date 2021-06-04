@@ -4,11 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lib/vector.h"
+#include "textures.h"
 #include "content.h"
 #include "render.h"
-#include "textures.h"
+#include "meta.h"
 #include "render/textures.h"
+#include "lib/vector.h"
 #include "lib/hashmap.h"
 
 const SDL_Rect VOXEL_TOP_RECT = {
@@ -123,7 +124,7 @@ void textures_load() {
 	json_object *file_obj;
 	array_t *texture_objects;
 
-	file_obj = content_load_file("assets/textures.json");
+	file_obj = content_load_file("textures.json");
 	texture_objects = content_get_array(file_obj, "textures");
 
 	// set up globals
@@ -133,14 +134,14 @@ void textures_load() {
 
 	// load textures
 	const char *name;
-	char file_path[80];
+	char path[100];
 	size_t *texture_id;
 
 	for (i = 0; i < NUM_TEXTURES; ++i) {
 		name = content_get_string(texture_objects->items[i], "name");
-		sprintf(file_path, "assets/%s", content_get_string(texture_objects->items[i], "path"));
+		strcpy(path, content_get_string(texture_objects->items[i], "path"));
 
-		TEXTURES[i] = load_texture(file_path, texture_objects->items[i], tex_type_map, tags_map);
+		TEXTURES[i] = load_texture(path, texture_objects->items[i], tex_type_map, tags_map);
 
 		// save to array and hashmap
 		texture_id = malloc(sizeof(size_t));
@@ -175,8 +176,11 @@ void textures_destroy() {
 }
 
 // only use when you actually need the surface data
-SDL_Surface *load_sdl_surface(const char *path) {
+SDL_Surface *load_sdl_surface(const char *asset_path) {
 	SDL_Surface *surface, *converted;
+	char path[PATH_LEN];
+
+	content_asset_path(path, asset_path);
 
 	if ((surface = IMG_Load(path)) == NULL) {
 		printf("unable to load image %s:\n%s\n", path, IMG_GetError());
@@ -190,9 +194,12 @@ SDL_Surface *load_sdl_surface(const char *path) {
 	return converted;
 }
 
-SDL_Texture *load_sdl_texture(const char *path) {
+SDL_Texture *load_sdl_texture(const char *asset_path) {
 	SDL_Texture *texture;
 	SDL_Surface *surface;
+	char path[PATH_LEN];
+
+	content_asset_path(path, asset_path);
 
 	if ((surface = IMG_Load(path)) == NULL) {
 		printf("unable to load image %s:\n%s\n", path, IMG_GetError());

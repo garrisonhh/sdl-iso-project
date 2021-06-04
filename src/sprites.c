@@ -3,6 +3,7 @@
 #include "sprites.h"
 #include "content.h"
 #include "textures.h"
+#include "meta.h"
 #include "lib/hashmap.h"
 
 sprite_t **SPRITES = NULL;
@@ -83,7 +84,7 @@ void sprites_load() {
 	json_object *file_obj;
 	array_t *sprite_objects;
 
-	file_obj = content_load_file("assets/textures.json");
+	file_obj = content_load_file("textures.json");
 	sprite_objects = content_get_array(file_obj, "sprites");
 
 	// set up globals
@@ -94,7 +95,7 @@ void sprites_load() {
 	// load sprites
 	json_object *sprite_obj;
 	const char *name;
-	char file_path[80];
+	char path[PATH_LEN];
 	size_t *sprite_id;
 	
 	for (i = 0; i < NUM_SPRITES; ++i) {
@@ -102,10 +103,10 @@ void sprites_load() {
 
 		// name + path
 		name = content_get_string(sprite_obj, "name");
-		sprintf(file_path, "assets/%s", content_get_string(sprite_obj, "path"));
+		sprintf(path, content_get_string(sprite_obj, "path"));
 
 		// load
-		SPRITES[i] = load_sprite(file_path, sprite_obj, sprite_type_map);
+		SPRITES[i] = load_sprite(path, sprite_obj, sprite_type_map);
 
 		// save to array and hashmap
 		sprite_id = malloc(sizeof(size_t));

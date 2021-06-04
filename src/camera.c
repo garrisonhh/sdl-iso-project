@@ -19,7 +19,7 @@ camera_t camera = {
 
 void camera_init() {
 	// constants
-	CAMERA_BASE_VIEW_DIR.x = -hypot(VOXEL_WIDTH >> 1, VOXEL_WIDTH >> 2);
+	CAMERA_BASE_VIEW_DIR.x = -hypot(VOXEL_WIDTH >> 1, ((double)VOXEL_WIDTH / 2.0) - 0.5);
 	CAMERA_BASE_VIEW_DIR.y = CAMERA_BASE_VIEW_DIR.x;
 	CAMERA_BASE_VIEW_DIR.z = -VOXEL_Z_HEIGHT;
 	CAMERA_BASE_VIEW_DIR = v3d_normalize(CAMERA_BASE_VIEW_DIR);

@@ -4,6 +4,7 @@
 #include <string.h>
 #include "blocks.h"
 #include "plant.h"
+#include "../meta.h"
 #include "../content.h"
 #include "../textures.h"
 #include "../lib/hashmap.h"
@@ -172,7 +173,7 @@ void blocks_load() {
 	json_object *file, *block_subtypes;
 	array_t *block_objects;
 
-	file = content_load_file("assets/blocks.json");
+	file = content_load_file("blocks.json");
 	block_objects = content_get_array(file, "blocks");
 	block_subtypes = content_get_obj(file, "subtypes");
 

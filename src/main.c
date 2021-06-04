@@ -27,8 +27,6 @@ void init(void);
 void quit_all(void);
 
 int MAIN(int argc, char **argv) {
-	printf("hello world\n");
-
 	init();
 
 	app_run();
