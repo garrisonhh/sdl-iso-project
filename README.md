@@ -12,11 +12,12 @@ this project is built using [premake](https://premake.github.io/) with gcc and m
 
 ### linux
 
-on arch-based systems it's likely everything is installed, if not pacman has everything you need. on ubuntu, the required libraries are on the major package managers.
+all dependencies can be found on the major package managers.
 
 ### windows
 
-once you download and install the dependencies, make sure the library `include/` and `libs/` directories of all of the libraries are discoverable to gcc. I did this by dropping my include and libs folders into the mingw include and libs folders, and then setting the environment variables `C_INCLUDE_PATH` and `LIBRARY_PATH` to the mingw paths.
+1. download and install the dependencies
+2. make sure the library `include/` and `libs/` directories of all of the libraries are discoverable to gcc. I did this by dropping my include and libs folders into the mingw `include/` and `libs/` folders, and then setting the environment variables `C_INCLUDE_PATH` and `LIBRARY_PATH` to the mingw folder paths.
 
 ### build
 
