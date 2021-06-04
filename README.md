@@ -8,7 +8,10 @@ a sandbox game inspired by dwarf fortress and gnomoria with a focus on RPG reali
 
 this project is built using [premake](https://premake.github.io/) with gcc and make.
 
-**dependencies:** SDL2, SDL2_image, json-c
+### dependencies
+- [SDL2](https://libsdl.org/)
+- [SDL2_image](https://www.libsdl.org/projects/SDL_image/)
+- [json-c](https://json-c.github.io/json-c/json-c-current-release/doc/html/index.html)
 
 ### linux
 
