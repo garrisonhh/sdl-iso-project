@@ -2,5 +2,6 @@ build/obj
 build/*.make
 build/Makefile
 scripts
-*.exe
+Iso
+Iso.exe
 **.swp
