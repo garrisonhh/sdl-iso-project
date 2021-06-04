@@ -29,6 +29,14 @@ char *string_get(string_t *str) {
 	return str->data;
 }
 
+char *string_get_copy(string_t *str) {
+	char *copy = malloc(sizeof(char) * (str->length + 1));
+
+	strcpy(copy, str->data);
+
+	return copy;
+}
+
 size_t string_length(string_t *str) {
 	return str->length;
 }
