@@ -37,7 +37,7 @@ premake5 gmake2
 make config=release
 ```
 
-the executable will now be generated in the root folder of the project. make sure to run it from the root directory, or the assets will not load properly.
+the executable needs to know where the assets are located, so don't move it from the build directory.
 
 ## sources
 
