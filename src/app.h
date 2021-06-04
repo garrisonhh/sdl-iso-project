@@ -5,6 +5,7 @@ enum app_state_e {
 	APP_EXIT,
 	APP_MENU,
 	APP_GAME,
+	APP_TESTING,
 };
 typedef enum app_state_e app_state_e;
 

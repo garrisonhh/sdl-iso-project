@@ -24,6 +24,7 @@ menu_state_e MENU_STATE;
 menu_t *MENUS[NUM_MENUS];
 
 bool MENU_QUIT;
+bool TESTING_QUIT;
 
 char *WORLD_SIZE_TEXT;
 char *WORLD_TYPE_TEXT;
@@ -31,6 +32,7 @@ char *WORLD_TYPE_TEXT;
 const char *WORLD_TYPE_NAMES[NUM_WORLD_TYPES] = {"flat", "alien"};
 
 void app_menu(void);
+void app_testing(void);
 
 void app_run() {
 	while (APP_STATE != APP_EXIT) {
@@ -40,6 +42,9 @@ void app_run() {
 			break;
 		case APP_GAME:
 			game_main();
+			break;
+		case APP_TESTING:
+			app_testing();
 			break;
 		case APP_EXIT:
 			break;
@@ -55,6 +60,11 @@ void app_menu_exit() {
 
 void app_menu_new_world() {
 	MENU_STATE = MENU_NEW_WORLD;
+}
+
+void app_menu_testing() {
+	APP_STATE = APP_TESTING;
+	MENU_QUIT = true;
 }
 
 // new world buttons
@@ -110,6 +120,11 @@ void app_menu_init() {
 
 	pos.y += line_h * 2;
 	menu_add_text_button(menu, "new world", pos, app_menu_new_world);
+
+#ifdef DEBUG
+	pos.y += line_h;
+	menu_add_text_button(menu, "testing", pos, app_menu_testing);
+#endif
 
 	pos.y += line_h;
 	menu_add_text_button(menu, "exit", pos, app_menu_exit);
@@ -173,12 +188,11 @@ void app_menu() {
 	while (!MENU_QUIT) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
+			case SDL_KEYDOWN:
+				if (event.key.keysym.sym != SDLK_ESCAPE)
+					break;
 			case SDL_QUIT:
 				app_menu_exit();
-				break;
-			case SDL_KEYDOWN:
-				if (event.key.keysym.sym == SDLK_ESCAPE)
-					app_menu_exit();
 				break;
 			case SDL_MOUSEBUTTONUP:
 				;
@@ -199,4 +213,130 @@ void app_menu() {
 
 		SDL_RenderPresent(RENDERER);
 	}
+}
+
+/*
+ * testing stuff, none of this appears in the release build
+ */
+#include "procgen/l_system.h"
+#include "render/primitives.h"
+
+struct turtle_t {
+	v2i pos;
+	double angle;
+	double dist;
+};
+typedef struct turtle_t turtle_t;
+
+void turtle_interpret(const char *instructions) {
+	turtle_t turtle = {
+		.pos = {SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.9},
+		.angle = -M_PI / 2.0,
+		.dist = 100.0
+	};
+	turtle_t *turtle_ptr;
+
+	v2i next_pos;
+	circle_t leaf = {
+		.radius = 10
+	};
+
+	size_t len_instructions = strlen(instructions);
+	array_t *stack = array_create(0);
+
+	const double theta = M_PI * 0.1;
+	const double variance = 0.25;
+	const double persistence = 0.9;
+
+	SDL_SetRenderDrawColor(RENDERER, 0xFF, 0xFF, 0xFF, 0xFF);
+
+	for (size_t i = 0; i < len_instructions; ++i) {
+		switch (instructions[i]) {
+		case '[':
+			turtle_ptr = malloc(sizeof(turtle_t));
+			*turtle_ptr = turtle;
+
+			array_push(stack, turtle_ptr);
+
+			turtle.dist *= persistence;
+
+			break;
+		case ']':
+			turtle_ptr = array_pop(stack);
+			turtle = *turtle_ptr;
+
+			free(turtle_ptr);
+
+			break;
+		case 'l':
+			turtle.angle -= theta + (theta * (randf() * 2.0 - 1.0) * variance);
+
+			break;
+		case 'r':
+			turtle.angle += theta + (theta * (randf() * 2.0 - 1.0) * variance);
+
+			break;
+		case 'L':
+			leaf.loc = turtle.pos;
+
+			render_iso_circle(leaf);
+
+			break;
+		case 'b':
+			turtle.dist *= persistence;
+		case 'B':
+			next_pos = (v2i){
+				turtle.pos.x + cos(turtle.angle) * turtle.dist,
+				turtle.pos.y + sin(turtle.angle) * turtle.dist
+			};
+
+			SDL_RenderDrawLine(RENDERER, turtle.pos.x, turtle.pos.y,
+										 next_pos.x, next_pos.y);
+
+			turtle.pos = next_pos;
+
+			break;
+		}
+	}
+}
+
+void app_testing() {
+	TESTING_QUIT = false;
+	
+	SDL_Event event;
+
+	char *generated;
+	l_system_t *lsys = l_system_create("BL");
+	
+	l_system_add_rule(lsys, "L", "l[bL]r[BL]r[bL]");
+
+	generated = l_system_generate(lsys, 5);
+
+	printf("generated: %s\n", generated);
+
+	l_system_destroy(lsys);
+
+	// draw
+	SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderClear(RENDERER);
+
+	turtle_interpret(generated);
+
+	SDL_RenderPresent(RENDERER);
+
+	while (!TESTING_QUIT) {
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+			case SDL_KEYDOWN:
+				if (event.key.keysym.sym != SDLK_ESCAPE)
+					break;
+			case SDL_QUIT:
+				APP_STATE = APP_MENU;
+				TESTING_QUIT = true;
+				break;
+			}
+		}
+	}
+
+	free(generated);
 }
