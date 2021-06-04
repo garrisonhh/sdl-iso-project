@@ -25,6 +25,8 @@
 	b = temp;\
 }
 
+#define INRANGE(x, a, b) (x >= a && x < b)
+
 // most useful god damn macros on the planet holy guacamole
 #define FOR_XY(x, y, mx, my) for (y = 0; y < my; ++y) for (x = 0; x < mx; ++x)
 #define FOR_XYZ(x, y, z, mx, my, mz) for (z = 0; z < mz; ++z) for (y = 0; y < my; ++y) for (x = 0; x < mx; ++x)
