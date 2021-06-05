@@ -1,9 +1,7 @@
 workspace "sdl-iso-project"
-	configurations { "Debug", "Release" }
+	configurations { "debug", "release" }
 
 project "Iso"
-	local BASEDIR = ".."
-
 	if os.target() == "windows" then
 		-- there is a bug in mingw32-make which sets CC=cc by default. IDK what cc
 		-- is, but it's not a compiler
@@ -21,19 +19,19 @@ project "Iso"
 	links { "m", "SDL2", "SDL2_image", "json-c" }
 
 	files {
-		BASEDIR .. "/src/**.c",
-		BASEDIR .. "/src/**.h"
+		"../src/**.c",
+		"../src/**.h"
 	}
 
 	defines {
-		"BASE_DIRECTORY=\"" .. BASEDIR .. "\""
+		"BASE_DIRECTORY=\".\""
 	}
 
-	filter "configurations:Debug"
+	filter "configurations:debug"
 		defines { "DEBUG" }
 		symbols "On"
 
-	filter "configurations:Release"
+	filter "configurations:release"
 		defines { "RELEASE" }
 		optimize "On"
 
