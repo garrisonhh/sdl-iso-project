@@ -220,18 +220,29 @@ void app_menu() {
  */
 #include "procgen/poisson.h"
 #include "render/primitives.h"
+#include <time.h>
 
 void app_testing() {
 	TESTING_QUIT = false;
 	
 	SDL_Event event;
+	v2i pos;
 
-	circle_t ptc = {
-		.radius = 4
-	};
+	srand(time(0));
 
-	srand(0);
-	array_t *samples = poisson_samples2(SCREEN_WIDTH, SCREEN_HEIGHT, 20.0, 30);
+	timeit_start();
+	array_t *samples = poisson2_samples(SCREEN_WIDTH, SCREEN_HEIGHT, 5.0, 30);
+	timeit_end("samples");
+
+	timeit_start();
+	noise2_t *noise = noise2_create(SCREEN_WIDTH, 1, 5, 0.3);
+	timeit_end("noise");
+
+	timeit_start();
+	poisson2_prune_linear(samples, noise, 0.8);
+	timeit_end("pruning");
+
+	noise2_destroy(noise);
 
 	// draw
 	SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0xFF);
@@ -240,9 +251,9 @@ void app_testing() {
 	SDL_SetRenderDrawColor(RENDERER, 0xFF, 0xFF, 0xFF, 0xFF);
 
 	for (int i = 0; i < samples->size; ++i) {
-		ptc.loc = *(v2i *)samples->items[i];
+		pos = *(v2i *)samples->items[i];
 
-		render_iso_circle(ptc);
+		SDL_RenderDrawPoint(RENDERER, pos.x, pos.y);
 	}
 
 	SDL_RenderPresent(RENDERER);
@@ -250,12 +261,21 @@ void app_testing() {
 	while (!TESTING_QUIT) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
-			case SDL_KEYDOWN:
-				if (event.key.keysym.sym != SDLK_ESCAPE)
-					break;
 			case SDL_QUIT:
-				APP_STATE = APP_MENU;
+				APP_STATE = APP_EXIT;
 				TESTING_QUIT = true;
+				break;
+			case SDL_KEYDOWN:
+				switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE:
+					APP_STATE = APP_MENU;
+					TESTING_QUIT = true;
+					break;
+				case SDLK_r:
+					TESTING_QUIT = true;
+					// app state hasn't changed, function will reset
+					break;
+				}
 				break;
 			}
 		}
