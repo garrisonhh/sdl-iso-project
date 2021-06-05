@@ -13,7 +13,7 @@ project "Iso"
 	kind "WindowedApp"
 	language "C"
 	cdialect "C99"
-	targetdir "."
+	targetdir ".."
 
 	enablewarnings { "all" }
 	floatingpoint "Fast"
