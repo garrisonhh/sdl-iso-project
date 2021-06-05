@@ -15,7 +15,7 @@ void array_destroy(array_t *, bool destroy_values);
 
 void array_push(array_t *, void *item);
 void *array_pop(array_t *);
-void array_del(array_t *, int index);
+void *array_del(array_t *, int index);
 void array_remove(array_t *, void *item);
 void array_clear(array_t *, bool destroy_values);
 void array_qsort(array_t *, int (*compare)(const void *, const void *));
