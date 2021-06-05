@@ -218,109 +218,32 @@ void app_menu() {
 /*
  * testing stuff, none of this appears in the release build
  */
-#include "procgen/l_system.h"
+#include "procgen/poisson.h"
 #include "render/primitives.h"
-
-struct turtle_t {
-	v2i pos;
-	double angle;
-	double dist;
-};
-typedef struct turtle_t turtle_t;
-
-void turtle_interpret(const char *instructions) {
-	turtle_t turtle = {
-		.pos = {SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.9},
-		.angle = -M_PI / 2.0,
-		.dist = 100.0
-	};
-	turtle_t *turtle_ptr;
-
-	v2i next_pos;
-	circle_t leaf = {
-		.radius = 10
-	};
-
-	size_t len_instructions = strlen(instructions);
-	array_t *stack = array_create(0);
-
-	const double theta = M_PI * 0.1;
-	const double variance = 0.25;
-	const double persistence = 0.9;
-
-	SDL_SetRenderDrawColor(RENDERER, 0xFF, 0xFF, 0xFF, 0xFF);
-
-	for (size_t i = 0; i < len_instructions; ++i) {
-		switch (instructions[i]) {
-		case '[':
-			turtle_ptr = malloc(sizeof(turtle_t));
-			*turtle_ptr = turtle;
-
-			array_push(stack, turtle_ptr);
-
-			turtle.dist *= persistence;
-
-			break;
-		case ']':
-			turtle_ptr = array_pop(stack);
-			turtle = *turtle_ptr;
-
-			free(turtle_ptr);
-
-			break;
-		case 'l':
-			turtle.angle -= theta + (theta * (randf() * 2.0 - 1.0) * variance);
-
-			break;
-		case 'r':
-			turtle.angle += theta + (theta * (randf() * 2.0 - 1.0) * variance);
-
-			break;
-		case 'L':
-			leaf.loc = turtle.pos;
-
-			render_iso_circle(leaf);
-
-			break;
-		case 'b':
-			turtle.dist *= persistence;
-		case 'B':
-			next_pos = (v2i){
-				turtle.pos.x + cos(turtle.angle) * turtle.dist,
-				turtle.pos.y + sin(turtle.angle) * turtle.dist
-			};
-
-			SDL_RenderDrawLine(RENDERER, turtle.pos.x, turtle.pos.y,
-										 next_pos.x, next_pos.y);
-
-			turtle.pos = next_pos;
-
-			break;
-		}
-	}
-}
 
 void app_testing() {
 	TESTING_QUIT = false;
 	
 	SDL_Event event;
 
-	char *generated;
-	l_system_t *lsys = l_system_create("BL");
-	
-	l_system_add_rule(lsys, "L", "l[bL]r[BL]r[bL]");
+	circle_t ptc = {
+		.radius = 4
+	};
 
-	generated = l_system_generate(lsys, 5);
-
-	printf("generated: %s\n", generated);
-
-	l_system_destroy(lsys);
+	srand(0);
+	array_t *samples = poisson_samples2(SCREEN_WIDTH, SCREEN_HEIGHT, 20.0, 30);
 
 	// draw
 	SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(RENDERER);
 
-	turtle_interpret(generated);
+	SDL_SetRenderDrawColor(RENDERER, 0xFF, 0xFF, 0xFF, 0xFF);
+
+	for (int i = 0; i < samples->size; ++i) {
+		ptc.loc = *(v2i *)samples->items[i];
+
+		render_iso_circle(ptc);
+	}
 
 	SDL_RenderPresent(RENDERER);
 
@@ -338,5 +261,5 @@ void app_testing() {
 		}
 	}
 
-	free(generated);
+	array_destroy(samples, true);
 }

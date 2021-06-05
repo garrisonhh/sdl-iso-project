@@ -5,6 +5,12 @@
 #include "../lib/array.h"
 #include "../lib/mystring.h"
 
+/*
+ * stuff to potentially do
+ * - add stochastic, parametric, etc. rules?
+ * - create a l-systems.json for fast prototyping?
+ */
+
 struct l_rule_t {
 	string_t *symbol;
 	const char *replacement;
