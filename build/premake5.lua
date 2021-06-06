@@ -1,7 +1,7 @@
 workspace "sdl-iso-project"
 	configurations { "debug", "release" }
 
-project "Iso"
+project "iso"
 	if os.target() == "windows" then
 		-- there is a bug in mingw32-make which sets CC=cc by default. IDK what cc
 		-- is, but it's not a compiler
