@@ -43,8 +43,17 @@ bool inside_bbox(bbox_t box, v3d point) {
 
 bbox_t ray_to_bbox(ray_t ray) {
 	bbox_t box;
+
 	box.pos = ray.pos;
 	box.size = ray.dir;
+
+	for (int i = 0; i < 3; ++i) {
+		if (v3d_IDX(box.size, i) < 0.0) {
+			v3d_IDX(box.pos, i) += v3d_IDX(box.size, i);
+			v3d_IDX(box.size, i) = -v3d_IDX(box.size, i);
+		}
+	}
+
 	return box;
 }
 
@@ -220,7 +229,9 @@ bool ray_intersects_sphere(ray_t ray, sphere_t sphere, v3d *intersection) {
 	v3d line_intersect;
 
 	if (line_intersects_sphere(ray, sphere, &line_intersect)
-	 && inside_bbox(ray_to_bbox(ray), line_intersect)) {
+	 && (inside_bbox(ray_to_bbox(ray), line_intersect)
+	  || v3d_dist(ray.pos, line_intersect) < sphere.radius
+	  || v3d_dist(v3d_add(ray.pos, ray.dir), line_intersect) < sphere.radius)) {
 		if (intersection != NULL)
 			*intersection = line_intersect;
 		return true;
