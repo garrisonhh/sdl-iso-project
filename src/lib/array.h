@@ -1,5 +1,5 @@
-#ifndef DYN_ARRAY_H
-#define DYN_ARRAY_H
+#ifndef ARRAY_H
+#define ARRAY_H
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -15,6 +15,7 @@ void array_destroy(array_t *, bool destroy_values);
 
 void array_push(array_t *, void *item);
 void *array_pop(array_t *);
+void *array_peek(array_t *);
 void *array_del(array_t *, int index);
 void array_remove(array_t *, void *item);
 void array_clear(array_t *, bool destroy_values);

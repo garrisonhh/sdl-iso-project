@@ -43,6 +43,10 @@ void *array_pop(array_t *array) {
 	return value;
 }
 
+void *array_peek(array_t *array) {
+	return array->items[array->size - 1];
+}
+
 void *array_del(array_t *array, int index) {
 	void *item = array->items[index];
 
