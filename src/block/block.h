@@ -24,6 +24,8 @@ struct block_state_t {
 typedef struct block_state_t block_state_t;
 
 struct block_t {
+	size_t id;
+
 	texture_t *texture;
 
 	// bits 0-3 are -X +X -Y +Y ; bit 4 is +Z

@@ -6,6 +6,8 @@
 #include "block.h"
 #include "collision.h"
 
+#define BLOCK_DECL(name) size_t name = blocks_get_id(#name)
+
 extern block_coll_data_t WALL_COLL_DATA;
 
 void blocks_load(void);

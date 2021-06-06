@@ -67,6 +67,8 @@ void blocks_load_block(json_object *block_obj, size_t index,
 
 	name = content_get_string(block_obj, "name");
 
+	block->id = index;
+
 	// texture
 	if (content_has_key(block_obj, "texture"))
 		texture = content_get_string(block_obj, "texture");
