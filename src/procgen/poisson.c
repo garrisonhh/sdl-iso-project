@@ -182,11 +182,39 @@ void poisson2_prune_best(array_t *samples, noise2_t *noise, double percentage) {
 		free(array_pop(samples));
 }
 
+void poisson2_prune_below(array_t *samples, noise2_t *noise, double value) {
+	v2i *pos;
+	poisson2_prune_sort_samples(samples, noise, true);
+
+	while (samples->size) {
+		pos = array_peek(samples);
+
+		if (noise2_at(noise, pos->x, pos->y) >= value)
+			break;
+		else
+			free(array_pop(samples));
+	}
+}
+
+void poisson2_prune_above(array_t *samples, noise2_t *noise, double value) {
+	v2i *pos;
+	poisson2_prune_sort_samples(samples, noise, false);
+
+	while (samples->size) {
+		pos = array_peek(samples);
+
+		if (noise2_at(noise, pos->x, pos->y) <= value)
+			break;
+		else
+			free(array_pop(samples));
+	}
+}
+
 void poisson2_prune_linear(array_t *samples, noise2_t *noise, double percentage) {
 	int n_remove = samples->size * percentage;
 	int index;
 
-	poisson2_prune_sort_samples(samples, noise, true);
+	poisson2_prune_sort_samples(samples, noise, false);
 
 	for (int i = 0; i < n_remove; ++i) {
 		index = randf() * randf() * samples->size;

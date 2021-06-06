@@ -14,4 +14,7 @@ void poisson2_prune_best(array_t *samples, noise2_t *noise, double percentage);
 
 void poisson2_prune_linear(array_t *samples, noise2_t *noise, double percentage);
 
+void poisson2_prune_below(array_t *samples, noise2_t *noise, double value);
+void poisson2_prune_above(array_t *samples, noise2_t *noise, double value);
+
 #endif

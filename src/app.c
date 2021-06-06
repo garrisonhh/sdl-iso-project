@@ -239,14 +239,26 @@ void app_testing() {
 	timeit_end("noise");
 
 	timeit_start();
-	poisson2_prune_linear(samples, noise, 0.8);
+	poisson2_prune_above(samples, noise, 0.0);
+	//poisson2_prune_linear(samples, noise, 0.5);
 	timeit_end("pruning");
-
-	noise2_destroy(noise);
 
 	// draw
 	SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(RENDERER);
+
+	double v;
+	int c;
+
+	for (pos.y = 0; pos.y < SCREEN_HEIGHT; ++pos.y) {
+		for (pos.x = 0; pos.x < SCREEN_WIDTH; ++pos.x) {
+			v = noise2_at(noise, pos.x, pos.y);
+			c = 4 * (int)(31 * ((1.0 + v) / 2.0));
+
+			SDL_SetRenderDrawColor(RENDERER, 0, 0, c, 0xFF);
+			SDL_RenderDrawPoint(RENDERER, pos.x, pos.y);
+		}
+	}
 
 	SDL_SetRenderDrawColor(RENDERER, 0xFF, 0xFF, 0xFF, 0xFF);
 
@@ -281,5 +293,6 @@ void app_testing() {
 		}
 	}
 
+	noise2_destroy(noise);
 	array_destroy(samples, true);
 }

@@ -24,8 +24,6 @@ void camera_init() {
 	CAMERA_BASE_VIEW_DIR.z = -((double)VOXEL_HALF_W / (double)VOXEL_Z_HEIGHT);
 	CAMERA_BASE_VIEW_DIR = v3d_normalize(CAMERA_BASE_VIEW_DIR);
 
-	v3d_print("view dir", CAMERA_BASE_VIEW_DIR);
-
 	// camera
 	v3d pos = (v3d){0, 0, 0};
 
