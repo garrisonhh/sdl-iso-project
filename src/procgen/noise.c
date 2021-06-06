@@ -247,3 +247,7 @@ double noise3_at(noise3_t *noise, int x, int y, int z) {
 	return noise->map[(((z * noise->side) + y) * noise->side) + x];
 }
 
+void noise_map_func(struct noise_t *noise, double (*mapped)(double)) {
+	for (size_t i = 0; i < noise->size; ++i)
+		noise->map[i] = mapped(noise->map[i]);
+}
