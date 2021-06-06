@@ -2,8 +2,11 @@ CONFIG=debug
 
 all: compile
 
+premake:
+	cd build/ && premake5 gmake2
+
 compile:
-	cd build/ && premake5 gmake2 && make config=$(CONFIG)
+	cd build/ && make config=$(CONFIG)
 
 release: 
 	CONFIG=release
