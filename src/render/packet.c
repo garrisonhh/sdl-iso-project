@@ -1,6 +1,6 @@
 #include <SDL2/SDL.h>
 #include "packet.h"
-#include "textures.h"
+#include "../render/textures.h"
 #include "../render.h"
 #include "../camera.h"
 #include "../block/block.h"
@@ -62,7 +62,7 @@ void render_from_packet(render_packet_t *packet) {
 	case RP_TEXTURE:
 		switch (packet->texture.texture->type) {
 		case TEX_TEXTURE:
-			render_sdl_texture(packet->texture.texture->texture,
+			render_tex_texture(packet->texture.texture,
 							   packet->data.pos);
 			break;
 		case TEX_VOXEL:

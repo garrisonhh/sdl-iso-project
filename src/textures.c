@@ -12,6 +12,20 @@
 #include "lib/vector.h"
 #include "lib/hashmap.h"
 
+struct pre_texture_t {
+	SDL_Surface *surface;
+	SDL_Rect rect;
+};
+typedef struct pre_texture_t pre_texture_t;
+
+struct tex_load_context_t {
+	array_t *pre_textures;
+	v2i pos; // location for next surface
+
+	hashmap_t *tex_type_map, *tags_map;
+};
+typedef struct tex_load_context_t tex_load_context_t;
+
 const SDL_Rect VOXEL_TOP_RECT = {
 	0,
 	0,
@@ -25,29 +39,31 @@ const SDL_Rect VOXEL_SIDE_RECT = {
 	VOXEL_HEIGHT - (VOXEL_WIDTH >> 2)
 };
 
+SDL_Texture *TEXTURE_ATLAS = NULL;
 texture_t **TEXTURES = NULL;
 size_t NUM_TEXTURES;
 hashmap_t *TEXTURE_MAP;
 
-texture_t *DARK_VOXEL_TEXTURE;
+texture_t *DARK_VOXEL_TEXTURE = NULL;
 
-SDL_Texture *load_sdl_texture(const char *path);
-SDL_Texture *load_voxel_texture(const char *path);
+SDL_Surface *load_sdl_surface(const char *path);
+SDL_Surface *load_voxel_surface(const char *path);
 
-texture_t *load_texture(const char *path, json_object *texture_obj,
-						hashmap_t *tex_type_map, hashmap_t *tags_map) {
-	texture_t *texture;
-	array_t *tag_arr;
+texture_t *load_texture(tex_load_context_t *context, json_object *texture_obj) {
 	const char *tag, *tex_type_name;
+	char path[PATH_LEN];
 	size_t cur_tag_id = 0;
 	size_t *tag_id;
+	texture_t *texture;
+	array_t *tag_arr;
 	texture_type_e *tex_type;
+	pre_texture_t *pre_texture;
 
 	texture = malloc(sizeof(texture_t));
 
 	// type
 	tex_type_name = content_get_string(texture_obj, "type");
-	tex_type = (texture_type_e *)hashmap_get(tex_type_map, tex_type_name);
+	tex_type = hashmap_get(context->tex_type_map, tex_type_name);
 
 	if (tex_type == NULL) {
 		printf("\"%s\" is an unrecognized texture type.\n", tex_type_name);
@@ -56,14 +72,35 @@ texture_t *load_texture(const char *path, json_object *texture_obj,
 
 	texture->type = *tex_type;
 
-	// load texture
+	// load pre_texture for atlas, store atlas rect
+	strcpy(path, content_get_string(texture_obj, "path"));
+
+	pre_texture = malloc(sizeof(pre_texture_t));
+
 	if (texture->type == TEX_VOXEL)
-		texture->texture = load_voxel_texture(path);
+		pre_texture->surface = load_voxel_surface(path);
 	else
-		texture->texture = load_sdl_texture(path);
+		pre_texture->surface = load_sdl_surface(path);
+
+	pre_texture->rect = (SDL_Rect){
+		context->pos.x,
+		context->pos.y,
+		pre_texture->surface->w,
+		pre_texture->surface->h
+	};
+
+	texture->atlas_rect = (SDL_Rect){
+		context->pos.x,
+		context->pos.y,
+		VOXEL_WIDTH,
+		VOXEL_HEIGHT
+	};
+
+	context->pos.y += pre_texture->rect.h;
+	array_push(context->pre_textures, pre_texture);
 
 	// transparency
-	if (*tex_type == TEX_VOXEL)
+	if (texture->type == TEX_VOXEL)
 		texture->transparent = false;
 	else
 		texture->transparent = content_get_bool(texture_obj, "transparent");
@@ -78,14 +115,14 @@ texture_t *load_texture(const char *path, json_object *texture_obj,
 		for (size_t i = 0; i < texture->num_tags; ++i) {
 			tag = json_object_get_string(tag_arr->items[i]);
 
-			if (hashmap_get(tags_map, tag) == NULL) {
+			if (hashmap_get(context->tags_map, tag) == NULL) {
 				tag_id = malloc(sizeof(size_t));
 				*tag_id = cur_tag_id++;
-				hashmap_set(tags_map, tag, tag_id);
+				hashmap_set(context->tags_map, tag, tag_id);
 
 				texture->tags[i] = *tag_id;
 			} else {
-				texture->tags[i] = *(size_t *)hashmap_get(tags_map, tag);
+				texture->tags[i] = *(size_t *)hashmap_get(context->tags_map, tag);
 			}
 		}
 
@@ -98,27 +135,76 @@ texture_t *load_texture(const char *path, json_object *texture_obj,
 	return texture;
 }
 
-void textures_load() {
-	int i;
+void textures_context_populate(tex_load_context_t *context) {
+	// atlas build vars
+	context->pre_textures = array_create(0);
+	context->pos = (v2i){0, 0};
 
-	// tex_type map
-	const char *tex_type_strings[] = {
+	// tex_type and tags maps
+	const char *tex_type_strings[NUM_TEXTURE_TYPES] = {
 		"texture",
 		"voxel",
 		"connected",
-		"sheet",
+		"sheet"
 	};
 	texture_type_e *tex_type;
-	hashmap_t *tex_type_map = hashmap_create(NUM_TEXTURE_TYPES * 2, HASH_STRING);
 
-	for (i = 0; i < NUM_TEXTURE_TYPES; ++i) {
+	context->tex_type_map = hashmap_create(NUM_TEXTURE_TYPES * 2, HASH_STRING);
+
+	for (int i = 0; i < NUM_TEXTURE_TYPES; ++i) {
 		tex_type = malloc(sizeof(texture_type_e));
 		*tex_type = (texture_type_e)i;
-		hashmap_set(tex_type_map, tex_type_strings[i], tex_type);
+		hashmap_set(context->tex_type_map, tex_type_strings[i], tex_type);
 	}
 
-	// tags
-	hashmap_t *tags_map = hashmap_create(4, HASH_STRING);
+	context->tags_map = hashmap_create(4, HASH_STRING);
+}
+
+void textures_build_atlas(tex_load_context_t *context) {
+	size_t i;
+	int w = 0, h = 0;
+	SDL_Surface *atlas_surf;
+	pre_texture_t *pre_texture;
+
+	// find atlas dimensions by adding all rect heights and finding max rect width
+	for (i = 0; i < context->pre_textures->size; ++i) {
+		pre_texture = context->pre_textures->items[i];
+
+		h += pre_texture->rect.h;
+
+		if (pre_texture->rect.w > w)
+			w = pre_texture->rect.w;
+	}
+
+	// build atlas
+	atlas_surf = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, RENDER_FORMAT);
+
+	for (i = 0; i < context->pre_textures->size; ++i) {
+		pre_texture = context->pre_textures->items[i];
+
+		if (SDL_BlitSurface(pre_texture->surface, NULL, atlas_surf, &pre_texture->rect) < 0) {
+			printf("blit to atlas surf failed:\n%s\n", SDL_GetError());
+			exit(1);
+		}
+
+		SDL_FreeSurface(pre_texture->surface);
+	}
+
+	TEXTURE_ATLAS = SDL_CreateTextureFromSurface(RENDERER, atlas_surf);
+
+	if (TEXTURE_ATLAS == NULL) {
+		printf("atlas texture creation failed:\n%s\n", SDL_GetError());
+		exit(1);
+	} else {
+		printf("successfully generated atlas with dimensions %i %i\n", atlas_surf->w, atlas_surf->h);
+	}
+
+	SDL_FreeSurface(atlas_surf);
+}
+
+void textures_load() {
+	tex_load_context_t context;
+	textures_context_populate(&context);
 
 	// json texture list
 	json_object *file_obj;
@@ -134,14 +220,12 @@ void textures_load() {
 
 	// load textures
 	const char *name;
-	char path[100];
 	size_t *texture_id;
 
-	for (i = 0; i < NUM_TEXTURES; ++i) {
+	for (int i = 0; i < NUM_TEXTURES; ++i) {
 		name = content_get_string(texture_objects->items[i], "name");
-		strcpy(path, content_get_string(texture_objects->items[i], "path"));
 
-		TEXTURES[i] = load_texture(path, texture_objects->items[i], tex_type_map, tags_map);
+		TEXTURES[i] = load_texture(&context, texture_objects->items[i]);
 
 		// save to array and hashmap
 		texture_id = malloc(sizeof(size_t));
@@ -149,10 +233,13 @@ void textures_load() {
 		hashmap_set(TEXTURE_MAP, name, texture_id);
 	}
 
-	// clean up and exit
+	textures_build_atlas(&context);
+
+	// clean up
 	array_destroy(texture_objects, false);
-	hashmap_destroy(tags_map, true);
-	hashmap_destroy(tex_type_map, true);
+	array_destroy(context.pre_textures, true);
+	hashmap_destroy(context.tags_map, true);
+	hashmap_destroy(context.tex_type_map, true);
 	content_close_file(file_obj);
 
 	DARK_VOXEL_TEXTURE = texture_from_key("dark");
@@ -175,7 +262,6 @@ void textures_destroy() {
 	TEXTURE_MAP = NULL;
 }
 
-// only use when you actually need the surface data
 SDL_Surface *load_sdl_surface(const char *asset_path) {
 	SDL_Surface *surface, *converted;
 	char path[PATH_LEN];
@@ -194,6 +280,7 @@ SDL_Surface *load_sdl_surface(const char *asset_path) {
 	return converted;
 }
 
+// currently only used in sprites_load
 SDL_Texture *load_sdl_texture(const char *asset_path) {
 	SDL_Texture *texture;
 	SDL_Surface *surface;
@@ -217,15 +304,11 @@ SDL_Texture *load_sdl_texture(const char *asset_path) {
 	return texture;
 }
 
-
 // loads [path]_top.png and [path]_side.png
-// this uses kinda complicated surface stuff in order to be able to store textures
-// with the SDL_TEXTUREACCESS_STATIC access format
-SDL_Texture *load_voxel_texture(const char *path) {
+SDL_Surface *load_voxel_surface(const char *path) {
 	SDL_Rect src_rect, dst_rect;
 	SDL_Surface *surfaces[3];
-	SDL_Surface *image;
-	SDL_Texture *texture;
+	SDL_Surface *image, *voxel_surface;
 
 	image = load_sdl_surface(path);
 
@@ -245,14 +328,14 @@ SDL_Texture *load_voxel_texture(const char *path) {
 		SDL_BlitSurface(surfaces[1], &src_rect, surfaces[0], &dst_rect);
 	}
 
-	texture = render_cached_voxel_texture(surfaces);
+	voxel_surface = render_cached_voxel_surface(surfaces);
 
 	for (int i = 0; i < 3; ++i)
 		SDL_FreeSurface(surfaces[i]);
 
 	SDL_FreeSurface(image);
 
-	return texture;
+	return voxel_surface;
 }
 
 texture_t *texture_from_key(const char *key) {

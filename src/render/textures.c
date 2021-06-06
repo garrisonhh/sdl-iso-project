@@ -102,11 +102,10 @@ void render_sprite_no_offset(sprite_t *sprite, v2i pos, v2i cell) {
 }
 
 // surfaces are in right-left-top order
-SDL_Texture *render_cached_voxel_texture(SDL_Surface *surfaces[3]) {
+SDL_Surface *render_cached_voxel_surface(SDL_Surface *surfaces[3]) {
 	int i;
 	unsigned expose_mask;
 	SDL_Surface *voxel_surface;
-	SDL_Texture *texture;
 	SDL_Rect dst_rect;
 
 	voxel_surface = SDL_CreateRGBSurfaceWithFormat(0, VOXEL_WIDTH * 7, VOXEL_HEIGHT, 32, RENDER_FORMAT);
@@ -127,32 +126,36 @@ SDL_Texture *render_cached_voxel_texture(SDL_Surface *surfaces[3]) {
 		}
 	}
 
-	texture = SDL_CreateTextureFromSurface(RENDERER, voxel_surface);
-	SDL_FreeSurface(voxel_surface);
+	return voxel_surface;
+}
 
-	return texture;
+void render_tex_texture(texture_t *texture, v2i pos) {
+	SDL_Rect draw_rect = SDL_TEX_RECT;
+	draw_rect.x += pos.x;
+	draw_rect.y += pos.y;
+
+	SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &texture->atlas_rect, &draw_rect);
 }
 
 // expose and void mask are processed to 3 bit: R-L-T
 // outline mask is processed to 6 bits corresponding to OUTLINES array; see above
 void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 	SDL_Rect dst_rect = SDL_TEX_RECT;
-	SDL_Rect src_rect = {0, 0, VOXEL_WIDTH, VOXEL_HEIGHT};
-
+	SDL_Rect src_rect = texture->atlas_rect;
 	unsigned exposed = masks.expose & ((~masks.dark) & 0x7);
 
 	dst_rect.x += pos.x;
 	dst_rect.y += pos.y;
-	src_rect.y = 0;
 
 	if (exposed) {
 		src_rect.x = VOXEL_WIDTH * (exposed - 1);
-		SDL_RenderCopy(RENDERER, texture->texture, &src_rect, &dst_rect);
+		SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
 	}
 
 	if (masks.dark) {
+		src_rect = DARK_VOXEL_TEXTURE->atlas_rect;
 		src_rect.x = VOXEL_WIDTH * (masks.dark - 1);
-		SDL_RenderCopy(RENDERER, DARK_VOXEL_TEXTURE->texture, &src_rect, &dst_rect);
+		SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
 	}
 
 	if (masks.outline) {
@@ -192,40 +195,34 @@ void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 
 void render_connected_texture(texture_t *texture, v2i pos, unsigned connected_mask) {
 	SDL_Rect dst_rect = SDL_TEX_RECT;
-	SDL_Rect src_rect;
+	SDL_Rect src_rect = texture->atlas_rect;
 
 	dst_rect.x += pos.x;
 	dst_rect.y += pos.y;
 
-	src_rect = (SDL_Rect){
-		.x = 6 * VOXEL_WIDTH,
-		.y = 0,
-		.w = VOXEL_WIDTH,
-		.h = VOXEL_HEIGHT
-	};
-	SDL_RenderCopy(RENDERER, texture->texture, &src_rect, &dst_rect);
+	src_rect.x += 6 * VOXEL_WIDTH;
+
+	SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
+
+	src_rect.x = texture->atlas_rect.x;
 
 	for (int i = 0; i < 6; ++i) {
-		if (BIT_GET(connected_mask, CONNECT_DRAW_ORDER[i])) {
-			src_rect.x = VOXEL_WIDTH * CONNECT_DRAW_ORDER[i];
-			SDL_RenderCopy(RENDERER, texture->texture, &src_rect, &dst_rect);
-		}
+		if (BIT_GET(connected_mask, CONNECT_DRAW_ORDER[i]))
+			SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
+
+		src_rect.x += VOXEL_WIDTH;
 	}
 }
 
 void render_sheet_texture(texture_t *texture, v2i pos, v2i cell) {
-	SDL_Rect draw_rect, cell_rect;
+	SDL_Rect dst_rect = SDL_TEX_RECT;
+	SDL_Rect src_rect = texture->atlas_rect;
 
-	draw_rect = SDL_TEX_RECT;
-	draw_rect.x += pos.x;
-	draw_rect.y += pos.y;
+	dst_rect.x += pos.x;
+	dst_rect.y += pos.y;
 
-	cell_rect = (SDL_Rect){
-		cell.x * VOXEL_WIDTH,
-		cell.y * VOXEL_HEIGHT,
-		VOXEL_WIDTH,
-		VOXEL_HEIGHT
-	};
+	src_rect.x += cell.x * VOXEL_WIDTH;
+	src_rect.y += cell.y * VOXEL_HEIGHT;
 
-	SDL_RenderCopy(RENDERER, texture->texture, &cell_rect, &draw_rect);
+	SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
 }
