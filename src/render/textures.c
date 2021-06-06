@@ -3,15 +3,15 @@
 #include "../render.h"
 #include "../lib/utils.h"
 
-int CONNECT_DRAW_ORDER[6] = {0, 2, 4, 1, 3, 5};
+const int CONNECT_DRAW_ORDER[6] = {0, 2, 4, 1, 3, 5};
 
-SDL_Rect SDL_TEX_RECT = {
+const SDL_Rect SDL_TEX_RECT = {
 	-(VOXEL_WIDTH >> 1),
 	-VOXEL_Z_HEIGHT,
 	VOXEL_WIDTH,
 	VOXEL_HEIGHT
 };
-SDL_Rect VOXEL_TEX_RECTS[3] = {
+const SDL_Rect VOXEL_TEX_RECTS[3] = {
 	{
 		VOXEL_WIDTH >> 1,
 		VOXEL_WIDTH >> 2,
@@ -30,33 +30,6 @@ SDL_Rect VOXEL_TEX_RECTS[3] = {
 		VOXEL_WIDTH,
 		VOXEL_WIDTH >> 1
 	},
-};
-
-const v2i OUTLINES[6][2] = {
-	{ // top left
-		(v2i){0, (VOXEL_WIDTH >> 2) - 2},
-		(v2i){(VOXEL_WIDTH >> 1) - 1, -1}
-	},
-	{ // top right
-		(v2i){VOXEL_WIDTH >> 1, -1},
-		(v2i){VOXEL_WIDTH - 1, (VOXEL_WIDTH >> 2) - 2}
-	},
-	{ // bottom left
-		(v2i){0, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) + 1},
-		(v2i){(VOXEL_WIDTH >> 1) - 1, VOXEL_HEIGHT}
-	},
-	{ // bottom right
-		(v2i){(VOXEL_WIDTH >> 1), VOXEL_HEIGHT},
-		(v2i){VOXEL_WIDTH - 1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) + 1}
-	},
-	{ // left corner
-		(v2i){-1, (VOXEL_WIDTH >> 2) - 1},
-		(v2i){-1, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 1}
-	},
-	{ // right corner
-		(v2i){VOXEL_WIDTH, (VOXEL_WIDTH >> 2) - 1},
-		(v2i){VOXEL_WIDTH, VOXEL_HEIGHT - (VOXEL_WIDTH >> 2) - 1}
-	}
 };
 
 void render_sdl_texture(SDL_Texture *texture, v2i pos) {
@@ -129,6 +102,37 @@ SDL_Surface *render_cached_voxel_surface(SDL_Surface *surfaces[3]) {
 	return voxel_surface;
 }
 
+SDL_Surface *render_voxel_outline_surface(SDL_Surface *outlines) {
+	int i;
+	int variations = 1 << 6;
+	SDL_Surface *voxel_surface;
+	SDL_Rect src_rect, dst_rect;
+
+	src_rect = (SDL_Rect){0, 0, VOXEL_WIDTH + 2, VOXEL_HEIGHT + 2};
+	dst_rect = src_rect;
+
+	voxel_surface = SDL_CreateRGBSurfaceWithFormat(0,
+												   src_rect.w * variations,
+												   src_rect.h,
+												   32,
+												   RENDER_FORMAT);
+
+	for (unsigned mask = 1; mask < variations; ++mask) {
+		src_rect.x = 0;
+
+		for (i = 0; i < 6; ++i) {
+			if (BIT_GET(mask, i))
+				SDL_BlitSurface(outlines, &src_rect, voxel_surface, &dst_rect);
+
+			src_rect.x += src_rect.w;
+		}
+
+		dst_rect.x += dst_rect.w;
+	}
+
+	return voxel_surface;
+}
+
 void render_tex_texture(texture_t *texture, v2i pos) {
 	SDL_Rect draw_rect = SDL_TEX_RECT;
 	draw_rect.x += pos.x;
@@ -159,37 +163,15 @@ void render_voxel_texture(texture_t *texture, v2i pos, voxel_masks_t masks) {
 	}
 
 	if (masks.outline) {
-		int i;
-		v2i offset = {
-			pos.x + SDL_TEX_RECT.x,
-			pos.y + SDL_TEX_RECT.y
-		};
+		dst_rect.x -= 1;
+		dst_rect.y -= 1;
+		dst_rect.w = TEXTURE_OUTLINES_RECT.w;
+		dst_rect.h = TEXTURE_OUTLINES_RECT.h;
 
-		if (BIT_GET(masks.expose, 2)) {
-			for (i = 0; i < 2; ++i) {
-				if (BIT_GET(masks.outline, i)) {
-					SDL_RenderDrawLine(RENDERER, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
-												 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
-				}
-			}
-		}
+		src_rect = TEXTURE_OUTLINES_RECT;
+		src_rect.x = (masks.outline - 1) * src_rect.w;
 
-		for (i = 2; i < 4; ++i) {
-			if (BIT_GET(masks.expose, 1 ^ (i & 1)) & BIT_GET(masks.outline, i)) {
-				SDL_RenderDrawLine(RENDERER, offset.x + OUTLINES[i][0].x, offset.y + OUTLINES[i][0].y,
-											 offset.x + OUTLINES[i][1].x, offset.y + OUTLINES[i][1].y);
-			}
-		}
-
-		for (i = 4; i < 6; ++i) {
-			if (BIT_GET(masks.expose, 1 ^ (i & 1)) & BIT_GET(masks.outline, i)) {
-				SDL_RenderDrawLine(RENDERER,
-								   offset.x + OUTLINES[i][0].x,
-								   offset.y + OUTLINES[i][0].y,
-								   offset.x + OUTLINES[i][1].x,
-								   offset.y + OUTLINES[i][1].y + BIT_GET(masks.outline, i - 2));
-			}
-		}
+		SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
 	}
 }
 

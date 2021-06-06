@@ -173,6 +173,15 @@ voxel_masks_t world_voxel_masks(block_t *block, v3i loc) {
 		if (BIT_GET(block->tex_state.outline_mask, OUTLINE_ROT_BITS[camera.rotation][i]))
 			BIT_SET_TRUE(masks.outline, i);
 
+	if (!BIT_GET(masks.expose, 2))
+		for (i = 0; i < 2; ++i)
+			if (BIT_GET(masks.outline, i))
+				BIT_SET_FALSE(masks.outline, i);
+
+	for (i = 2; i < 6; ++i)
+		if (!BIT_GET(masks.expose, 1 ^ (i & 1)))
+			BIT_SET_FALSE(masks.outline, i);
+
 	// dark
 	for (i = 0; i < 3; ++i)
 		if (v3i_IDX(loc, i) == v3i_IDX(camera.world_limits, i))

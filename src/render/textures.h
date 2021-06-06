@@ -15,5 +15,6 @@ void render_sheet_texture(texture_t *, v2i, v2i cell);
 
 void render_sprite_no_offset(sprite_t *sprite, v2i, v2i cell);
 SDL_Surface *render_cached_voxel_surface(SDL_Surface *surfaces[3]);
+SDL_Surface *render_voxel_outline_surface(SDL_Surface *outlines);
 
 #endif

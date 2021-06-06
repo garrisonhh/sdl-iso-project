@@ -44,6 +44,7 @@ texture_t **TEXTURES = NULL;
 size_t NUM_TEXTURES;
 hashmap_t *TEXTURE_MAP;
 
+const SDL_Rect TEXTURE_OUTLINES_RECT = {0, 0, VOXEL_WIDTH + 2, VOXEL_HEIGHT + 2};
 texture_t *DARK_VOXEL_TEXTURE = NULL;
 
 SDL_Surface *load_sdl_surface(const char *path);
@@ -202,6 +203,19 @@ void textures_build_atlas(tex_load_context_t *context) {
 	SDL_FreeSurface(atlas_surf);
 }
 
+void textures_load_outlines(tex_load_context_t *context) {
+	pre_texture_t *pre_texture = malloc(sizeof(pre_texture_t));
+	SDL_Surface *outlines = load_sdl_surface("blocks/outlines.png");
+
+	pre_texture->surface = render_voxel_outline_surface(outlines);
+	pre_texture->rect = (SDL_Rect){0, 0, pre_texture->surface->w, pre_texture->surface->h};
+
+	array_push(context->pre_textures, pre_texture);
+	context->pos.y += pre_texture->rect.h;
+
+	SDL_FreeSurface(outlines);
+}
+
 void textures_load() {
 	tex_load_context_t context;
 	textures_context_populate(&context);
@@ -221,6 +235,8 @@ void textures_load() {
 	// load textures
 	const char *name;
 	size_t *texture_id;
+
+	textures_load_outlines(&context);
 
 	for (int i = 0; i < NUM_TEXTURES; ++i) {
 		name = content_get_string(texture_objects->items[i], "name");
@@ -242,6 +258,7 @@ void textures_load() {
 	hashmap_destroy(context.tex_type_map, true);
 	content_close_file(file_obj);
 
+	// special
 	DARK_VOXEL_TEXTURE = texture_from_key("dark");
 }
 

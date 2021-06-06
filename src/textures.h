@@ -19,7 +19,7 @@ typedef enum texture_type_e texture_type_e;
 
 /*
  * voxel: 1x7 on atlas; x indexed by (block->expose_mask - 1)
- * connected: 1x7 on atlas; x=0-5 are directions, x=6 is center
+ * connected: 1x7 on atlas; x = 0-5 are directions, x = 6 is center
  * 
  * voxel, connected, and sheet textures can be indexed by adding rect x, y to
  * index x, y multiplied by rect w, h. (rect w, h indicate size of a cell, not
@@ -45,6 +45,7 @@ union texture_state_t {
 };
 typedef union texture_state_t texture_state_t;
 
+extern const SDL_Rect TEXTURE_OUTLINES_RECT;
 extern texture_t *DARK_VOXEL_TEXTURE;
 extern SDL_Texture *TEXTURE_ATLAS;
 
