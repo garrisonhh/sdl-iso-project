@@ -16,7 +16,7 @@ SDL_sem *MAIN_DONE = NULL, *GAME_LOOP_DONE = NULL;
 render_info_t *RENDER_INFO = NULL, *LAST_INFO = NULL;
 
 int NEW_WORLD_SIZE = 0;
-world_gen_type_e WORLD_TYPE = WORLD_FLAT;
+world_gen_type_e WORLD_TYPE = 0;
 
 bool QUIT;
 

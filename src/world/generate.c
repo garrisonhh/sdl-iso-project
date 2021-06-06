@@ -6,6 +6,7 @@
 #include "../procgen/noise.h"
 #include "../lib/utils.h"
 
+void world_gen_normal(world_t *);
 void world_gen_flat(world_t *);
 void world_gen_alien(world_t *);
 
@@ -13,6 +14,9 @@ void world_generate(world_t *world, world_gen_type_e type) {
 	srand(time(0));
 
 	switch (type) {
+	case WORLD_NORMAL:
+		world_gen_normal(world);
+		break;
 	case WORLD_FLAT:
 		world_gen_flat(world);
 		break;
@@ -24,9 +28,62 @@ void world_generate(world_t *world, world_gen_type_e type) {
 	}
 }
 
+double world_gen_normal_noise_mapped(double v, int side, int x, int y, int z) {
+	double altitude = ((double)z / (double)side);
+
+	return (v + 1.0) * altitude;
+}
+
+void world_gen_normal(world_t *world) {
+	BLOCK_DECL(grass);
+	BLOCK_DECL(dirt);
+	BLOCK_DECL(stone);
+
+	double v;
+	size_t block_id;
+	bool place;
+	v3i loc, other;
+	noise3_t *noise;
+	block_t *block;
+
+	noise = noise3_create(world->block_size, world->size_pow2, 5, 0.3);
+
+	noise_map_func(noise, world_gen_normal_noise_mapped);
+
+	// generate dirt and stone
+	FOR_CUBE(loc.z, loc.y, loc.x, 0, world->block_size) {
+		v = noise3_at(noise, loc.x, loc.y, loc.z);
+
+		place = true;
+
+		if (v < 0.4)
+			block_id = dirt;
+		else if (v < 0.3)
+			block_id = stone;
+		else
+			place = false;
+
+		if (place)
+			world_set_no_update(world, loc, block_id);
+	}
+
+	// replace exposed dirt with grass
+	FOR_CUBE(loc.z, loc.y, loc.x, 0, world->block_size) {
+		if ((block = world_get(world, loc)) != NULL && block->id == dirt) {
+			other = loc;
+			++other.z;
+
+			if (world_get(world, other) == NULL)
+				world_set_no_update(world, loc, grass);
+		}
+	}
+
+	noise3_destroy(noise);
+}
+
 void world_gen_flat(world_t *world) {
 	v3i loc;
-	size_t grass = blocks_get_id("grass");
+	BLOCK_DECL(grass);
 
 	loc.z = 0;
 

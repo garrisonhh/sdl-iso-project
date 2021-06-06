@@ -4,6 +4,7 @@
 typedef struct world_t world_t;
 
 enum world_gen_type_e {
+	WORLD_NORMAL,
 	WORLD_FLAT,
 	WORLD_ALIEN,
 

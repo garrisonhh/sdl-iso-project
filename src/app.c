@@ -29,8 +29,6 @@ bool TESTING_QUIT;
 char *WORLD_SIZE_TEXT;
 char *WORLD_TYPE_TEXT;
 
-const char *WORLD_TYPE_NAMES[NUM_WORLD_TYPES] = {"flat", "alien"};
-
 void app_menu(void);
 void app_testing(void);
 
@@ -88,7 +86,13 @@ void app_menu_generate_world() {
 }
 
 void app_menu_check_world_type() {
-	strcpy(WORLD_TYPE_TEXT, WORLD_TYPE_NAMES[WORLD_TYPE]);
+	const char *world_type_names[NUM_WORLD_TYPES] = {
+		"normal",
+		"flat",
+		"alien"
+	};
+
+	strcpy(WORLD_TYPE_TEXT, world_type_names[WORLD_TYPE]);
 }
 
 void app_menu_next_world_type() {

@@ -21,6 +21,6 @@ void noise3_destroy(noise3_t *);
 double noise3_at(noise3_t *noise, int x, int y, int z);
 
 // any dimension
-void noise_map_func(struct noise_t *, double (*mapped)(double));
+void noise_map_func(struct noise_t *, double (*mapped)(double v, int side, int x, int y, int z));
 
 #endif

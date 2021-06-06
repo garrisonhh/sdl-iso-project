@@ -208,43 +208,6 @@ void world_spawn(world_t *world, entity_t *entity, v3d pos) {
 	list_push(world->entities, entity);
 }
 
-// TODO better tree generation
-void generate_tree(world_t *world, v3i loc) {
-	size_t trunk, leaves;
-	int max_v, x, y, i;
-	double radius;
-	v3i leaf_loc;
-
-	trunk = blocks_get_id("tree trunk");
-	leaves = blocks_get_id("leaves");
-
-	max_v = 3 + rand() % 2;
-
-	for (i = 0; i < max_v + 5; i++) {
-		if (i < max_v)
-			world_set_no_update(world, loc, trunk);
-
-		radius = 2.5;
-		radius = i > max_v ? MIN((5 + max_v) - i, radius) : radius;
-
-		if (i > 3) {
-			for (y = loc.y - radius; y <= loc.y + radius; y++) {
-				for (x = loc.x - radius; x <= loc.x + radius; x++) {
-					if (i < max_v && x == loc.x && y == loc.y)
-						continue;
-					
-					if (sqrt(pow((double)(x - loc.x), 2.0) + pow((double)(y - loc.y), 2.0)) <= radius) {
-						leaf_loc = (v3i){x, y, loc.z};
-						world_set_no_update(world, leaf_loc, leaves);
-					}
-				}
-			}
-		}
-
-		loc.z++;
-	}
-}
-
 void world_tick(world_t *world, double time) {
 	size_t i;
 	entity_t *entity;
