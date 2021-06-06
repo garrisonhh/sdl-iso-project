@@ -44,7 +44,7 @@ texture_t **TEXTURES = NULL;
 size_t NUM_TEXTURES;
 hashmap_t *TEXTURE_MAP;
 
-const SDL_Rect TEXTURE_OUTLINES_RECT = {0, 0, VOXEL_WIDTH + 2, VOXEL_HEIGHT + 2};
+const SDL_Rect TEXTURE_OUTLINES_RECT = {0, 0, VOXEL_WIDTH + 2, VOXEL_HEIGHT + 1};
 texture_t *DARK_VOXEL_TEXTURE = NULL;
 
 SDL_Surface *load_sdl_surface(const char *path);
