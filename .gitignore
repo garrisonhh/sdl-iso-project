@@ -4,4 +4,6 @@ build/Makefile
 scripts
 Iso
 Iso.exe
+iso
+iso.exe
 **.swp
