@@ -14,6 +14,7 @@ extern block_coll_data_t WALL_COLL_DATA;
 void blocks_load(void);
 void blocks_destroy(void);
 size_t blocks_get_id(char *);
+const char *blocks_get_name(size_t);
 block_t *blocks_get(size_t);
 
 #endif

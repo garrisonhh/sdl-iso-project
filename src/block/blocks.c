@@ -20,6 +20,7 @@ const v3d BLOCK_CENTER = {0.5, 0.5, 0.5};
 block_t **BLOCKS = NULL; // the models blocks are based on
 block_coll_data_t **BLOCK_COLL_DATA = NULL; // used solely to free pointers
 hashmap_t *BLOCK_MAP = NULL;
+char **BLOCK_NAMES;
 size_t NUM_BLOCKS;
 
 bbox_t BLOCK_DEFAULT_BOX = {
@@ -63,6 +64,7 @@ void blocks_load_block(json_object *block_obj, size_t index,
 	block_type_e *block_type;
 	const char *name, *texture;
 	const char *coll_type_name, *block_type_name, *block_subtype_name;
+	char *name_copy;
 	size_t *block_id;
 
 	block = malloc(sizeof(block_t));
@@ -70,6 +72,11 @@ void blocks_load_block(json_object *block_obj, size_t index,
 	name = content_get_string(block_obj, "name");
 
 	block->id = index;
+
+	name_copy = malloc(sizeof(char) * (strlen(name) + 1));
+	strcpy(name_copy, name);
+
+	BLOCK_NAMES[block->id] = name_copy;
 
 	// texture
 	if (content_has_key(block_obj, "texture"))
@@ -196,6 +203,7 @@ void blocks_load() {
 	BLOCKS = malloc(sizeof(block_t *) * NUM_BLOCKS);
 	BLOCK_COLL_DATA = malloc(sizeof(block_coll_data_t *) * NUM_BLOCKS);
 	BLOCK_MAP = hashmap_create(NUM_BLOCKS * 2, HASH_STRING);
+	BLOCK_NAMES = malloc(sizeof(const char *) * NUM_BLOCKS);
 
 	// load blocks
 	for (i = 0; i < block_objects->size; ++i)
@@ -222,6 +230,7 @@ void blocks_destroy() {
 
 		free(BLOCK_COLL_DATA[i]);
 		block_destroy(BLOCKS[i]);
+		free(BLOCK_NAMES[i]);
 	}
 
 	free(BLOCKS);
@@ -239,6 +248,10 @@ size_t blocks_get_id(char *key) {
 	}
 
 	return *value;
+}
+
+const char *blocks_get_name(size_t id) {
+	return BLOCK_NAMES[id];
 }
 
 block_t *blocks_get(size_t id) {
