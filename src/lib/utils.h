@@ -60,6 +60,7 @@ extern const float SQRT2;
 
 bool d_close(double a, double b);
 double randf(void); // returns values between 0 and 1
+double rand_angle(void);
 void timeit_start(void);
 void timeit_end(const char *message);
 double timeit_get_time(void);

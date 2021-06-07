@@ -15,6 +15,8 @@
  * used directly from the array
  */
 
+const v3d BLOCK_CENTER = {0.5, 0.5, 0.5};
+
 block_t **BLOCKS = NULL; // the models blocks are based on
 block_coll_data_t **BLOCK_COLL_DATA = NULL; // used solely to free pointers
 hashmap_t *BLOCK_MAP = NULL;

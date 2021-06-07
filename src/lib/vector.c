@@ -150,6 +150,14 @@ v3d v3d_normalize(v3d v) {
 	return v3d_scale(v, 1 / v3d_magnitude(v));
 }
 
+v3d v3d_cross(v3d a, v3d b) {
+	return (v3d){
+		(a.y * b.z) - (b.y * a.z),
+		(a.z * b.x) - (b.z * a.x),
+		(a.x * b.y) - (b.x * a.y)
+	};
+}
+
 double v3d_magnitude(v3d v) {
 	return sqrt(v3d_dot(v, v));
 }

@@ -49,7 +49,7 @@ void l_system_add_rule(l_system_t *lsys, const char *symbol, const char *replace
 	array_push(lsys->rules, rule);
 }
 
-char *l_system_generate(l_system_t *lsys, int iterations) {
+const char *l_system_generate(l_system_t *lsys, int iterations) {
 	int i, j, k;
 	bool rule_applied;
 	char c[2], *result;

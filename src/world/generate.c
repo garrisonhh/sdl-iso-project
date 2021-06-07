@@ -91,9 +91,13 @@ void world_gen_flat(world_t *world) {
 	FOR_XY(loc.x, loc.y, world->block_size, world->block_size)
 		world_set_no_update(world, loc, grass);
 
-	// TODO TESTING
-	loc = (v3i){10, 10, 0};
-	tree_generate(world, NULL, loc, 3);
+	// TODO TESTING REMOVE
+	
+	tree_generator_t *oak_gen = tree_oak_generator();
+
+	for (loc.y = 16; loc.y < world->block_size; loc.y += 32) 
+		for (loc.x = 16; loc.x < world->block_size; loc.x += 32) 
+			tree_generate(world, oak_gen, loc);
 }
 
 void world_gen_alien(world_t *world) {

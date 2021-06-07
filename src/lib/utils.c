@@ -20,6 +20,10 @@ double randf() {
 	return (double)rand() / (double)RAND_MAX;
 }
 
+double rand_angle() {
+	return randf() * M_PI * 2.0;
+}
+
 void timeit_start() {
 	gettimeofday(&LAST_TIMEIT, NULL);
 }

@@ -84,6 +84,7 @@ v3d v3d_div(v3d, v3d);
 
 v3d v3d_scale(v3d, double);
 v3d v3d_normalize(v3d);
+v3d v3d_cross(v3d, v3d);
 double v3d_magnitude(v3d);
 double v3d_dist(v3d, v3d);
 double v3d_dot(v3d, v3d);

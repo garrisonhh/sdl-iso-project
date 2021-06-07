@@ -9,6 +9,6 @@ void l_system_destroy(l_system_t *);
 void l_system_add_rule(l_system_t *lsys, const char *symbol, const char *replacement);
 
 // need to free string
-char *l_system_generate(l_system_t *lsys, int iterations);
+const char *l_system_generate(l_system_t *lsys, int iterations);
 
 #endif
