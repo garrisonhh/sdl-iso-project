@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "generate.h"
+#include "gen_tree.h"
 #include "../world.h"
 #include "../block/blocks.h"
 #include "../procgen/noise.h"
@@ -29,7 +30,7 @@ void world_generate(world_t *world, world_gen_type_e type) {
 }
 
 double world_gen_normal_noise_mapped(double v, int side, int x, int y, int z) {
-	double altitude = ((double)z / (double)side);
+	double altitude = ((double)z / (double)side) * 2.0;
 
 	return (v + 1.0) * altitude;
 }
@@ -89,6 +90,10 @@ void world_gen_flat(world_t *world) {
 
 	FOR_XY(loc.x, loc.y, world->block_size, world->block_size)
 		world_set_no_update(world, loc, grass);
+
+	// TODO TESTING
+	loc = (v3i){10, 10, 0};
+	tree_generate(world, NULL, loc, 3);
 }
 
 void world_gen_alien(world_t *world) {

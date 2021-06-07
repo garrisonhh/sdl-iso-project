@@ -1,5 +1,5 @@
-#ifndef GENERATE_H
-#define GENERATE_H
+#ifndef WORLD_GENERATE_H
+#define WORLD_GENERATE_H
 
 typedef struct world_t world_t;
 

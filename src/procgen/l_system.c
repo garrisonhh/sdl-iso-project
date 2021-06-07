@@ -7,8 +7,9 @@
 
 /*
  * stuff to potentially do
- * - add stochastic, parametric, etc. rules?
- * - create a l-systems.json for fast prototyping?
+ * - stochastic rules
+ * - parametric rules
+ * - contextual (? forget name) rules
  */
 
 struct l_rule_t {
