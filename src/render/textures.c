@@ -186,13 +186,12 @@ void render_connected_texture(texture_t *texture, v2i pos, unsigned connected_ma
 
 	SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
 
-	src_rect.x = texture->atlas_rect.x;
-
 	for (int i = 0; i < 6; ++i) {
-		if (BIT_GET(connected_mask, CONNECT_DRAW_ORDER[i]))
-			SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
+		if (BIT_GET(connected_mask, CONNECT_DRAW_ORDER[i])) {
+			src_rect.x = texture->atlas_rect.x + VOXEL_WIDTH * CONNECT_DRAW_ORDER[i];
 
-		src_rect.x += VOXEL_WIDTH;
+			SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
+		}
 	}
 }
 
