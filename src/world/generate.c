@@ -79,6 +79,8 @@ void world_gen_normal(world_t *world) {
 		}
 	}
 
+	// TODO place plants and trees using poisson distro
+
 	noise3_destroy(noise);
 }
 
@@ -92,7 +94,6 @@ void world_gen_flat(world_t *world) {
 		world_set_no_update(world, loc, grass);
 
 	// TODO TESTING REMOVE
-	
 	tree_generator_t *oak_gen = tree_oak_generator();
 
 	for (loc.y = 16; loc.y < world->block_size; loc.y += 32) 

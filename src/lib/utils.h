@@ -34,7 +34,7 @@
 #define FOR_CUBE(x, y, z, minv, maxv) for (z = minv; z < maxv; ++z) for (y = minv; y < maxv; ++y) for (x = minv; x < maxv; ++x)
 
 // bitfield ops
-#define BIT_GET(bitfield, index) (((bitfield) >> (index)) & 1)
+#define BIT_GET(bitfield, index) ((bitfield >> (index)) & 1)
 #define BIT_SET_TRUE(bitfield, index) {bitfield |= (0x1 << (index));}
 #define BIT_SET_FALSE(bitfield, index) {bitfield &= ~(0x1 << (index));}
 
@@ -52,9 +52,7 @@
 	BIT_SET_COND(bitfield, index2, swp);\
 }
 
-#define BIT_FLIP(num) ((~num) & 1)
-
-#define D_ROUND(d) ((int)(d + 0.5l))
+#define D_ROUND(d) ((int)(d + 0.5))
 
 extern const float SQRT2;
 

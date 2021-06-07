@@ -1,10 +1,11 @@
 #include <SDL2/SDL.h>
 #include <math.h>
-#include "entity/entity.h"
-#include "entity/human.h"
 #include "world.h"
 #include "camera.h"
 #include "raycast.h"
+#include "entity/entity.h"
+#include "entity/human.h"
+#include "block/blocks.h"
 #include "lib/vector.h"
 #include "lib/utils.h"
 
@@ -101,26 +102,21 @@ void player_tick() {
 
 void player_click(world_t *world, v2i mouse_pos) {
 	int axis;
-	v3i block_loc;
+	v3i loc;
 	ray_t ray;
-
-	//const char axes[3] = "XYZ";
 
 	ray = (ray_t){
 		.pos = un_project(mouse_pos, (double)world->block_size - 0.5),
 		.dir = camera.view_dir
 	};
 
-	if (raycast_to_block(world, ray, raycast_block_exists, &block_loc, &axis)) {
-		/*
-		printf("raycast:\n");
-		v3i_print("hit block", block_loc);
-		printf("hit side: %c\n", axes[axis]);
-		*/
-		// TODO block placing and breaking, etc. here
-	}
+	if (raycast_to_block(world, ray, raycast_block_exists, &loc, &axis)) {
+		BLOCK_DECL(stone);
 
-	//printf("\n");
+		v3i_IDX(loc, axis) += (v3d_IDX(camera.view_dir, axis) < 0 ? 1 : -1);
+
+		world_set(world, loc, stone);
+	}
 }
 
 void player_toggle_godmode() {
