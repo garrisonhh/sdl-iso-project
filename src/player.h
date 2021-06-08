@@ -15,5 +15,6 @@ void player_click(world_t *, v2i);
 void player_toggle_godmode(void);
 
 v3d player_get_pos(void);
+v3d player_get_head_pos(void);
 
 #endif

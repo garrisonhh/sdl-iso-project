@@ -21,7 +21,15 @@ bool raycast_block_exists(block_t *block) {
  * **this does NOT limit itself to the scope of the ray**
  */
 bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), v3i *block_hit, int *axis_hit) {
-	int i, polarity, axis;
+#define RAYCAST_RETURN {\
+		if (block_hit != NULL)\
+			*block_hit = loc;\
+		if (axis_hit != NULL)\
+			*axis_hit = axis;\
+		return true;\
+	}
+
+	int i, axis;
 	double t_max_target;
 	double dim_pos, dim_abs_dir;
 	double axis_diff;
@@ -32,32 +40,33 @@ bool raycast_to_block(world_t *world, ray_t ray, bool (*test_block)(block_t *), 
 	loc = v3i_from_v3d(ray.pos);
 	step = polarity_of_v3d(ray.dir);
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; ++i) {
 		dim_pos = v3d_IDX(ray.pos, i);
 		dim_abs_dir = fabs(v3d_IDX(ray.dir, i));
-		polarity = v3i_IDX(step, i);
 
-		// t_max: scalar t where ray crosses boundary from initial position on each axis
-		t_max_target = (polarity > 0 ? ceil(dim_pos) : floor(dim_pos));
-
-		if (d_close(dim_pos, t_max_target))
-			t_max_target += polarity;
+		// t_max: t where ray crosses boundary from initial position on each axis
+		t_max_target = (v3i_IDX(step, i) > 0 ? ceil(dim_pos) : floor(dim_pos));
 
 		v3d_IDX(t_max, i) = fabs(t_max_target - dim_pos) / dim_abs_dir;
 
-		// t_delta: scalar t where ray changes by 1 on each axis
+		// t_delta: t where ray changes by 1 on each axis
 		v3d_IDX(t_delta, i) = 1.0 / dim_abs_dir;
 	}
 
+	// offset loc for negative directions
+	if (test_block(world_get(world, loc))) {
+		axis = 2;
+		RAYCAST_RETURN;
+	}
+
+	for (i = 0; i < 3; ++i)
+		if (v3i_IDX(step, i) < 0)
+			--v3i_IDX(loc, i);
+
 	// iterate though voxel space
 	while (true) {
-		if (test_block(world_get(world, loc))) {
-			if (block_hit != NULL)
-				*block_hit = loc;
-			if (axis_hit != NULL)
-				*axis_hit = axis;
-			return true;
-		}
+		if (test_block(world_get(world, loc)))
+			RAYCAST_RETURN;
 
 		// find axis with minimum t
 		axis = 2;

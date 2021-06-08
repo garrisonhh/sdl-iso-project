@@ -200,9 +200,7 @@ render_info_t *render_gen_info(world_t *world) {
 	info = malloc(sizeof(render_info_t));
 
 	// camera
-	cam_ray = (ray_t){camera.pos, (v3d){0, 0, 0}};
-	cam_ray.dir = v3d_scale(camera.view_dir, -1.0);
-	cam_ray.pos.z += 0.5;
+	cam_ray = (ray_t){player_get_head_pos(), v3d_scale(camera.view_dir, -1.0)};
 
 	info->cam_hit = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
 	info->cam_viewport = camera.viewport;

@@ -101,6 +101,24 @@ void camera_rotate(bool clockwise) {
 	camera_set_rotation((camera.rotation + (clockwise ? 1 : -1) + 4) % 4);
 }
 
+v2i block_project(v3i loc) {
+	// modify loc so that it is the back center corner of voxel from camera perspective
+	switch (camera.rotation) {
+	case 1:
+		++loc.x;
+		break;
+	case 2:
+		++loc.x;
+		++loc.y;
+		break;
+	case 3:
+		++loc.y;
+		break;
+	}
+
+	return project_v3i(loc);
+}
+
 // project functions are high FPS impact and very visually important, so if the
 // code looks stupid/repetitive/weirdly formed that is why lol
 v2i project_v3i(v3i v) {

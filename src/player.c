@@ -106,7 +106,7 @@ void player_click(world_t *world, v2i mouse_pos) {
 	ray_t ray;
 
 	ray = (ray_t){
-		.pos = un_project(mouse_pos, (double)world->block_size - 0.5),
+		.pos = un_project(mouse_pos, (double)world->block_size),
 		.dir = camera.view_dir
 	};
 
@@ -125,4 +125,12 @@ void player_toggle_godmode() {
 
 v3d player_get_pos() {
 	return PLAYER->data.ray.pos;
+}
+
+v3d player_get_head_pos() {
+	v3d pos = PLAYER->data.ray.pos;
+	
+	pos.z += PLAYER->data.center.z;
+
+	return pos;
 }

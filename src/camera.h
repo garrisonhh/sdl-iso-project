@@ -36,6 +36,7 @@ void camera_set_scale(int);
 void camera_scale(bool);
 void camera_rotate(bool);
 
+v2i block_project(v3i);
 v2i project_v3i(v3i);
 v2i project_v3d(v3d);
 v3d un_project(v2i, double z);

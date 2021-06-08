@@ -29,24 +29,6 @@ void block_tick(block_t *block, world_t *world, double time) {
 	}
 }
 
-v2i block_project(v3i loc) {
-	// modify loc so that it is the back center corner of voxel from camera perspective
-	switch (camera.rotation) {
-	case 1:
-		++loc.x;
-		break;
-	case 2:
-		++loc.x;
-		++loc.y;
-		break;
-	case 3:
-		++loc.y;
-		break;
-	}
-
-	return project_v3i(loc);
-}
-
 void block_add_render_info(array_t *packets, block_t *block, v3i loc) {
 	render_packet_t *packet = NULL;
 
