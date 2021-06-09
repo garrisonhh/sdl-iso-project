@@ -10,13 +10,13 @@ project "iso"
 
 	kind "WindowedApp"
 	language "C"
-	cdialect "C99"
+	cdialect "gnu99"
 	targetdir ".."
 
 	enablewarnings { "all" }
 	floatingpoint "Fast"
 
-	links { "m", "SDL2", "SDL2_image", "json-c" }
+	links { "m", "SDL2", "SDL2_image", "json-c", "gcc" }
 
 	files {
 		"../src/**.c",
@@ -34,4 +34,3 @@ project "iso"
 	filter "configurations:release"
 		defines { "RELEASE" }
 		optimize "On"
-
