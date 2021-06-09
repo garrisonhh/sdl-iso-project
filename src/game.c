@@ -34,7 +34,7 @@ int game_loop(void *arg) {
 	player_init(world);
 
 	size_t i, num_packets;
-	int num_events, max_events = 64;
+	int num_events = 0, max_events = 64;
 	SDL_Event events[max_events];
 	render_info_t *next_render_info;
 	mytimer_t *timer = mytimer_create(60);
@@ -42,8 +42,7 @@ int game_loop(void *arg) {
 	while (!QUIT) {
 		// event handling
 		SDL_SemWait(EVENTS_PUMPED);
-
-		num_events = SDL_PeepEvents(events, max_events, SDL_PEEKEVENT,
+		num_events = SDL_PeepEvents(events, max_events, SDL_GETEVENT,
 									SDL_FIRSTEVENT, SDL_LASTEVENT);
 
 		for (i = 0; i < num_events; ++i) {
