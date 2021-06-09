@@ -8,7 +8,7 @@ project "iso"
 		makesettings "CC=gcc"
 	end
 
-	kind "WindowedApp"
+	kind "ConsoleApp"
 	language "C"
 	cdialect "gnu99"
 	targetdir ".."
