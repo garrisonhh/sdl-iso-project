@@ -97,4 +97,3 @@ void render_from_packet(render_packet_t *packet) {
 		break;
 	}
 }
-

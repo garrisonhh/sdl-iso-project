@@ -105,8 +105,12 @@ int v3i_compare(v3i a, v3i b) {
 v3i polarity_of_v3d(v3d v) {
 	v3i polarity;
 
-	for (int i = 0; i < 3; i++)
-		v3i_IDX(polarity, i) = (v3d_IDX(v, i) >= 0 ? 1 : -1);
+	for (int i = 0; i < 3; i++) {
+		if (d_close(v3d_IDX(v, i), 0))
+			v3i_IDX(polarity, i) = 0;
+		else
+			v3i_IDX(polarity, i) = (v3d_IDX(v, i) > 0 ? 1 : -1);
+	}
 
 	return polarity;
 }

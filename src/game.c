@@ -119,6 +119,7 @@ int game_loop(void *arg) {
 		}
 	}
 
+	// clean up
 	if (RENDER_INFO != NULL) {
 		render_info_destroy(RENDER_INFO);
 		RENDER_INFO = NULL;
