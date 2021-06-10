@@ -115,7 +115,7 @@ void render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 			}
 
 			block_add_render_info(packets, block, loc);
-			
+
 			while (bucket_trav != NULL) {
 				entity_add_render_info(packets, bucket_trav->item);
 				bucket_trav = bucket_trav->next;
@@ -166,7 +166,7 @@ void render_info_voxel_raycast(array_t *packets, world_t *world, int max_z, int 
 	for (offset.x = 0; offset.x <= limits.x; ++offset.x)
 		for (offset.y = 0; offset.y <= limits.y; ++offset.y)
 			locs[index++] = offset;
-	
+
 	// x-z
 	offset.y = 0;
 

@@ -32,7 +32,7 @@ int MAIN(int argc, char **argv) {
 	app_run();
 
 	quit_all();
-	
+
 	return 0;
 }
 
@@ -53,7 +53,7 @@ void init() {
 		printf("WINDOW could not be created:\n%s\n", SDL_GetError());
 		exit(1);
 	}
-	
+
 	int img_flags = IMG_INIT_PNG;
 	if (!(IMG_Init(img_flags) & img_flags)) {
 		printf("SDL_image could not initialize:\n%s\n", IMG_GetError());

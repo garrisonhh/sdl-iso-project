@@ -111,12 +111,12 @@ int game_loop(void *arg) {
 		SDL_SemPost(GAME_LOOP_DONE);
 
 		// free old info instance
+		SDL_LockMutex(LAST_INFO_LOCK);
 		if (LAST_INFO != NULL) {
-			SDL_LockMutex(LAST_INFO_LOCK);
 			render_info_destroy(LAST_INFO);
 			LAST_INFO = NULL;
-			SDL_UnlockMutex(LAST_INFO_LOCK);
 		}
+		SDL_UnlockMutex(LAST_INFO_LOCK);
 	}
 
 	// clean up
