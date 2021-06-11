@@ -150,6 +150,8 @@ void render_info_single_ray(array_t *packets, world_t *world, v3i loc, int min_z
 }
 
 // if max_z is negative, uses camera-defined max_z
+// TODO skip empty chunks
+// TODO create list of points in render_init
 void render_info_voxel_raycast(array_t *packets, world_t *world, int max_z, int min_z) {
 	const v3i limits = camera.render_limits;
 
@@ -202,7 +204,7 @@ render_info_t *render_gen_info(world_t *world) {
 	// camera
 	cam_ray = (ray_t){player_get_head_pos(), v3d_scale(camera.view_dir, -1.0)};
 
-	info->cam_hit = raycast_to_block(world, cam_ray, raycast_block_exists, NULL, NULL);
+	info->cam_hit = raycast_voxels(world, cam_ray, NULL, NULL);
 	info->cam_viewport = camera.viewport;
 
 	// packets

@@ -106,14 +106,22 @@ void player_click(world_t *world, v2i mouse_pos) {
 	ray_t ray;
 
 	ray = (ray_t){
-		.pos = un_project(mouse_pos, (double)world->block_size),
+		.pos = un_project(mouse_pos, (double)world->block_size - 0.5),
 		.dir = camera.view_dir
 	};
 
-	if (raycast_to_block(world, ray, raycast_block_exists, &loc, &axis)) {
+	/*
+	// TODO testing
+	ray = (ray_t){
+		.pos = (v3d){(double)world->block_size - 0.5, (double)world->block_size - 0.5, (double)world->block_size - 0.5},
+		.dir = (v3d){-1.0, -1.0, -1.0}
+	};
+	*/
+
+	if (raycast_voxels(world, ray, &loc, &axis)) {
 		BLOCK_DECL(stone);
 
-		v3i_IDX(loc, axis) += (v3d_IDX(camera.view_dir, axis) < 0 ? 1 : -1);
+		v3i_IDX(loc, axis) += (v3d_IDX(ray.dir, axis) < 0 ? 1 : -1);
 
 		world_set(world, loc, stone);
 	}
@@ -129,7 +137,7 @@ v3d player_get_pos() {
 
 v3d player_get_head_pos() {
 	v3d pos = PLAYER->data.ray.pos;
-	
+
 	pos.z += PLAYER->data.center.z;
 
 	return pos;
