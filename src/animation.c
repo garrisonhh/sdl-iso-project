@@ -62,7 +62,6 @@ bool anim_entity_walking(entity_t *entity) {
 }
 
 void anim_entity_update_directions(entity_t *entity) {
-	double dir;
 	v3i facing;
 
 	if (!d_close(fabs(entity->data.ray.dir.x) + fabs(entity->data.ray.dir.y), 0)) {
@@ -72,18 +71,7 @@ void anim_entity_update_directions(entity_t *entity) {
 
 	entity->data.last_dir.z = entity->data.ray.dir.z;
 
-	for (int i = 0; i < 3; ++i) {
-		dir = v3d_IDX(entity->data.last_dir, i);
-
-		if (d_close(dir, 0.0))
-			v3i_IDX(facing, i) = 0;
-		else if (dir > 0)
-			v3i_IDX(facing, i) = 1;
-		else
-			v3i_IDX(facing, i) = -1;
-	}
-
-	facing = camera_rotated_v3i(facing);
+	facing = camera_rotated_v3i(polarity_of_v3d(entity->data.last_dir));
 
 	if (facing.z < 0)
 		entity->data.dir_z = DIR_DOWN;
@@ -115,7 +103,7 @@ void anim_entity_update_directions(entity_t *entity) {
 }
 
 void anim_human_body(entity_t *entity, animation_t *state) {
-	int pose;
+	int pose = 0;
 
 	switch (entity->data.dir_xy) {
 	case DIR_FRONT:
@@ -144,7 +132,7 @@ void anim_human_body(entity_t *entity, animation_t *state) {
 }
 
 void anim_human_hands(entity_t *entity, animation_t *state) {
-	int pose;
+	int pose = 0;
 
 	switch (entity->data.dir_xy) {
 	case DIR_FRONT:

@@ -19,9 +19,9 @@ camera_t camera = {
 
 void camera_init() {
 	// constants
-	CAMERA_BASE_VIEW_DIR.x = -1.0;
+	CAMERA_BASE_VIEW_DIR.x = -((double)VOXEL_Z_HEIGHT / (double)VOXEL_HALF_W);
 	CAMERA_BASE_VIEW_DIR.y = CAMERA_BASE_VIEW_DIR.x;
-	CAMERA_BASE_VIEW_DIR.z = -((double)VOXEL_HALF_W / (double)VOXEL_Z_HEIGHT);
+	CAMERA_BASE_VIEW_DIR.z = -1;
 	CAMERA_BASE_VIEW_DIR = v3d_normalize(CAMERA_BASE_VIEW_DIR);
 
 	// camera
@@ -134,8 +134,12 @@ v2i project_v3d_absolute(v3d v) {
 	v = camera_rotated_v3d(v);
 
 	return (v2i){
+		/*
 		((v.x - v.y) * VOXEL_WIDTH) / 2.0,
 		(((v.x + v.y) * VOXEL_WIDTH) / 4.0) - (v.z * VOXEL_Z_HEIGHT)
+		*/
+		(v.x - v.y) * VOXEL_HALF_W,
+		((v.x + v.y) * VOXEL_4TH_W) - (v.z * VOXEL_Z_HEIGHT)
 	};
 }
 
@@ -254,4 +258,3 @@ v3i camera_reverse_rotated_v3i(v3i v) {
 
 	return v;
 }
-

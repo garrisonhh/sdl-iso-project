@@ -13,6 +13,7 @@
 
 SDL_mutex *RENDER_INFO_LOCK, *LAST_INFO_LOCK;
 SDL_sem *MAIN_DONE = NULL, *GAME_LOOP_DONE = NULL;
+SDL_sem *EVENTS_PUMPED = NULL;
 render_info_t *RENDER_INFO = NULL, *LAST_INFO = NULL;
 
 int NEW_WORLD_SIZE = 3;
@@ -32,21 +33,26 @@ int game_loop(void *arg) {
 
 	player_init(world);
 
-	SDL_Event event;
+	size_t i, num_packets;
+	int num_events = 0, max_events = 64;
+	SDL_Event events[max_events];
 	render_info_t *next_render_info;
 	mytimer_t *timer = mytimer_create(60);
 
-	size_t num_packets;
-
 	while (!QUIT) {
-		while (SDL_PollEvent(&event)) {
-			switch (event.type) {
+		// event handling
+		SDL_SemWait(EVENTS_PUMPED);
+		num_events = SDL_PeepEvents(events, max_events, SDL_GETEVENT,
+									SDL_FIRSTEVENT, SDL_LASTEVENT);
+
+		for (i = 0; i < num_events; ++i) {
+			switch (events[i].type) {
 			case SDL_QUIT:
 				QUIT = true;
 				APP_STATE = APP_EXIT;
 				break;
 			case SDL_KEYDOWN:
-				switch (event.key.keysym.sym) {
+				switch (events[i].key.keysym.sym) {
 				case SDLK_ESCAPE:
 					QUIT = true;
 					APP_STATE = APP_MENU;
@@ -66,19 +72,19 @@ int game_loop(void *arg) {
 					}
 					break;
 				case SDL_MOUSEWHEEL:
-					camera_scale(event.wheel.y > 0);
+					camera_scale(events[i].wheel.y > 0);
 					break;
 			case SDL_MOUSEBUTTONDOWN:
-				if (event.button.button == SDL_BUTTON_LEFT) {
-					v2i pos = {event.button.x, event.button.y};
+				if (events[i].button.button == SDL_BUTTON_LEFT) {
+					v2i pos = {events[i].button.x, events[i].button.y};
 					player_click(world, pos);
 				}
 				break;
 			}
 		}
 
+		// ticking
 		mytimer_tick(timer);
-
 		player_tick();
 		world_tick(world, mytimer_get_tick(timer));
 
@@ -91,6 +97,7 @@ int game_loop(void *arg) {
 		if (next_render_info->fg_packets != NULL)
 			num_packets += next_render_info->fg_packets->size;
 
+		// send render info to main thread
 		SDL_SemWait(MAIN_DONE);
 
 		GUI_DATA.fps = mytimer_get_fps(timer);
@@ -103,14 +110,16 @@ int game_loop(void *arg) {
 
 		SDL_SemPost(GAME_LOOP_DONE);
 
+		// free old info instance
+		SDL_LockMutex(LAST_INFO_LOCK);
 		if (LAST_INFO != NULL) {
-			SDL_LockMutex(LAST_INFO_LOCK);
 			render_info_destroy(LAST_INFO);
 			LAST_INFO = NULL;
-			SDL_UnlockMutex(LAST_INFO_LOCK);
 		}
+		SDL_UnlockMutex(LAST_INFO_LOCK);
 	}
 
+	// clean up
 	if (RENDER_INFO != NULL) {
 		render_info_destroy(RENDER_INFO);
 		RENDER_INFO = NULL;
@@ -130,6 +139,7 @@ int game_loop(void *arg) {
 void game_main() {
 	MAIN_DONE = SDL_CreateSemaphore(1);
 	GAME_LOOP_DONE = SDL_CreateSemaphore(0);
+	EVENTS_PUMPED = SDL_CreateSemaphore(0);
 
 	SDL_Thread *game_loop_thread = SDL_CreateThread(game_loop, "game_loop", NULL);
 
@@ -141,6 +151,11 @@ void game_main() {
 	QUIT = false;
 
 	while (!QUIT) {
+		// events
+		SDL_PumpEvents();
+		SDL_SemPost(EVENTS_PUMPED);
+
+		// rendering
 		SDL_SemWait(GAME_LOOP_DONE);
 		SDL_LockMutex(RENDER_INFO_LOCK);
 
@@ -154,7 +169,6 @@ void game_main() {
 		SDL_UnlockMutex(LAST_INFO_LOCK);
 
 		RENDER_INFO = NULL;
-
 		SDL_UnlockMutex(RENDER_INFO_LOCK);
 
 		gui_render();
@@ -166,4 +180,5 @@ void game_main() {
 
 	SDL_DestroySemaphore(MAIN_DONE);
 	SDL_DestroySemaphore(GAME_LOOP_DONE);
+	SDL_DestroySemaphore(EVENTS_PUMPED);
 }
