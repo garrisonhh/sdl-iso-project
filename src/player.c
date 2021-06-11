@@ -19,7 +19,7 @@ const v3d DOWN = {1.0, 1.0, 0.0};
 const v3d RIGHT = {1.0, -1.0, 0.0};
 
 void player_init(world_t *world) {
-	v3d pos = (v3d){5.0, 5.0, 15.0};
+	v3d pos = (v3d){5.0, 5.0, (double)world->block_size / 2.0};
 
 	PLAYER = (entity_t *)human_create();
 	KEYBOARD = SDL_GetKeyboardState(NULL);

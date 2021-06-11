@@ -15,7 +15,7 @@ SDL_mutex *RENDER_INFO_LOCK, *LAST_INFO_LOCK;
 SDL_sem *MAIN_DONE = NULL, *GAME_LOOP_DONE = NULL;
 render_info_t *RENDER_INFO = NULL, *LAST_INFO = NULL;
 
-int NEW_WORLD_SIZE = 0;
+int NEW_WORLD_SIZE = 3;
 world_gen_type_e WORLD_TYPE = 0;
 
 bool QUIT;

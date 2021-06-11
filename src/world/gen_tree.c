@@ -126,7 +126,7 @@ tree_generator_t *tree_oak_generator() {
 
 	gen->iterations = 3;
 	gen->branch_length = 6.0;
-	gen->branch_radius = 1.8;
+	gen->branch_radius = 2.0;
 	gen->size_persistence = 0.7;
 
 	return gen;

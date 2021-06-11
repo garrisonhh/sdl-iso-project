@@ -5,6 +5,7 @@
 #include "../world.h"
 #include "../block/blocks.h"
 #include "../procgen/noise.h"
+#include "../procgen/poisson.h"
 #include "../lib/utils.h"
 
 void world_gen_normal(world_t *);
@@ -30,15 +31,17 @@ void world_generate(world_t *world, world_gen_type_e type) {
 }
 
 double world_gen_normal_noise_mapped(double v, int side, int x, int y, int z) {
-	double altitude = ((double)z / (double)side) * 2.0;
+	double altitude = (-0.5 + ((double)z / (double)side)) * 4.0;
 
-	return (v + 1.0) * altitude;
+	return v + altitude;
 }
 
 void world_gen_normal(world_t *world) {
 	BLOCK_DECL(grass);
 	BLOCK_DECL(dirt);
 	BLOCK_DECL(stone);
+	BLOCK_DECL(flower);
+	const size_t tall_grass = blocks_get_id("tall grass");
 
 	double v;
 	size_t block_id;
@@ -47,7 +50,7 @@ void world_gen_normal(world_t *world) {
 	noise3_t *noise;
 	block_t *block;
 
-	noise = noise3_create(world->block_size, world->size_pow2, 5, 0.3);
+	noise = noise3_create(world->block_size, MAX(world->size_pow2 - 1, 0), 3, 0.2);
 
 	noise_map_func(noise, world_gen_normal_noise_mapped);
 
@@ -57,9 +60,9 @@ void world_gen_normal(world_t *world) {
 
 		place = true;
 
-		if (v < 0.4)
+		if (v < 0.0)
 			block_id = dirt;
-		else if (v < 0.3)
+		else if (v < -0.2)
 			block_id = stone;
 		else
 			place = false;
@@ -80,7 +83,44 @@ void world_gen_normal(world_t *world) {
 	}
 
 	// TODO place plants and trees using poisson distro
+	tree_generator_t *oak_gen = tree_oak_generator();
+	noise2_t *tree_noise = noise2_create(world->block_size, world->size_pow2, 3, 0.3);
+	array_t *tree_samples = poisson2_samples(world->block_size, world->block_size, 24, 30);
+	array_t *grass_samples = poisson2_samples(world->block_size, world->block_size, 2, 30);
+	v2i sample;
 
+	poisson2_prune_worst(tree_samples, tree_noise, 0.3);
+	poisson2_prune_linear(tree_samples, tree_noise, 0.5);
+	poisson2_prune_linear(grass_samples, tree_noise, 0.7);
+
+	for (int i = 0; i < grass_samples->size; ++i) {
+		sample = *(v2i *)grass_samples->items[i];
+
+		loc = (v3i){sample.x, sample.y, world->block_size - 1};
+
+		while (world_get(world, loc) == NULL && loc.z >= 0)
+			--loc.z;
+
+		++loc.z;
+		world_set_no_update(world, loc, ((rand() % 2) ? tall_grass : flower));
+
+		world_get(world, loc)->state.plant.growth = 3.1;
+	}
+
+	for (int i = 0; i < tree_samples->size; ++i) {
+		sample = *(v2i *)tree_samples->items[i];
+
+		loc = (v3i){sample.x, sample.y, world->block_size - 1};
+
+		while (world_get(world, loc) == NULL && loc.z > 0)
+			--loc.z;
+
+		tree_generate(world, oak_gen, loc);
+	}
+
+	noise2_destroy(tree_noise);
+	array_destroy(tree_samples, true);
+	array_destroy(grass_samples, true);
 	noise3_destroy(noise);
 }
 
