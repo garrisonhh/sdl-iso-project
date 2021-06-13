@@ -41,6 +41,13 @@ void mytimer_tick(mytimer_t *timer) {
 	timer->tracked_idx %= timer->len_tracked;
 }
 
+void mytimer_pop_tick(mytimer_t *timer) {
+	if (!timer->tracked_idx)
+		timer->tracked_idx = timer->len_tracked;
+
+	--timer->tracked_idx;
+}
+
 double mytimer_get_tick(mytimer_t *timer) {
 	return timer->tick;
 }
