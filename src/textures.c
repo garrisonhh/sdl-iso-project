@@ -49,6 +49,7 @@ texture_t *DARK_VOXEL_TEXTURE = NULL;
 
 SDL_Surface *load_sdl_surface(const char *path);
 SDL_Surface *load_voxel_surface(const char *path);
+SDL_Surface *load_connected_surface(const char *path);
 
 texture_t *load_texture(tex_load_context_t *context, json_object *texture_obj) {
 	const char *tag, *tex_type_name;
@@ -78,10 +79,17 @@ texture_t *load_texture(tex_load_context_t *context, json_object *texture_obj) {
 
 	pre_texture = malloc(sizeof(pre_texture_t));
 
-	if (texture->type == TEX_VOXEL)
+	switch (texture->type) {
+	case TEX_VOXEL:
 		pre_texture->surface = load_voxel_surface(path);
-	else
+		break;
+	case TEX_CONNECTED:
+		pre_texture->surface = load_connected_surface(path);
+		break;
+	default:
 		pre_texture->surface = load_sdl_surface(path);
+		break;
+	}
 
 	pre_texture->rect = (SDL_Rect){
 		context->pos.x,
@@ -311,7 +319,7 @@ SDL_Texture *load_sdl_texture(const char *asset_path) {
 	}
 
 	texture = SDL_CreateTextureFromSurface(RENDERER, surface);
-	
+
 	if (texture == NULL) {
 		printf("unable to create texture from %s:\n%s\n", path, SDL_GetError());
 		exit(1);
@@ -353,6 +361,15 @@ SDL_Surface *load_voxel_surface(const char *path) {
 	SDL_FreeSurface(image);
 
 	return voxel_surface;
+}
+
+SDL_Surface *load_connected_surface(const char *path) {
+	SDL_Surface *sheet = load_sdl_surface(path);
+	SDL_Surface *expanded = render_cached_connected_surface(sheet);
+
+	SDL_FreeSurface(sheet);
+
+	return expanded;
 }
 
 texture_t *texture_from_key(const char *key) {

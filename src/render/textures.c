@@ -78,10 +78,10 @@ void render_sprite_no_offset(sprite_t *sprite, v2i pos, v2i cell) {
 SDL_Surface *render_cached_voxel_surface(SDL_Surface *surfaces[3]) {
 	int i;
 	unsigned expose_mask;
-	SDL_Surface *voxel_surface;
+	SDL_Surface *expanded;
 	SDL_Rect dst_rect;
 
-	voxel_surface = SDL_CreateRGBSurfaceWithFormat(0, VOXEL_WIDTH * 7, VOXEL_HEIGHT, 32, RENDER_FORMAT);
+	expanded = SDL_CreateRGBSurfaceWithFormat(0, VOXEL_WIDTH * 7, VOXEL_HEIGHT, 32, RENDER_FORMAT);
 
 	// voxel shading, equivalent to applying (255, 255, 127) with alphas 31 and 63
 	// this should correspond to shading in flat artwork
@@ -94,30 +94,63 @@ SDL_Surface *render_cached_voxel_surface(SDL_Surface *surfaces[3]) {
 				dst_rect = VOXEL_TEX_RECTS[i];
 				dst_rect.x += VOXEL_WIDTH * (expose_mask - 1);
 
-				SDL_BlitSurface(surfaces[i], NULL, voxel_surface, &dst_rect);
+				SDL_BlitSurface(surfaces[i], NULL, expanded, &dst_rect);
 			}
 		}
 	}
 
-	return voxel_surface;
+	return expanded;
+}
+
+SDL_Surface *render_cached_connected_surface(SDL_Surface *sheet) {
+	const int variations = (1 << 6);
+
+	int i;
+	SDL_Surface *expanded;
+	SDL_Rect base_rect, src_rect, dst_rect;
+
+	expanded = SDL_CreateRGBSurfaceWithFormat(0, VOXEL_WIDTH * variations, VOXEL_HEIGHT,
+											  32, RENDER_FORMAT);
+
+	src_rect = (SDL_Rect){0, 0, VOXEL_WIDTH, VOXEL_HEIGHT};
+	dst_rect = src_rect;
+	base_rect = src_rect;
+
+	base_rect.x = src_rect.w * 6;
+
+	for (unsigned mask = 0; mask < variations; ++mask) {
+		src_rect.x = 0;
+
+		SDL_BlitSurface(sheet, &base_rect, expanded, &dst_rect);
+
+		for (i = 0; i < 6; ++i) {
+
+			if (BIT_GET(mask, i))
+				SDL_BlitSurface(sheet, &src_rect, expanded, &dst_rect);
+
+			src_rect.x += src_rect.w;
+		}
+
+		dst_rect.x += dst_rect.w;
+	}
+
+	return expanded;
 }
 
 SDL_Surface *render_voxel_outline_surface(SDL_Surface *outlines) {
+	const int variations = (1 << 6) - 1;
+
 	int i;
-	int variations = 1 << 6;
 	SDL_Surface *voxel_surface;
 	SDL_Rect src_rect, dst_rect;
 
 	src_rect = (SDL_Rect){0, 0, VOXEL_WIDTH + 2, VOXEL_HEIGHT + 2};
 	dst_rect = src_rect;
 
-	voxel_surface = SDL_CreateRGBSurfaceWithFormat(0,
-												   src_rect.w * variations,
-												   src_rect.h,
-												   32,
-												   RENDER_FORMAT);
+	voxel_surface = SDL_CreateRGBSurfaceWithFormat(0, src_rect.w * variations, src_rect.h,
+												   32, RENDER_FORMAT);
 
-	for (unsigned mask = 1; mask < variations; ++mask) {
+	for (unsigned mask = 1; mask <= variations; ++mask) {
 		src_rect.x = 0;
 
 		for (i = 0; i < 6; ++i) {
@@ -182,17 +215,9 @@ void render_connected_texture(texture_t *texture, v2i pos, unsigned connected_ma
 	dst_rect.x += pos.x;
 	dst_rect.y += pos.y;
 
-	src_rect.x += 6 * VOXEL_WIDTH;
+	src_rect.x = connected_mask * VOXEL_WIDTH;
 
 	SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
-
-	for (int i = 0; i < 6; ++i) {
-		if (BIT_GET(connected_mask, CONNECT_DRAW_ORDER[i])) {
-			src_rect.x = texture->atlas_rect.x + VOXEL_WIDTH * CONNECT_DRAW_ORDER[i];
-
-			SDL_RenderCopy(RENDERER, TEXTURE_ATLAS, &src_rect, &dst_rect);
-		}
-	}
 }
 
 void render_sheet_texture(texture_t *texture, v2i pos, v2i cell) {
