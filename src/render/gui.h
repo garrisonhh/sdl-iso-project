@@ -6,7 +6,7 @@
 typedef struct world_t world_t;
 
 struct gui_data_t {
-	double fps;
+	double fps, loop_fps, main_fps;
 	int packets;
 };
 typedef struct gui_data_t gui_data_t;

@@ -6,6 +6,7 @@
 #include "fonts.h"
 #include "textures.h"
 #include "../render.h"
+#include "../render/textures.h"
 #include "../camera.h"
 #include "../player.h"
 #include "../sprites.h"
@@ -60,6 +61,8 @@ void gui_tick() {
 	}
 
 	sprintf(DEBUG_LINES[line++], "rendering %i packets @ %3d FPS", GUI_DATA.packets, D_ROUND(GUI_DATA.fps));
+	sprintf(DEBUG_LINES[line++], "game loop thread %3d FPS", D_ROUND(GUI_DATA.loop_fps));
+	sprintf(DEBUG_LINES[line++], "main (render) thread %3d FPS", D_ROUND(GUI_DATA.main_fps));
 	sprintf(DEBUG_LINES[line++], "BUILD: %s", (DEBUG_EXEC ? "debug" : "release"));
 	v3d_sprint(DEBUG_LINES[line++], "POSITION", player_get_pos());
 	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);

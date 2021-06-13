@@ -38,10 +38,15 @@ int game_loop(void *arg) {
 	SDL_Event events[max_events];
 	render_info_t *next_render_info;
 	mytimer_t *timer = mytimer_create(60);
+	mytimer_t *debug_timer = mytimer_create(60);
 
 	while (!QUIT) {
 		// event handling
 		SDL_SemWait(EVENTS_PUMPED);
+
+		mytimer_pop_tick(debug_timer);
+		mytimer_tick(debug_timer);
+
 		num_events = SDL_PeepEvents(events, max_events, SDL_GETEVENT,
 									SDL_FIRSTEVENT, SDL_LASTEVENT);
 
@@ -97,6 +102,10 @@ int game_loop(void *arg) {
 		if (next_render_info->fg_packets != NULL)
 			num_packets += next_render_info->fg_packets->size;
 
+		mytimer_tick(debug_timer);
+
+		GUI_DATA.loop_fps = mytimer_get_fps(debug_timer);
+
 		// send render info to main thread
 		SDL_SemWait(MAIN_DONE);
 
@@ -148,6 +157,8 @@ void game_main() {
 		exit(1);
 	}
 
+	mytimer_t *main_timer = mytimer_create(60);
+
 	QUIT = false;
 
 	while (!QUIT) {
@@ -157,6 +168,10 @@ void game_main() {
 
 		// rendering
 		SDL_SemWait(GAME_LOOP_DONE);
+
+		mytimer_pop_tick(main_timer);
+		mytimer_tick(main_timer);
+
 		SDL_LockMutex(RENDER_INFO_LOCK);
 
 		if (RENDER_INFO == NULL)
@@ -173,6 +188,10 @@ void game_main() {
 
 		gui_render();
 		SDL_RenderPresent(RENDERER);
+
+		mytimer_tick(main_timer);
+		GUI_DATA.main_fps = mytimer_get_fps(main_timer);
+
 		SDL_SemPost(MAIN_DONE);
 	}
 
