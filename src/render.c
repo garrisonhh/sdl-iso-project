@@ -195,6 +195,21 @@ void render_info_voxel_raycast(array_t *packets, world_t *world, int max_z, int 
 	}
 }
 
+void render_trim_packets(array_t *packets) {
+	render_packet_t *packet;
+	v2i pos;
+
+	for (size_t i = 0; i < packets->size; ++i) {
+		packet = packets->items[i];
+		pos = packet->data.pos;
+
+		if (pos.x < -VOXEL_WIDTH || pos.x > SCREEN_WIDTH + VOXEL_WIDTH
+		 || pos.y < -VOXEL_HEIGHT || pos.y > SCREEN_HEIGHT + VOXEL_HEIGHT) {
+			 array_del(packets, i); // TODO SLOW AS FUCK
+		 }
+	}
+}
+
 render_info_t *render_gen_info(world_t *world) {
 	ray_t cam_ray;
 	render_info_t *info;
@@ -207,7 +222,7 @@ render_info_t *render_gen_info(world_t *world) {
 	info->cam_hit = raycast_voxels(world, cam_ray, NULL, NULL);
 	info->cam_viewport = camera.viewport;
 
-	// packets
+	// add packets
 	info->bg_packets = array_create(256);
 	info->fg_packets = (info->cam_hit ? array_create(256) : NULL);
 	info->z_split = (info->cam_hit ? (int)camera.pos.z : -1);
@@ -222,6 +237,12 @@ render_info_t *render_gen_info(world_t *world) {
 	} else {
 		render_info_voxel_raycast(info->bg_packets, world, -1, 0);
 	}
+
+	// trim packets
+	render_trim_packets(info->bg_packets);
+
+	if (info->cam_hit)
+		render_trim_packets(info->fg_packets);
 
 	// sort packets
 	array_qsort(info->bg_packets, render_packet_compare);

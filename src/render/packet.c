@@ -66,7 +66,6 @@ void render_from_packet(render_packet_t *packet) {
 							   packet->data.pos);
 			break;
 		case TEX_VOXEL:
-			SDL_SetRenderDrawColor(RENDERER, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF);
 			render_voxel_texture(packet->texture.texture,
 								 packet->data.pos,
 								 packet->texture.state.voxel_masks);
