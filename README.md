@@ -24,6 +24,8 @@ all dependencies can be found on the major package managers.
 1. download and install the dependencies
 2. make sure the library `include/` and `libs/` directories of all of the libraries are discoverable to gcc. I did this by dropping my include and libs folders into the mingw `include/` and `libs/` folders, and then setting the environment variables `C_INCLUDE_PATH` and `LIBRARY_PATH` to the mingw folder paths.
 
+(windows stuff has been hacked together, a more convenient windows build is on the way)
+
 ### build
 
 using bash or powershell, cd to wherever you would like to store the project folder and run the following:
