@@ -32,6 +32,81 @@ def construct_file_list(file_path):
         print(f"\"{file_path}\" is not an existing directory or file.")
         exit(0)
 
+def find_pattern(file_path, pattern):
+    for file_name in construct_file_list(file_path):
+        with open(file_name, "r") as f:
+            for line_num, line in enumerate(f.readlines()):
+                if re.search(pattern, line) != None:
+                    print(f"{file_name}:{line_num + 1}: \t{line.strip()}")
+
+def findname():
+    if len(sys.argv) != 4:
+        print("usage: findname [base path] [name]")
+        exit(0)
+
+    file_path, name = sys.argv[2:]
+
+    print(f"finding all occurrences of \"{name}\":")
+
+    find_pattern(file_path, r"\b" + re.escape(name) + r"\b")
+
+def findmatch():
+    if len(sys.argv) != 4:
+        print("usage: findmatch [base path] [regex]")
+        exit(0)
+
+    file_path, regex = sys.argv[2:]
+
+    print(f"finding all occurrences of /{regex}/:")
+
+    find_pattern(file_path, regex)
+
+def rename():
+    if len(sys.argv) != 5:
+        print("usage: rename [base path] [current name] [replacement name]")
+        exit(0)
+
+    file_path, cur_name, new_name = sys.argv[2:]
+
+    print(f"replacing all occurrences of \"{cur_name}\" with \"{new_name}\"")
+
+    pattern = r"\b" + re.escape(cur_name) + r"\b"
+
+    for file_name in construct_file_list(file_path):
+        text = ""
+
+        with open(file_name, "r") as f:
+            text = f.read()
+
+        with open(file_name, "w") as f:
+            f.write(re.sub(pattern, new_name, text))
+
+def replace():
+    if len(sys.argv) != 5:
+        print("usage: replace [base path] [regex] [replacement]")
+        exit(0)
+
+    file_path, regex, replacement = sys.argv[2:]
+
+    print(f"replacing all matches for /{regex}/ with \"{replacement}\"")
+
+    for file_name in construct_file_list(file_path):
+        text = ""
+
+        with open(file_name, "r") as f:
+            text = f.read()
+
+        with open(file_name, "w") as f:
+            for match in re.finditer(regex, text, re.MULTILINE):
+                this_replace = replacement
+
+                if len(match.groups()):
+                    this_replace = this_replace.format(*match.groups())
+
+                text = text.replace(match.group(0), this_replace)
+
+            f.write(text)
+
 def main():
     if len(sys.argv) < 2:
         print("use with an action as the first argument:")
@@ -43,72 +118,15 @@ def main():
 
     action = sys.argv[1]
 
-    if action == "rename":
-        if len(sys.argv) != 5:
-            print("usage: rename [base path] [current name] [replacement name]")
-            exit(0)
-
-        file_path, cur_name, new_name = sys.argv[2:]
-
-        print(f"replacing all occurrences of \"{cur_name}\" with \"{new_name}\":")
-
-        pattern = r"\b" + re.escape(cur_name) + r"\b"
-
-        for file_name in construct_file_list(file_path):
-            text = ""
-
-            with open(file_name, "r") as f:
-                text = f.read()
-
-            with open(file_name, "w") as f:
-                f.write(re.sub(pattern, new_name, text))
-    elif action == "findname":
-        if len(sys.argv) != 4:
-            print("usage: findname [base path] [name]")
-            exit(0)
-
-        file_path, name = sys.argv[2:]
-
-        print(f"finding all occurrences of \"{name}\":")
-
-        pattern = r"\b" + re.escape(name) + r"\b"
-
-        for file_name in construct_file_list(file_path):
-            with open(file_name, "r") as f:
-                for line_num, line in enumerate(f.readlines()):
-                    if re.search(pattern, line) != None:
-                        print(f"{file_name}:{line_num + 1}: \t{line.strip()}")
-    elif action == "replace":
-        if len(sys.argv) != 5:
-            print("usage: replace [base path] [regex] [replacement]")
-            exit(0)
-
-        file_path, regex, replacement = sys.argv[2:]
-
-        print(f"replacing all matches for r\"{regex}\" with \"{replacement}\":")
-
-        for file_name in construct_file_list(file_path):
-            text = ""
-
-            with open(file_name, "r") as f:
-                text = f.read()
-
-            with open(file_name, "w") as f:
-                f.write(re.sub(regex, replacement, text))
+    # dispatch
+    if action == "findname":
+        findname()
     elif action == "findmatch":
-        if len(sys.argv) != 4:
-            print("usage: findmatch [base path] [regex]")
-            exit(0)
-
-        file_path, regex = sys.argv[2:]
-
-        print(f"finding all occurrences of r\"{regex}\":")
-
-        for file_name in construct_file_list(file_path):
-            with open(file_name, "r") as f:
-                for line_num, line in enumerate(f.readlines()):
-                    if re.search(regex, line) != None:
-                        print(f"{file_name}:{line_num + 1}: \t{line.strip()}")
+        findmatch()
+    elif action == "rename":
+        rename()
+    elif action == "replace":
+        replace()
     else:
         print("unknown action, try again.")
 
