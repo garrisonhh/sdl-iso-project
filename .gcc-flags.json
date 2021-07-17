@@ -1,0 +1,7 @@
+{
+  "execPath": "gcc",
+  "gccDefaultCFlags": "-Wall -std=c99 -c",
+  "gccErrorLimit": -1,
+  "gccSuppressWarnings": true,
+  "gccIncludePaths" : "./external/,./external/ghh-lib/include/,./external/cglm/include/,./external/glad/include/"
+}
