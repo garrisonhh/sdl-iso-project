@@ -5,9 +5,14 @@ import os
 import re
 
 """
-this is a small utility for find/replace in the scope of a project. pretty sure
-like every modern IDE does this, but vim doesn't understand things outside the
-current buffer or whatever so here it is
+atom and vim (the two editors I use) both suck at project-level refactoring,
+so I made a script to quickly do it for me :)
+
+supports:
+- finding names
+- replacing names
+- finding regex matches
+- replacing regex matches with formatted replacements
 """
 
 def construct_file_list_r(base_path):
