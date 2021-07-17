@@ -1,5 +1,7 @@
 # unnamed project
 
+*check out the `stable` branch for a tested and working version!*
+
 a sandbox game inspired by dwarf fortress and gnomoria with a focus on RPG realism.
 
 ![screenshot](/assets/screenshots/game.png)
