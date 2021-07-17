@@ -202,7 +202,7 @@ void blocks_load() {
 	NUM_BLOCKS = array_size(block_objects);
 	BLOCKS = malloc(sizeof(block_t *) * NUM_BLOCKS);
 	BLOCK_COLL_DATA = malloc(sizeof(block_coll_data_t *) * NUM_BLOCKS);
-	BLOCK_MAP = hashmap_create(NUM_BLOCKS * 2, -1, false);
+	BLOCK_MAP = hashmap_create(NUM_BLOCKS * 2, -1, true);
 	BLOCK_NAMES = malloc(sizeof(const char *) * NUM_BLOCKS);
 
 	// load blocks
