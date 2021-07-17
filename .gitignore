@@ -1,10 +1,18 @@
+# random file types
+**.swp
+**.gch
+
+# generated build files
 build/obj
 build/*.make
 build/Makefile
-scripts
+
+# executables
 Iso
 Iso.exe
 iso
 iso.exe
-**.swp
-**.gch
+
+# valgrind
+callgrind**
+vg*
