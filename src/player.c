@@ -7,7 +7,7 @@
 #include "entity/human.h"
 #include "block/blocks.h"
 #include "lib/vector.h"
-#include "lib/utils.h"
+#include <ghh/utils.h>
 
 const double SIN_PI_6 = sin(M_PI / 6);
 
@@ -53,7 +53,7 @@ void player_tick() {
 		move = v3d_add(move, RIGHT);
 	}
 
-	if (!d_close(v3d_magnitude(move), 0)) {
+	if (!fequals(v3d_magnitude(move), 0)) {
 		move = camera_reverse_rotated_v3d(v3d_normalize(move));
 		move = v3d_scale(move, HUMAN_WALK_VELOCITY);
 	}

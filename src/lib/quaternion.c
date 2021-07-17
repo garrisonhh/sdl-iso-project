@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
+#include <ghh/utils.h>
 #include "quaternion.h"
-#include "utils.h"
 
 const v3d UNIT_I = {1.0, 0.0, 0.0};
 const v3d UNIT_J = {0.0, 1.0, 0.0};

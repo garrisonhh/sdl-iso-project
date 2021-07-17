@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include <time.h>
 #include <math.h>
+#include <ghh/utils.h>
+#include <ghh/array.h>
+#include <ghh/list.h>
 #include "world.h"
 #include "world/masks.h"
 #include "world/bucket.h"
@@ -13,9 +16,6 @@
 #include "procgen/noise.h"
 #include "player.h"
 #include "textures.h"
-#include "lib/utils.h"
-#include "lib/array.h"
-#include "lib/list.h"
 #include "pathing.h"
 
 chunk_t *chunk_create() {
@@ -79,14 +79,20 @@ world_t *world_create(int size_pow2, world_gen_type_e world_type) {
 }
 
 void world_destroy(world_t *world) {
-	list_node_t *node;
+	listiter_t *entities;
+	entity_t *entity;
 
 	for (size_t i = 0; i < world->num_chunks; ++i)
 		if (world->chunks[i] != NULL)
 			chunk_destroy(world->chunks[i]);
-	
-	LIST_FOREACH(node, world->entities)
-		entity_destroy(node->item);
+
+
+	entities = listiter_create(world->entities);
+
+	while (listiter_next(entities, (void **)&entity))
+		entity_destroy(entity);
+
+	free(entities);
 
 	array_destroy(world->mask_updates, true);
 	list_destroy(world->ticks, false);
@@ -161,7 +167,7 @@ void world_get_render_loc(world_t *world, v3i loc, block_t **block_result, list_
 
 void world_set_no_update(world_t *world, v3i loc, size_t block_id) {
 	unsigned chunk_index, block_index;
-	
+
 	if (!world_indices(world, loc, &chunk_index, &block_index))
 		return;
 
@@ -210,15 +216,17 @@ void world_spawn(world_t *world, entity_t *entity, v3d pos) {
 
 void world_tick(world_t *world, double time) {
 	size_t i;
-	entity_t *entity;
 	v3i last_loc, this_loc;
 	v3i *update;
-	list_node_t *node;
+	entity_t *entity;
+	block_t *block;
+	list_t *bucket;
+	listiter_t *entities, *ticks, *buckets;
 
 	// update entities and check for bucket swaps
-	LIST_FOREACH(node, world->entities) {
-		entity = node->item;
+	entities = listiter_create(world->entities);
 
+	while (listiter_next(entities, (void **)&entity)) {
 		last_loc = v3i_from_v3d(entity->data.ray.pos);
 		entity_tick(entity, world, time);
 		this_loc = v3i_from_v3d(entity->data.ray.pos);
@@ -229,18 +237,26 @@ void world_tick(world_t *world, double time) {
 		}
 	}
 
+	free(entities);
+
 	// update loops
-	for (i = 0; i < world->mask_updates->size; ++i) {
-		update = world->mask_updates->items[i];
+	for (i = 0; i < array_size(world->mask_updates); ++i) {
+		update = array_get(world->mask_updates, i);
 
 		world_update_masks(world, *update);
 	}
 
 	array_clear(world->mask_updates, true);
 
-	LIST_FOREACH(node, world->ticks)
-		block_tick(node->item, world, time);
+	ticks = listiter_create(world->ticks);
+	buckets = listiter_create(world->buckets);
 
-	LIST_FOREACH(node, world->buckets)
-		world_bucket_z_sort(node->item);
+	while (listiter_next(ticks, (void **)&block))
+		block_tick(block, world, time);
+
+	while (listiter_next(buckets, (void **)&bucket))
+		world_bucket_z_sort(bucket);
+
+	free(ticks);
+	free(buckets);
 }

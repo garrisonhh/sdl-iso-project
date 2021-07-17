@@ -3,13 +3,13 @@
 #include <SDL2/SDL_thread.h>
 #include <SDL2/SDL_mutex.h>
 #include <stdio.h>
+#include <ghh/gtimer.h>
 #include "game.h"
 #include "app.h"
 #include "render.h"
 #include "render/gui.h"
 #include "player.h"
 #include "camera.h"
-#include "lib/mytimer.h"
 
 SDL_mutex *RENDER_INFO_LOCK, *LAST_INFO_LOCK;
 SDL_sem *MAIN_DONE = NULL, *GAME_LOOP_DONE = NULL;
@@ -37,15 +37,15 @@ int game_loop(void *arg) {
 	int num_events = 0, max_events = 64;
 	SDL_Event events[max_events];
 	render_info_t *next_render_info;
-	mytimer_t *timer = mytimer_create(60);
-	mytimer_t *debug_timer = mytimer_create(60);
+	gtimer_t *timer = gtimer_create(60);
+	gtimer_t *debug_timer = gtimer_create(60);
 
 	while (!QUIT) {
 		// event handling
 		SDL_SemWait(EVENTS_PUMPED);
 
-		mytimer_pop_tick(debug_timer);
-		mytimer_tick(debug_timer);
+		gtimer_pop_tick(debug_timer);
+		gtimer_tick(debug_timer);
 
 		num_events = SDL_PeepEvents(events, max_events, SDL_GETEVENT,
 									SDL_FIRSTEVENT, SDL_LASTEVENT);
@@ -89,27 +89,27 @@ int game_loop(void *arg) {
 		}
 
 		// ticking
-		mytimer_tick(timer);
+		gtimer_tick(timer);
 		player_tick();
-		world_tick(world, mytimer_get_tick(timer));
+		world_tick(world, gtimer_get_tick(timer));
 
 		// update render info + gui
 		camera_set_pos(player_get_pos());
 		next_render_info = render_gen_info(world);
 
-		num_packets = next_render_info->bg_packets->size;
+		num_packets = array_size(next_render_info->bg_packets);
 
 		if (next_render_info->fg_packets != NULL)
-			num_packets += next_render_info->fg_packets->size;
+			num_packets += array_size(next_render_info->fg_packets);
 
-		mytimer_tick(debug_timer);
+		gtimer_tick(debug_timer);
 
-		GUI_DATA.loop_fps = mytimer_get_fps(debug_timer);
+		GUI_DATA.loop_fps = gtimer_get_fps(debug_timer);
 
 		// send render info to main thread
 		SDL_SemWait(MAIN_DONE);
 
-		GUI_DATA.fps = mytimer_get_fps(timer);
+		GUI_DATA.fps = gtimer_get_fps(timer);
 		GUI_DATA.packets = num_packets;
 		gui_tick();
 
@@ -140,7 +140,7 @@ int game_loop(void *arg) {
 	}
 
 	world_destroy(world);
-	mytimer_destroy(timer);
+	gtimer_destroy(timer);
 
 	return 0;
 }
@@ -157,7 +157,7 @@ void game_main() {
 		exit(1);
 	}
 
-	mytimer_t *main_timer = mytimer_create(60);
+	gtimer_t *main_timer = gtimer_create(60);
 
 	QUIT = false;
 
@@ -169,8 +169,8 @@ void game_main() {
 		// rendering
 		SDL_SemWait(GAME_LOOP_DONE);
 
-		mytimer_pop_tick(main_timer);
-		mytimer_tick(main_timer);
+		gtimer_pop_tick(main_timer);
+		gtimer_tick(main_timer);
 
 		SDL_LockMutex(RENDER_INFO_LOCK);
 
@@ -189,8 +189,8 @@ void game_main() {
 		gui_render();
 		SDL_RenderPresent(RENDERER);
 
-		mytimer_tick(main_timer);
-		GUI_DATA.main_fps = mytimer_get_fps(main_timer);
+		gtimer_tick(main_timer);
+		GUI_DATA.main_fps = gtimer_get_fps(main_timer);
 
 		SDL_SemPost(MAIN_DONE);
 	}

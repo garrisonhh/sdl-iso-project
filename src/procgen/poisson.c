@@ -1,8 +1,8 @@
 #include <stdio.h> // TODO remove
 #include <stdlib.h>
 #include <math.h>
+#include <ghh/utils.h>
 #include "poisson.h"
-#include "../lib/utils.h"
 
 struct poisson2_grid_t {
 	v2i **points;
@@ -20,7 +20,7 @@ typedef struct poisson2_sample_t poisson2_sample_t;
 
 void poisson2_grid_populate(poisson2_grid_t *grid, double r, int w, int h) {
 	grid->r = r;
-	grid->cell_side = grid->r / SQRT2;
+	grid->cell_side = grid->r / M_SQRT2;
 
 	grid->w = (int)((double)w / grid->cell_side) + 1;
 	grid->h = (int)((double)h / grid->cell_side) + 1;
@@ -78,7 +78,7 @@ array_t *poisson2_samples(int width, int height, double r, int k) {
 	poisson2_grid_place(&grid, pos);
 	array_push(active, pos);
 
-	while (active->size) {
+	while (array_size(active)) {
 		// pop last point
 		pos = array_pop(active);
 		placed = false;
@@ -93,7 +93,7 @@ array_t *poisson2_samples(int width, int height, double r, int k) {
 
 			other->x += cos(angle) * dist;
 			other->y += sin(angle) * dist;
-			
+
 			// if a sample can be placed, push it into active
 			if (poisson2_grid_place(&grid, other)) {
 				array_push(active, other);
@@ -124,23 +124,23 @@ array_t *poisson2_samples(int width, int height, double r, int k) {
 int poisson2_sample_compare(const void *a, const void *b) {
 	double v = ((**(poisson2_sample_t **)a).value - (**(poisson2_sample_t **)b).value);
 
-	if (d_close(v, 0))
+	if (fequals(v, 0))
 		return 0;
 	return (v > 0 ? 1 : -1);
 }
 
 void poisson2_prune_sort_samples(array_t *samples, noise2_t *noise, bool reverse) {
 	size_t i;
-	array_t *pruned = array_create(samples->size);
+	array_t *pruned = array_create(array_size(samples));
 	poisson2_sample_t *sample;
 
 	// create sample packets and sort them
-	for (i = 0; i < samples->size; ++i) {
+	for (i = 0; i < array_size(samples); ++i) {
 		sample = malloc(sizeof(poisson2_sample_t));
 
-		sample->pos = samples->items[i];
+		sample->pos = array_get(samples, i);
 		sample->value = noise2_at(noise, sample->pos->x, sample->pos->y);
-		
+
 		array_push(pruned, sample);
 	}
 
@@ -150,13 +150,13 @@ void poisson2_prune_sort_samples(array_t *samples, noise2_t *noise, bool reverse
 	array_clear(samples, false);
 
 	if (reverse) {
-		while (pruned->size) {
+		while (array_size(pruned)) {
 			sample = array_pop(pruned);
 			array_push(samples, sample->pos);
 		}
 	} else {
-		for (i = 0; i < pruned->size; ++i) {
-			sample = pruned->items[i];
+		for (i = 0; i < array_size(pruned); ++i) {
+			sample = array_get(pruned, i);
 			array_push(samples, sample->pos);
 		}
 	}
@@ -165,7 +165,7 @@ void poisson2_prune_sort_samples(array_t *samples, noise2_t *noise, bool reverse
 }
 
 void poisson2_prune_worst(array_t *samples, noise2_t *noise, double percentage) {
-	int n_remove = samples->size * percentage;
+	int n_remove = array_size(samples) * percentage;
 
 	poisson2_prune_sort_samples(samples, noise, true);
 
@@ -174,7 +174,7 @@ void poisson2_prune_worst(array_t *samples, noise2_t *noise, double percentage) 
 }
 
 void poisson2_prune_best(array_t *samples, noise2_t *noise, double percentage) {
-	int n_remove = samples->size * percentage;
+	int n_remove = array_size(samples) * percentage;
 
 	poisson2_prune_sort_samples(samples, noise, false);
 
@@ -186,7 +186,7 @@ void poisson2_prune_below(array_t *samples, noise2_t *noise, double value) {
 	v2i *pos;
 	poisson2_prune_sort_samples(samples, noise, true);
 
-	while (samples->size) {
+	while (array_size(samples)) {
 		pos = array_peek(samples);
 
 		if (noise2_at(noise, pos->x, pos->y) >= value)
@@ -200,7 +200,7 @@ void poisson2_prune_above(array_t *samples, noise2_t *noise, double value) {
 	v2i *pos;
 	poisson2_prune_sort_samples(samples, noise, false);
 
-	while (samples->size) {
+	while (array_size(samples)) {
 		pos = array_peek(samples);
 
 		if (noise2_at(noise, pos->x, pos->y) <= value)
@@ -211,13 +211,13 @@ void poisson2_prune_above(array_t *samples, noise2_t *noise, double value) {
 }
 
 void poisson2_prune_linear(array_t *samples, noise2_t *noise, double percentage) {
-	int n_remove = samples->size * percentage;
+	int n_remove = array_size(samples) * percentage;
 	int index;
 
 	poisson2_prune_sort_samples(samples, noise, false);
 
 	for (int i = 0; i < n_remove; ++i) {
-		index = randf() * randf() * samples->size;
+		index = randf() * randf() * array_size(samples);
 
 		array_del(samples, index);
 	}

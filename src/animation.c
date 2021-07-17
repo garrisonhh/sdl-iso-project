@@ -1,11 +1,12 @@
 #include "animation.h"
-#include "lib/utils.h"
+#include <ghh/utils.h>
 #include "entity/entity.h"
 #include "camera.h"
 
+// TODO coroutines for these
+
 void anim_human_body(entity_t *, animation_t *);
 void anim_human_hands(entity_t *, animation_t *);
-//void anim_human_tool(entity_t *, animation_t *);
 void anim_entity_update_directions(entity_t *);
 
 animation_t anim_empty_state() {
@@ -33,9 +34,6 @@ void anim_tick(entity_t *entity, sprite_t *sprite, animation_t *state, double ti
 	case SPRITE_HUMAN_HANDS:
 		anim_human_hands(entity, state);
 		break;
-	case SPRITE_HUMAN_TOOL:
-		//anim_human_tool(entity, state);
-		break;
 	}
 
 	if (sprite->anim_lengths[state->cell.y] > 1 && !state->done) {
@@ -58,13 +56,13 @@ void anim_tick(entity_t *entity, sprite_t *sprite, animation_t *state, double ti
 }
 
 bool anim_entity_walking(entity_t *entity) {
-	return entity->data.dir_z == DIR_LEVEL && !d_close(v3d_magnitude(entity->data.ray.dir), 0.0);
+	return entity->data.dir_z == DIR_LEVEL && !fequals(v3d_magnitude(entity->data.ray.dir), 0.0);
 }
 
 void anim_entity_update_directions(entity_t *entity) {
 	v3i facing;
 
-	if (!d_close(fabs(entity->data.ray.dir.x) + fabs(entity->data.ray.dir.y), 0)) {
+	if (!fequals(fabs(entity->data.ray.dir.x) + fabs(entity->data.ray.dir.y), 0)) {
 		entity->data.last_dir.x = entity->data.ray.dir.x - entity->data.ray.dir.y;
 		entity->data.last_dir.y = entity->data.ray.dir.x + entity->data.ray.dir.y;
 	}
@@ -159,60 +157,3 @@ void anim_human_hands(entity_t *entity, animation_t *state) {
 	if (state->cell.y != pose)
 		anim_state_set(state, pose);
 }
-
-/*
-void anim_human_tool(entity_t *entity, animation_t *state) {
-	int pose;
-
-	if (entity->human->using_tool) {
-		switch (entity->data.dir_xy) {
-		case DIR_FRONT:
-			pose = 4;
-			break;
-		case DIR_FRONT_RIGHT:
-			pose = 5;
-			break;
-		case DIR_RIGHT:
-			pose = 6;
-			break;
-		case DIR_BACK_RIGHT:
-			pose = 7;
-			break;
-		case DIR_BACK:
-			pose = 8;
-			break;
-		case DIR_BACK_LEFT:
-			pose = 9;
-			break;
-		case DIR_LEFT:
-			pose = 10;
-			break;
-		case DIR_FRONT_LEFT:
-			pose = 11;
-			break;
-		}
-	} else {
-		switch (entity->data.dir_xy) {
-		case DIR_FRONT:
-			pose = 0;
-			break;
-		case DIR_BACK:
-		case DIR_BACK_LEFT:
-		case DIR_BACK_RIGHT:
-			pose = 1;
-			break;
-		case DIR_RIGHT:
-		case DIR_FRONT_RIGHT:
-			pose = 2;
-			break;
-		case DIR_LEFT:
-		case DIR_FRONT_LEFT:
-			pose = 3;
-			break;
-		}
-	}
-
-	if (state->cell.y != pose)
-		anim_state_set(state, pose);
-}
-*/

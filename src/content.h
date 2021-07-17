@@ -3,7 +3,7 @@
 
 #include <json-c/json.h>
 #include <stdbool.h>
-#include "lib/array.h"
+#include <ghh/array.h>
 #include "lib/vector.h"
 #include "collision.h"
 

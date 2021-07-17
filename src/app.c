@@ -7,8 +7,8 @@
 #include "menu.h"
 #include "render.h"
 #include "render/fonts.h"
-#include "lib/array.h"
-#include "lib/utils.h"
+#include <ghh/array.h>
+#include <ghh/utils.h>
 
 enum menu_state_e {
 	MENU_MAIN,
@@ -132,7 +132,7 @@ void app_menu_init() {
 
 	pos.y += line_h;
 	menu_add_text_button(menu, "exit", pos, app_menu_exit);
-	
+
 	/*
 	 * new world
 	 */
@@ -228,7 +228,7 @@ void app_menu() {
 
 void app_testing() {
 	TESTING_QUIT = false;
-	
+
 	SDL_Event event;
 	v2i pos;
 
@@ -266,8 +266,8 @@ void app_testing() {
 
 	SDL_SetRenderDrawColor(RENDERER, 0xFF, 0xFF, 0xFF, 0xFF);
 
-	for (int i = 0; i < samples->size; ++i) {
-		pos = *(v2i *)samples->items[i];
+	for (int i = 0; i < array_size(samples); ++i) {
+		pos = *(v2i *)array_get(samples, i);
 
 		SDL_RenderDrawPoint(RENDERER, pos.x, pos.y);
 	}

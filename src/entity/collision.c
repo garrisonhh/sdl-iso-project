@@ -1,5 +1,5 @@
 #include "collision.h"
-#include "../lib/utils.h"
+#include <ghh/utils.h>
 #include "../block/blocks.h"
 
 array_t *entity_surrounding_block_colls(entity_t *entity, world_t *world) {
@@ -47,7 +47,7 @@ ray_t entity_collide_bbox(entity_t *entity, ray_t movement, bbox_t block_bbox) {
 	if (collision_axis >= 0) {
 		v3d_IDX(entity->data.ray.dir, collision_axis) = 0;
 
-		if (collision_axis == 2 && (movement.dir.z <= 0.0 || d_close(movement.dir.z, 0)))
+		if (collision_axis == 2 && (movement.dir.z <= 0.0 || fequals(movement.dir.z, 0)))
 			entity->data.on_ground = true;
 
 		movement.dir = resolved_dir;
@@ -70,8 +70,8 @@ void entity_move_and_collide(entity_t *entity, world_t *world, double time) {
 
 	entity->data.on_ground = false;
 
-	for (size_t i = 0; i < block_colls->size; i++) {
-		block_coll = (block_collidable_t *)block_colls->items[i];
+	for (size_t i = 0; i < array_size(block_colls); i++) {
+		block_coll = array_get(block_colls, i);
 
 		// add entity size to block bbox size
 		block_bbox = *block_coll->coll_data->bbox;

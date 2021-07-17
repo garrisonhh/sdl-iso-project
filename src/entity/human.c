@@ -1,6 +1,6 @@
+#include <ghh/utils.h>
 #include "human.h"
 #include "entity.h"
-#include "../lib/utils.h"
 
 human_t *human_create() {
 	v3d size = (v3d){0.7, 0.7, 1.0};

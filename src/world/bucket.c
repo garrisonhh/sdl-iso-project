@@ -29,14 +29,14 @@ void world_bucket_add(world_t *world, v3i loc, entity_t *entity) {
 		chunk->buckets[block_index] = list_create();
 		list_push(world->buckets, chunk->buckets[block_index]);
 	}
-	
+
 	list_push(chunk->buckets[block_index], entity);
 	chunk->num_entities++;
 }
 
 void world_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 	unsigned chunk_index, block_index;
-	
+
 	if (!world_indices(world, loc, &chunk_index, &block_index)) {
 		printf("removing from out of bounds entity bucket.\n");
 		exit(1);
@@ -46,8 +46,8 @@ void world_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 
 	list_remove(chunk->buckets[block_index], entity);
 	chunk->num_entities--;
-	
-	if (chunk->buckets[block_index]->size == 0) {
+
+	if (list_size(chunk->buckets[block_index]) == 0) {
 		list_remove(world->buckets, chunk->buckets[block_index]);
 		list_destroy(chunk->buckets[block_index], false);
 		chunk->buckets[block_index] = NULL;
@@ -57,14 +57,16 @@ void world_bucket_remove(world_t *world, v3i loc, entity_t *entity) {
 }
 
 void world_bucket_z_sort(list_t *bucket) {
-	if (bucket->size == 2) {
-		if (world_bucket_compare(&bucket->root->item, &bucket->tip->item) > 0)
+	size_t bucket_size = list_size(bucket);
+
+	if (bucket_size == 2) {
+		if (world_bucket_compare(list_get_root(bucket), list_get_tip(bucket)) > 0)
 			list_append(bucket, list_pop(bucket));
-	} else if (bucket->size > 2) {
-		int bucket_size = bucket->size, i = 0;
+	} else if (bucket_size > 2) {
+		int i = 0;
 		entity_t **entities = malloc(sizeof(entity_t *) * bucket_size);
 
-		while (bucket->size)
+		while (list_size(bucket))
 			entities[i++] = list_pop(bucket);
 
 		qsort(entities, bucket_size, sizeof(entity_t *), world_bucket_compare);

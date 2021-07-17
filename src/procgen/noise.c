@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <math.h>
+#include <ghh/utils.h>
 #include "noise.h"
-#include "../lib/utils.h"
 
 const v2d RANDOM_VECTORS2[4] = {
 	(v2d){ 1,  1},
@@ -80,12 +80,12 @@ double layer2_at(layer2_t *layer, v2d pos) {
 	pos = v2d_sub(pos, v2d_from_v2i(posi));
 
 	for (int i = 0; i <= 1; ++i) {
-		if (v2d_IDX(pos, i) < FLOAT_TOLERANCE && v2i_IDX(posi, i) > 0) {
+		if (v2d_IDX(pos, i) < EPSILON && v2i_IDX(posi, i) > 0) {
 			v2d_IDX(pos, i) = 1.0;
 			--v2i_IDX(posi, i);
 		}
 	}
-	
+
 	// posi now is top left corner; pos is now position relative to square
 
 	FOR_XY(offset.x, offset.y, 2, 2) {
@@ -130,12 +130,12 @@ double layer3_at(layer3_t *layer, v3d pos) {
 	pos = v3d_sub(pos, v3d_from_v3i(posi));
 
 	for (int i = 0; i < 3; ++i) {
-		if (v3d_IDX(pos, i) < FLOAT_TOLERANCE && v3i_IDX(posi, i) > 0) {
+		if (v3d_IDX(pos, i) < EPSILON && v3i_IDX(posi, i) > 0) {
 			v3d_IDX(pos, i) = 1.0;
 			--v3i_IDX(posi, i);
 		}
 	}
-	
+
 	// posi now is top left corner; pos is now position relative to square
 
 	FOR_XYZ(offset.x, offset.y, offset.z, 2, 2, 2) {

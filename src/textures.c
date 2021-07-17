@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <json-c/json.h>
+#include <ghh/hashmap.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,6 @@
 #include "meta.h"
 #include "render/textures.h"
 #include "lib/vector.h"
-#include "lib/hashmap.h"
 
 struct pre_texture_t {
 	SDL_Surface *surface;
@@ -118,11 +118,11 @@ texture_t *load_texture(tex_load_context_t *context, json_object *texture_obj) {
 	if (content_has_key(texture_obj, "connected-tags")) {
 		tag_arr = content_get_array(texture_obj, "connected-tags");
 
-		texture->num_tags = tag_arr->size;
+		texture->num_tags = array_size(tag_arr);
 		texture->tags = malloc(sizeof(size_t) * texture->num_tags);
 
 		for (size_t i = 0; i < texture->num_tags; ++i) {
-			tag = json_object_get_string(tag_arr->items[i]);
+			tag = json_object_get_string(array_get(tag_arr, i));
 
 			if (hashmap_get(context->tags_map, tag) == NULL) {
 				tag_id = malloc(sizeof(size_t));
@@ -158,7 +158,7 @@ void textures_context_populate(tex_load_context_t *context) {
 	};
 	texture_type_e *tex_type;
 
-	context->tex_type_map = hashmap_create(NUM_TEXTURE_TYPES * 2, HASH_STRING);
+	context->tex_type_map = hashmap_create(NUM_TEXTURE_TYPES * 2, -1, false);
 
 	for (int i = 0; i < NUM_TEXTURE_TYPES; ++i) {
 		tex_type = malloc(sizeof(texture_type_e));
@@ -166,7 +166,7 @@ void textures_context_populate(tex_load_context_t *context) {
 		hashmap_set(context->tex_type_map, tex_type_strings[i], tex_type);
 	}
 
-	context->tags_map = hashmap_create(4, HASH_STRING);
+	context->tags_map = hashmap_create(4, -1, true);
 }
 
 void textures_build_atlas(tex_load_context_t *context) {
@@ -176,8 +176,8 @@ void textures_build_atlas(tex_load_context_t *context) {
 	pre_texture_t *pre_texture;
 
 	// find atlas dimensions by adding all rect heights and finding max rect width
-	for (i = 0; i < context->pre_textures->size; ++i) {
-		pre_texture = context->pre_textures->items[i];
+	for (i = 0; i < array_size(context->pre_textures); ++i) {
+		pre_texture = array_get(context->pre_textures, i);
 
 		h += pre_texture->rect.h;
 
@@ -188,8 +188,8 @@ void textures_build_atlas(tex_load_context_t *context) {
 	// build atlas
 	atlas_surf = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, RENDER_FORMAT);
 
-	for (i = 0; i < context->pre_textures->size; ++i) {
-		pre_texture = context->pre_textures->items[i];
+	for (i = 0; i < array_size(context->pre_textures); ++i) {
+		pre_texture = array_get(context->pre_textures, i);
 
 		if (SDL_BlitSurface(pre_texture->surface, NULL, atlas_surf, &pre_texture->rect) < 0) {
 			printf("blit to atlas surf failed:\n%s\n", SDL_GetError());
@@ -236,9 +236,9 @@ void textures_load() {
 	texture_objects = content_get_array(file_obj, "textures");
 
 	// set up globals
-	NUM_TEXTURES = texture_objects->size;
+	NUM_TEXTURES = array_size(texture_objects);
 	TEXTURES = malloc(sizeof(texture_t *) * NUM_TEXTURES);
-	TEXTURE_MAP = hashmap_create(NUM_TEXTURES * 2, HASH_STRING);
+	TEXTURE_MAP = hashmap_create(NUM_TEXTURES * 2, -1, true);
 
 	// load textures
 	const char *name;
@@ -247,9 +247,9 @@ void textures_load() {
 	textures_load_outlines(&context);
 
 	for (int i = 0; i < NUM_TEXTURES; ++i) {
-		name = content_get_string(texture_objects->items[i], "name");
+		name = content_get_string(array_get(texture_objects, i), "name");
 
-		TEXTURES[i] = load_texture(&context, texture_objects->items[i]);
+		TEXTURES[i] = load_texture(&context, array_get(texture_objects, i));
 
 		// save to array and hashmap
 		texture_id = malloc(sizeof(size_t));

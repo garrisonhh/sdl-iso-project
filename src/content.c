@@ -2,10 +2,11 @@
 #include <json-c/json.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <ghh/array.h>
+#include <ghh/utils.h>
 #include "textures.h"
 #include "collision.h"
 #include "meta.h"
-#include "lib/array.h"
 #include "lib/vector.h"
 
 void content_asset_path(char *dest, const char *rel_path) {
@@ -27,15 +28,13 @@ json_object *content_load_file(const char *asset_path) {
 	content_asset_path(path, asset_path);
 	file_obj = json_object_from_file(path);
 
-	if (file_obj == NULL) {
-		printf("json file at \"%s\" could not be loaded.\n", path);
-		exit(1);
-	}
+	if (file_obj == NULL)
+		ERROR("json file at \"%s\" could not be loaded.\n", path);
 
 	return file_obj;
 }
 
-void content_close_file(json_object *file_obj) {	
+void content_close_file(json_object *file_obj) {
 	// this is an extremely mysterious function I do not understand
 	// wrapped it in content_close_file() for consistency and so I dont get confused in future
 	while (json_object_put(file_obj) != 1)
@@ -46,8 +45,6 @@ bool content_has_key(json_object *obj, const char *key) {
 	return json_object_object_get(obj, key) != NULL;
 }
 
-// the json-c "array_list" is basically the same thing as my implementation lol
-// this just steals the data `\("/)/`
 array_t *content_array_from_obj(json_object *obj) {
 	array_t *arr;
 	array_list *json_arr;
@@ -55,9 +52,14 @@ array_t *content_array_from_obj(json_object *obj) {
 	json_arr = json_object_get_array(obj);
 	arr = array_create(json_arr->length);
 
+	/*
 	memcpy(arr->items, json_arr->array, sizeof(void *) * json_arr->length);
 
 	arr->size = json_arr->length;
+	*/
+
+	for (size_t i = 0; i < json_arr->length; ++i)
+		array_push(arr, json_arr->array[i]);
 
 	return arr;
 }
@@ -65,14 +67,12 @@ array_t *content_array_from_obj(json_object *obj) {
 v2i content_v2i_from_obj(json_object *obj) {
 	array_t *arr = content_array_from_obj(obj);
 
-	if (arr->size != 2) {
-		printf("v2i could not be retrieved from json array with invalid length.\n");
-		exit(1);
-	}
+	if (array_size(arr) != 2)
+		ERROR0("v2i could not be retrieved from json array with invalid length.\n");
 
 	v2i v = {
-		json_object_get_int(arr->items[0]),
-		json_object_get_int(arr->items[1])
+		json_object_get_int(array_get(arr, 0)),
+		json_object_get_int(array_get(arr, 1))
 	};
 
 	array_destroy(arr, false);
@@ -83,15 +83,13 @@ v2i content_v2i_from_obj(json_object *obj) {
 v3d content_v3d_from_obj(json_object *obj) {
 	array_t *arr = content_array_from_obj(obj);
 
-	if (arr->size != 3) {
-		printf("v3d could not be retrieved from json array with invalid length.\n");
-		exit(1);
-	}
+	if (array_size(arr) != 3)
+		ERROR0("v3d could not be retrieved from json array with invalid length.\n");
 
 	v3d v;
 
-	for (int i = 0; i < 3; ++i)
-		v3d_IDX(v, i) = json_object_get_double(arr->items[i]);
+	for (size_t i = 0; i < 3; ++i)
+		v3d_IDX(v, i) = json_object_get_double(array_get(arr, i));
 
 	array_destroy(arr, false);
 
@@ -101,14 +99,12 @@ v3d content_v3d_from_obj(json_object *obj) {
 bbox_t content_bbox_from_obj(json_object *obj) {
 	array_t *arr = content_array_from_obj(obj);
 
-	if (arr->size != 2) {
-		printf("bbox could not be retrieved from json array with invalid length.\n");
-		exit(1);
-	}
+	if (array_size(arr) != 2)
+		ERROR0("bbox could not be retrieved from json array with invalid length.\n");
 
 	bbox_t bbox = {
-		content_v3d_from_obj((json_object *)arr->items[0]),
-		content_v3d_from_obj((json_object *)arr->items[1]),
+		content_v3d_from_obj(array_get(arr, 0)),
+		content_v3d_from_obj(array_get(arr, 1))
 	};
 
 	array_destroy(arr, false);
@@ -119,10 +115,8 @@ bbox_t content_bbox_from_obj(json_object *obj) {
 json_object *content_get_obj(json_object *obj, const char *key) {
 	json_object *retrieved = json_object_object_get(obj, key);
 
-	if (retrieved == NULL) {
-		printf("key \"%s\" could not be retrieved from a json object.\n", key);
-		exit(1);
-	}
+	if (retrieved == NULL)
+		ERROR("key \"%s\" could not be retrieved from a json object.\n", key);
 
 	return retrieved;
 }

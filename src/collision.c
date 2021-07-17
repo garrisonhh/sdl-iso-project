@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include "collision.h"
 #include "lib/vector.h"
-#include "lib/utils.h"
+#include <ghh/utils.h>
 
 bool collides(double a, double b, double x) {
 	return (a < x) && (x < b);
@@ -12,7 +12,7 @@ bool collides(double a, double b, double x) {
 bool collide1d(double start_a, double len_a, double start_b, double len_b) {
 	return collides(start_b, start_b + len_b, start_a)
 		|| collides(start_b, start_b + len_b, start_a + len_a)
-		|| (d_close(start_a, start_b) && d_close(len_a, len_b));
+		|| (fequals(start_a, start_b) && fequals(len_a, len_b));
 }
 
 bool bbox_bbox_collide(bbox_t a, bbox_t b) {
@@ -34,7 +34,7 @@ bool inside_bbox(bbox_t box, v3d point) {
 		dim_point = v3d_IDX(point, i);
 
 		if (!(collides(dim_start, dim_end, dim_point)
-		   || d_close(dim_start, dim_point) || d_close(dim_end, dim_point)))
+		   || fequals(dim_start, dim_point) || fequals(dim_end, dim_point)))
 			return false;
 	}
 
@@ -71,14 +71,14 @@ int ray_intersects_bbox(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_
 	bool collide;
 
 	for (i = 2; i >= 0; i--) {
-		// find near plane of face on this axis 
+		// find near plane of face on this axis
 		plane_vel = v3d_IDX(ray.dir, i);
 		plane = v3d_IDX(box.pos, i);
-	
+
 		if (v3d_IDX(ray.dir, i) < 0)
 			plane += v3d_IDX(box.size, i);
 
-		if (!d_close(plane_vel, 0)) {
+		if (!fequals(plane_vel, 0)) {
 			// ray is not parallel, safe to find line-box intersection
 			collide = true;
 			for (j = 0; j < 3; j++) {
@@ -94,14 +94,14 @@ int ray_intersects_bbox(ray_t ray, bbox_t box, v3d *intersection, v3d *resolved_
 				dim_len = v3d_IDX(box.size, j);
 
 				if ((dim_start <= axis_res && axis_res <= dim_start + dim_len)
-				 || d_close(dim_start, axis_res) || d_close(dim_start + dim_len, axis_res)) {
+				 || fequals(dim_start, axis_res) || fequals(dim_start + dim_len, axis_res)) {
 					v3d_IDX(isect, j) = axis_res;
 				} else {
 					collide = false;
 					break;
 				}
 			}
-			
+
 			if (collide) {
 				v3d_IDX(isect, i) = plane;
 
@@ -162,7 +162,7 @@ bool ray_intersects_plane(ray_t ray, ray_t plane, v3d *intersection, v3d *resolv
 	rotated.dir.z = zp * cos_zpy + ray.dir.y * sin_zpy;
 
 	// check for collision (whether rotated ray points into negative z)
-	if ((z_sum = rotated.pos.z + rotated.dir.z) >= 0 || d_close(z_sum, 0.0)) {
+	if ((z_sum = rotated.pos.z + rotated.dir.z) >= 0 || fequals(z_sum, 0.0)) {
 		if (behind != NULL)
 			*behind = false;
 
@@ -173,7 +173,7 @@ bool ray_intersects_plane(ray_t ray, ray_t plane, v3d *intersection, v3d *resolv
 
 		double t_intersect = rotated.pos.z / rotated.dir.z;
 
-		if (t_intersect >= 1 || d_close(t_intersect, 1.0)) // collision outside of ray bounds
+		if (t_intersect >= 1 || fequals(t_intersect, 1.0)) // collision outside of ray bounds
 			return false;
 
 		// find and put values in pointers if requested
@@ -190,7 +190,7 @@ bool ray_intersects_plane(ray_t ray, ray_t plane, v3d *intersection, v3d *resolv
 
 // does not restrict to ray bounds
 bool line_intersects_sphere(ray_t ray, sphere_t sphere, v3d *intersection) {
-	if (d_close(v3d_magnitude(ray.dir), 0.0)) {
+	if (fequals(v3d_magnitude(ray.dir), 0.0)) {
 		printf("attempted ray sphere intersection with ray of 0 magnitude.\n");
 		exit(1);
 	}
@@ -217,7 +217,7 @@ bool line_intersects_sphere(ray_t ray, sphere_t sphere, v3d *intersection) {
 
 		t1 = b2a_term + sqrt_term;
 		t2 = b2a_term - sqrt_term;
-		
+
 		*intersection = v3d_add(ray.pos, v3d_scale(ray.dir, MIN(t1, t2)));
 	}
 
@@ -239,4 +239,3 @@ bool ray_intersects_sphere(ray_t ray, sphere_t sphere, v3d *intersection) {
 
 	return false;
 }
-

@@ -11,7 +11,7 @@
 #include "../player.h"
 #include "../sprites.h"
 #include "../world.h"
-#include "../lib/utils.h"
+#include <ghh/utils.h>
 
 const int GUI_WIDTH = SCREEN_WIDTH >> 2;
 const int GUI_HEIGHT = SCREEN_HEIGHT >> 2;
@@ -60,9 +60,9 @@ void gui_tick() {
 		UPDATE_STATIC = true;
 	}
 
-	sprintf(DEBUG_LINES[line++], "rendering %i packets @ %3d FPS", GUI_DATA.packets, D_ROUND(GUI_DATA.fps));
-	sprintf(DEBUG_LINES[line++], "game loop thread %3d FPS", D_ROUND(GUI_DATA.loop_fps));
-	sprintf(DEBUG_LINES[line++], "main (render) thread %3d FPS", D_ROUND(GUI_DATA.main_fps));
+	sprintf(DEBUG_LINES[line++], "rendering %i packets @ %3d FPS", GUI_DATA.packets, (int)fround(GUI_DATA.fps));
+	sprintf(DEBUG_LINES[line++], "game loop thread %3d FPS", (int)fround(GUI_DATA.loop_fps));
+	sprintf(DEBUG_LINES[line++], "main (render) thread %3d FPS", (int)fround(GUI_DATA.main_fps));
 	sprintf(DEBUG_LINES[line++], "BUILD: %s", (DEBUG_EXEC ? "debug" : "release"));
 	v3d_sprint(DEBUG_LINES[line++], "POSITION", player_get_pos());
 	sprintf(DEBUG_LINES[line++], "ROTATION: %i", camera.rotation);
@@ -76,8 +76,8 @@ void gui_render() {
 		SDL_SetRenderDrawColor(RENDERER, 0x00, 0x00, 0x00, 0x00);
 		SDL_RenderClear(RENDERER);
 
-		render_sprite_no_offset(COMPASS, COMPASS_POS, COMPASS_CELL); 
-		
+		render_sprite_no_offset(COMPASS, COMPASS_POS, COMPASS_CELL);
+
 		SDL_SetRenderTarget(RENDERER, NULL);
 		UPDATE_STATIC = false;
 	}

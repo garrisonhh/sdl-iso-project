@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <ghh/list.h>
+#include <ghh/heap.h>
+#include <ghh/utils.h>
+#include <ghh/hashmap.h>
 #include "pathing.h"
 #include "lib/vector.h"
-#include "lib/hashmap.h"
-#include "lib/list.h"
-#include "lib/heap.h"
 #include "world.h"
 #include "block/block.h"
-#include "lib/utils.h"
 
 path_node_t *path_node_create(v3i pos) {
 	path_node_t *node = malloc(sizeof(path_node_t));
@@ -26,16 +26,16 @@ void path_node_destroy(path_node_t *node) {
 }
 
 void path_network_destroy(path_network_t *network) {
-	hashmap_iter_t *iter = hashmap_iter_create(network->nodes);
+	hmapiter_t *iter = hmapiter_create(network->nodes);
 	path_node_t *node;
 
-	while ((node = hashmap_iter_next(iter)) != NULL)
+	while (hmapiter_next(iter, NULL, (void **)&node))
 		path_node_destroy(node);
 
 	free(iter);
 
 	hashmap_destroy(network->nodes, false);
-	hashmap_destroy(network->ids, false); 
+	hashmap_destroy(network->ids, false);
 	array_destroy(network->id_targets, true);
 
 	free(network);
@@ -58,7 +58,7 @@ double path_heuristic(v3i a, v3i b) {
 	dmax = MAX(delta.x, delta.y);
 	dmin = MIN(delta.x, delta.y);
 
-	return (dmin * SQRT2) + (dmax - dmin) + (delta.z << 1);
+	return (dmin * M_SQRT2) + (dmax - dmin) + (delta.z << 1);
 }
 
 void path_node_connect(path_node_t *a, path_node_t *b) {
@@ -84,13 +84,13 @@ void path_node_connect(path_node_t *a, path_node_t *b) {
 
 bool path_block_empty(world_t *world, v3i loc) {
 	block_t *block = world_get(world, loc);
-	
+
 	return block == NULL || block->coll_data->coll_type == BLOCK_COLL_NONE;
 }
 
 bool path_block_solid(world_t *world, v3i loc) {
 	block_t *block = world_get(world, loc);
-	
+
 	return block != NULL && block->coll_data->coll_type == BLOCK_COLL_DEFAULT_BOX;
 }
 
@@ -103,24 +103,28 @@ bool path_block_pathable(world_t *world, v3i loc) {
 path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 	size_t i;
 	list_t *active;
-	hashmap_iter_t *node_iter;
+	hmapiter_t *node_iter;
 	path_network_t *network;
 	path_node_t *node, *neighbor;
 	int id = 0;
 	int *id_val;
 
 	active = list_create();
-	node_iter = hashmap_iter_create(nodes);
+	node_iter = hmapiter_create(nodes);
 	neighbor = NULL;
 
 	network = malloc(sizeof(path_network_t));
-	network->nodes = hashmap_create(nodes->max_size, HASH_V3I);
-	network->ids = hashmap_create(nodes->max_size, HASH_V3I);
+	network->nodes = hashmap_create(hashmap_size(nodes) * 2, sizeof(v3i), true);
+	network->ids = hashmap_create(hashmap_size(nodes) * 2, sizeof(v3i), true);
 	network->id_targets = array_create(2);
 
-	while (nodes->size) {
-		hashmap_iter_reset(node_iter);
-		node = hashmap_iter_next(node_iter);
+	while (hashmap_size(nodes)) {
+		// reset node iter and get next node
+		// TODO hmapiter_reset
+		while (hmapiter_next(node_iter, NULL, NULL))
+			;
+
+		hmapiter_next(node_iter, NULL, (void **)&node);
 
 		// how to free this properly..?
 		id_val = malloc(sizeof(int));
@@ -145,11 +149,11 @@ path_network_t *path_network_from_nodes(hashmap_t *nodes) {
 
 		list_push(active, node);
 
-		while (active->size) {
+		while (list_size(active)) {
 			node = list_pop(active);
 
-			for (i = 0; i < node->connects->size; ++i) {
-				neighbor = ((path_connect_t *)node->connects->items[i])->node;
+			for (i = 0; i < array_size(node->connects); ++i) {
+				neighbor = ((path_connect_t *)array_get(node->connects, i))->node;
 
 				if (hashmap_get(nodes, &neighbor->pos) != NULL) {
 					hashmap_remove(nodes, &neighbor->pos);
@@ -177,7 +181,7 @@ path_network_t *path_generate_world_network(world_t *world) {
 	v3i pos, offset, nbor_pos, other1, other2;
 	int i, temp;
 
-	nodes = hashmap_create(world->block_size * world->block_size * 2, HASH_V3I);
+	nodes = hashmap_create(world->block_size * world->block_size * 2, sizeof(v3i), true);
 
 	FOR_CUBE(pos.x, pos.y, pos.z, 0, world->block_size) {
 		if (path_block_pathable(world, pos)) {
@@ -220,13 +224,13 @@ path_network_t *path_generate_world_network(world_t *world) {
 						other2.x = pos.x;
 						other2.y = nbor_pos.y;
 						other2.z = other1.z;
-						
+
 						if (path_block_empty(world, other1) && path_block_empty(world, other2))
 							path_node_connect(current, neighbor);
 
 					}
 				}
-				
+
 				SWAP(offset.x, offset.y, temp);
 				offset.y = -offset.y;
 			}
@@ -256,7 +260,7 @@ path_asnode_t *path_asnode_create(v3i pos, path_asnode_t *prev, v3i goal_pos) {
 	asnode->h = path_heuristic(pos, goal_pos);
 	asnode->f = asnode->g + asnode->h;
 	asnode->set = PATH_ASTAR_OPEN;
-	
+
 	return asnode;
 }
 
@@ -295,13 +299,13 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 		++estimated_heap_depth;
 
 	openset = heap_create(estimated_heap_depth, path_compare_asnodes);
-	navigated = hashmap_create(estimated_nodes, HASH_V3I);
+	navigated = hashmap_create(estimated_nodes, sizeof(v3i), false);
 
 	current = path_asnode_create(start_pos, NULL, goal_pos);
 	heap_insert(openset, current);
 	hashmap_set(navigated, &current->pos, current);
 
-	while (openset->size > 0) {
+	while (heap_size(openset) > 0) {
 		current = heap_pop(openset);
 
 		// goal found, reconstruct path and return
@@ -326,8 +330,8 @@ list_t *path_find(path_network_t *network, v3i start_pos, v3i goal_pos) {
 		cur_node = hashmap_get(network->nodes, &current->pos);
 
 		// check node neighbors
-		for (i = 0; i < cur_node->connects->size; ++i) {
-			nbor_node = ((path_connect_t *)cur_node->connects->items[i])->node;
+		for (i = 0; i < array_size(cur_node->connects); ++i) {
+			nbor_node = ((path_connect_t *)array_get(cur_node->connects, i))->node;
 			neighbor = hashmap_get(navigated, &nbor_node->pos);
 
 			if (neighbor == NULL) {

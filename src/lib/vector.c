@@ -1,8 +1,9 @@
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <ghh/utils.h>
 #include "vector.h"
-#include "utils.h"
 
 #define DECL_V2_BASIC(fn_name, fn_type, oper) \
 	fn_type fn_name(fn_type a, fn_type b) {\
@@ -105,7 +106,7 @@ v3i polarity_of_v3d(v3d v) {
 	v3i polarity;
 
 	for (int i = 0; i < 3; i++) {
-		if (d_close(v3d_IDX(v, i), 0))
+		if (fequals(v3d_IDX(v, i), 0))
 			v3i_IDX(polarity, i) = 0;
 		else
 			v3i_IDX(polarity, i) = (v3d_IDX(v, i) > 0 ? 1 : -1);
@@ -179,7 +180,7 @@ int v3d_compare(v3d a, v3d b) {
 	double v;
 
 	for (int i = 2; i >= 0; --i)
-		if (abs((v = v3d_IDX(a, i) - v3d_IDX(b, i))) > FLOAT_TOLERANCE)
+		if (abs((v = v3d_IDX(a, i) - v3d_IDX(b, i))) > EPSILON)
 			return (v > 0 ? 1 : -1);
 
 	return 0;

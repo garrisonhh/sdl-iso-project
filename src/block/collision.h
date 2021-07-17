@@ -3,7 +3,7 @@
 
 #include "../collision.h"
 #include "../lib/vector.h"
-#include "../lib/array.h"
+#include <ghh/array.h>
 
 enum block_coll_e {
 	BLOCK_COLL_NONE,		// block does not collide

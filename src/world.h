@@ -7,9 +7,9 @@
 #include "entity/entity.h"
 #include "block/block.h"
 #include "lib/vector.h"
-#include "lib/array.h"
-#include "lib/list.h"
-#include "lib/hashmap.h"
+#include <ghh/array.h>
+#include <ghh/list.h>
+#include <ghh/hashmap.h>
 #include "pathing.h"
 
 #define CHUNK_SIZE 4096 // 0x000 -> 0xFFF

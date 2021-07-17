@@ -1,10 +1,10 @@
 #include <stdlib.h>
+#include <ghh/utils.h>
 #include "gen_tree.h"
 #include "../world.h"
 #include "../collision.h"
 #include "../block/blocks.h"
 #include "../lib/quaternion.h"
-#include "../lib/utils.h"
 
 // TODO tree turtle is a hilarious idea for an animal in the game
 struct tree_turtle_t {

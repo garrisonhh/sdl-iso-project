@@ -4,7 +4,7 @@
 #include "content.h"
 #include "textures.h"
 #include "meta.h"
-#include "lib/hashmap.h"
+#include <ghh/hashmap.h>
 
 sprite_t **SPRITES = NULL;
 size_t NUM_SPRITES;
@@ -45,11 +45,11 @@ sprite_t *load_sprite(const char *path, json_object *obj, hashmap_t *sprite_type
 	if (content_has_key(obj, "anim-lengths")) {
 		array_t *anim_len_objs = content_get_array(obj, "anim-lengths");
 
-		sprite->num_anims = anim_len_objs->size;
-		sprite->anim_lengths = malloc(sizeof(int) * anim_len_objs->size);
+		sprite->num_anims = array_size(anim_len_objs);
+		sprite->anim_lengths = malloc(sizeof(int) * sprite->num_anims);
 
-		for (size_t i = 0; i < anim_len_objs->size; ++i)
-			sprite->anim_lengths[i] = json_object_get_int(anim_len_objs->items[i]);
+		for (size_t i = 0; i < sprite->num_anims; ++i)
+			sprite->anim_lengths[i] = json_object_get_int(array_get(anim_len_objs, i));
 
 		array_destroy(anim_len_objs, false);
 	} else {
@@ -72,7 +72,7 @@ void sprites_load() {
 		"human-tool",
 	};
 	sprite_type_e *sprite_type;
-	hashmap_t *sprite_type_map = hashmap_create(NUM_SPRITE_TYPES * 2, HASH_STRING);
+	hashmap_t *sprite_type_map = hashmap_create(NUM_SPRITE_TYPES * 2, -1, false);
 
 	for (i = 0; i < NUM_SPRITE_TYPES; ++i) {
 		sprite_type = malloc(sizeof(sprite_type_e));
@@ -88,18 +88,18 @@ void sprites_load() {
 	sprite_objects = content_get_array(file_obj, "sprites");
 
 	// set up globals
-	NUM_SPRITES = sprite_objects->size;
+	NUM_SPRITES = array_size(sprite_objects);
 	SPRITES = malloc(sizeof(sprite_t *) * NUM_SPRITES);
-	SPRITE_MAP = hashmap_create(NUM_SPRITES * 2, HASH_STRING);
+	SPRITE_MAP = hashmap_create(NUM_SPRITES * 2, -1, true);
 
 	// load sprites
 	json_object *sprite_obj;
 	const char *name;
 	char path[PATH_LEN];
 	size_t *sprite_id;
-	
+
 	for (i = 0; i < NUM_SPRITES; ++i) {
-		sprite_obj = sprite_objects->items[i];
+		sprite_obj = array_get(sprite_objects, i);
 
 		// name + path
 		name = content_get_string(sprite_obj, "name");

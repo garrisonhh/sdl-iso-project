@@ -1,9 +1,9 @@
 #ifndef POISSON_H
 #define POISSON_H
 
+#include <ghh/array.h>
 #include "noise.h"
 #include "../lib/vector.h"
-#include "../lib/array.h"
 
 // return array of malloc'd v2i *
 array_t *poisson2_samples(int width, int height, double radius, int samples_per_pt);

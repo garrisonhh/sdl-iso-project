@@ -3,7 +3,7 @@
 
 #include "../entity/entity.h"
 #include "../lib/vector.h"
-#include "../lib/list.h"
+#include <ghh/list.h>
 
 typedef struct world_t world_t;
 void world_bucket_add(world_t *world, v3i loc, entity_t *entity);

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ghh/array.h>
 #include "menu.h"
 #include "render.h"
 #include "render/fonts.h"
@@ -90,8 +91,8 @@ void menu_click(menu_t *screen, v2i pos) {
 	SDL_Point point = {pos.x, pos.y};
 	menu_element_t *element;
 
-	for (size_t i = 0; i < screen->elements->size; ++i) {
-		element = screen->elements->items[i];
+	for (size_t i = 0; i < array_size(screen->elements); ++i) {
+		element = array_get(screen->elements, i);
 
 		if (element->data.type == ELEM_BUTTON && SDL_PointInRect(&point, &element->data.rect)) {
 			element->button.func();
@@ -107,8 +108,8 @@ void menu_tick(menu_t *screen) {
 	mouse_state = SDL_GetMouseState(&screen->mouse_pt.x, &screen->mouse_pt.y);
 	screen->mouse_held = mouse_state & SDL_BUTTON(SDL_BUTTON_LEFT);
 
-	for (size_t i = 0; i < screen->elements->size; ++i) {
-		element = screen->elements->items[i];
+	for (size_t i = 0; i < array_size(screen->elements); ++i) {
+		element = array_get(screen->elements, i);
 
 		if (element->data.type == ELEM_DYN_TEXT) {
 			if (element->dyn_text.cur_text == NULL
@@ -124,8 +125,8 @@ void menu_tick(menu_t *screen) {
 void menu_render(menu_t *screen) {
 	menu_element_t *element;
 
-	for (size_t i = 0; i < screen->elements->size; ++i) {
-		element = screen->elements->items[i];
+	for (size_t i = 0; i < array_size(screen->elements); ++i) {
+		element = array_get(screen->elements, i);
 
 		// button highlighting
 		if (element->data.type == ELEM_BUTTON) {

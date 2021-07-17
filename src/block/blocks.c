@@ -2,12 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ghh/hashmap.h>
 #include "blocks.h"
 #include "plant.h"
 #include "../meta.h"
 #include "../content.h"
 #include "../textures.h"
-#include "../lib/hashmap.h"
 
 /*
  * this is similar but not identical to textures.c; textures can be reused
@@ -35,10 +35,10 @@ hashmap_t *blocks_load_plants(array_t *plant_objects) {
 	plant_t *plant;
 	const char *name;
 
-	plant_models = hashmap_create(4, HASH_STRING);
+	plant_models = hashmap_create(0, -1, true);
 
-	for (size_t i = 0; i < plant_objects->size; ++i) {
-		plant_obj = plant_objects->items[i];
+	for (size_t i = 0; i < array_size(plant_objects); ++i) {
+		plant_obj = array_get(plant_objects, i);
 		plant = malloc(sizeof(plant_t));
 
 		name = content_get_string(plant_obj, "name");
@@ -55,9 +55,9 @@ hashmap_t *blocks_load_plants(array_t *plant_objects) {
 }
 
 void blocks_load_block(json_object *block_obj, size_t index,
-						  hashmap_t *coll_type_map,
-						  hashmap_t *block_type_map,
-						  hashmap_t **block_subtype_maps) {
+					   hashmap_t *coll_type_map,
+					   hashmap_t *block_type_map,
+					   hashmap_t **block_subtype_maps) {
 	block_t *block;
 	block_coll_e *coll_type;
 	block_coll_data_t *coll_data;
@@ -156,7 +156,7 @@ void blocks_load() {
 		"custom",
 	};
 	block_coll_e *coll_type;
-	hashmap_t *coll_type_map = hashmap_create(NUM_BLOCK_COLL_TYPES * 2, HASH_STRING);
+	hashmap_t *coll_type_map = hashmap_create(NUM_BLOCK_COLL_TYPES * 2, -1, false);
 
 	for (i = 0; i < NUM_BLOCK_COLL_TYPES; ++i) {
 		coll_type = malloc(sizeof(block_coll_e));
@@ -171,7 +171,7 @@ void blocks_load() {
 		"plant",
 	};
 	block_type_e *block_type;
-	hashmap_t *block_type_map = hashmap_create(NUM_BLOCK_TYPES * 2, HASH_STRING);
+	hashmap_t *block_type_map = hashmap_create(NUM_BLOCK_TYPES * 2, -1, false);
 
 	for (i = 0; i < NUM_BLOCK_TYPES; ++i) {
 		block_type = malloc(sizeof(block_coll_e));
@@ -199,15 +199,19 @@ void blocks_load() {
 	array_destroy(subtype_arr, false);
 
 	// set up globals
-	NUM_BLOCKS = block_objects->size;
+	NUM_BLOCKS = array_size(block_objects);
 	BLOCKS = malloc(sizeof(block_t *) * NUM_BLOCKS);
 	BLOCK_COLL_DATA = malloc(sizeof(block_coll_data_t *) * NUM_BLOCKS);
-	BLOCK_MAP = hashmap_create(NUM_BLOCKS * 2, HASH_STRING);
+	BLOCK_MAP = hashmap_create(NUM_BLOCKS * 2, -1, false);
 	BLOCK_NAMES = malloc(sizeof(const char *) * NUM_BLOCKS);
 
 	// load blocks
-	for (i = 0; i < block_objects->size; ++i)
-		blocks_load_block(block_objects->items[i], i, coll_type_map, block_type_map, block_subtype_maps);
+	for (i = 0; i < array_size(block_objects); ++i) {
+		blocks_load_block(
+			array_get(block_objects, i), i,
+			coll_type_map, block_type_map, block_subtype_maps
+		);
+	}
 
 	// clean up and exit
 	hashmap_destroy(block_subtype_maps[BLOCK_PLANT], true);

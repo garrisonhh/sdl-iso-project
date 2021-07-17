@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include "raycast.h"
-#include "lib/utils.h"
+#include <ghh/utils.h>
 
 // TODO skip over empty chunks
 bool raycast_voxels(world_t *world, ray_t ray, v3i *out_block, int *out_axis) {

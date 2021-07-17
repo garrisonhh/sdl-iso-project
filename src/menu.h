@@ -2,7 +2,7 @@
 #define MENU_H
 
 #include <SDL2/SDL.h>
-#include "lib/array.h"
+#include <ghh/array.h>
 #include "lib/vector.h"
 
 enum menu_element_type_e {
@@ -14,7 +14,7 @@ typedef enum menu_element_type_e menu_element_type_e;
 
 struct menu_element_data_t {
 	menu_element_type_e type;
-	
+
 	SDL_Texture *texture;
 	SDL_Rect rect;
 };

@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ghh/array.h>
+#include <ghh/string.h>
 #include "l_system.h"
-#include "../lib/array.h"
-#include "../lib/mystring.h"
 
 /*
  * stuff to potentially do
@@ -33,8 +33,8 @@ l_system_t *l_system_create(const char *axiom) {
 }
 
 void l_system_destroy(l_system_t *lsys) {
-	for (size_t i = 0; i < lsys->rules->size; ++i)
-		string_destroy(((l_rule_t *)lsys->rules->items[i])->symbol);
+	for (size_t i = 0; i < array_size(lsys->rules); ++i)
+		string_destroy(((l_rule_t *)array_get(lsys->rules, i))->symbol);
 
 	array_destroy(lsys->rules, true);
 	free(lsys);
@@ -62,14 +62,14 @@ const char *l_system_generate(l_system_t *lsys, int iterations) {
 		next_str = string_create(NULL);
 
 		j = 0;
-	
+
 		while (j < string_length(str)) {
 			rule_applied = false;
-	
-			for (k = 0; k < lsys->rules->size; ++k) {
-				rule = lsys->rules->items[k];
 
-				if (!strncmp(string_get(str) + j, string_get(rule->symbol), string_length(rule->symbol))) {
+			for (k = 0; k < array_size(lsys->rules); ++k) {
+				rule = array_get(lsys->rules, k);
+
+				if (!strncmp(string_raw(str) + j, string_raw(rule->symbol), string_length(rule->symbol))) {
 					string_append(next_str, rule->replacement);
 					j += string_length(rule->symbol);
 					rule_applied = true;
@@ -79,7 +79,7 @@ const char *l_system_generate(l_system_t *lsys, int iterations) {
 			}
 
 			if (!rule_applied) {
-				sprintf(c, "%c", string_index(str, j));
+				sprintf(c, "%c", string_raw(str)[j]);
 				string_append(next_str, c);
 				++j;
 			}
@@ -89,7 +89,7 @@ const char *l_system_generate(l_system_t *lsys, int iterations) {
 		str = next_str;
 	}
 
-	result = string_get_copy(str);
+	result = string_copy(str);
 
 	string_destroy(str);
 

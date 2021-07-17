@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include "camera.h"
 #include "lib/vector.h"
-#include "lib/utils.h"
+#include <ghh/utils.h>
 
 v3d CAMERA_BASE_VIEW_DIR;
 

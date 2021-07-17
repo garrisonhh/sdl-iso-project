@@ -2,16 +2,16 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <ghh/utils.h>
+#include <ghh/array.h>
+#include <ghh/hashmap.h>
+#include <ghh/list.h>
 #include "render.h"
 #include "render/gui.h"
 #include "world.h"
 #include "world/masks.h"
 #include "world/bucket.h"
 #include "lib/vector.h"
-#include "lib/utils.h"
-#include "lib/array.h"
-#include "lib/hashmap.h"
-#include "lib/list.h"
 #include "camera.h"
 #include "player.h"
 #include "textures.h"
@@ -63,12 +63,14 @@ void render_info_add_shadows(render_info_t *info, world_t *world) {
 	v3d shadow_pos;
 	v3i shadow_loc;
 	entity_t *entity;
-	list_node_t *node;
+	listiter_t *entities;
 	block_t *block;
 	render_packet_t *packet;
 
-	LIST_FOREACH(node, world->entities) {
-		entity = node->item;
+	entities = listiter_create(world->entities);
+
+	// TODO update list iterator to match hashmap iterator
+	while (listiter_next(entities, (void **)&entity)) {
 		shadow_pos = entity->data.ray.pos;
 		shadow_loc = v3i_from_v3d(shadow_pos);
 
@@ -91,6 +93,8 @@ void render_info_add_shadows(render_info_t *info, world_t *world) {
 		else
 			array_push(info->bg_packets, packet);
 	}
+
+	free(entities);
 }
 
 // TODO I think this is the sticking point, try optimizing render packet sorting so this
@@ -98,38 +102,44 @@ void render_info_add_shadows(render_info_t *info, world_t *world) {
 void render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 	double block_y;
 	block_t *block;
+	entity_t *entity;
 	list_t *bucket;
-	list_node_t *bucket_trav;
+	listiter_t *bucketiter;
 
 	world_get_render_loc(world, loc, &block, &bucket);
+	if (bucket != NULL)
+		bucketiter = listiter_create(bucket);
 
 	if (block != NULL) {
 		if (block->texture->transparent && bucket != NULL) { // draw block sorted between entities
 			block_y = -(((double)loc.x + 0.5) * camera.facing.x
 					  + ((double)loc.y + 0.5) * camera.facing.y);
-			bucket_trav = bucket->root;
 
-			while (bucket_trav != NULL && world_bucket_y(bucket_trav->item) < block_y) {
-				entity_add_render_info(packets, bucket_trav->item);
-				bucket_trav = bucket_trav->next;
+			if (bucket != NULL) {
+				while (listiter_next(bucketiter, (void **)&entity)
+					&& world_bucket_y(entity) < block_y) {
+					entity_add_render_info(packets, entity);
+				}
 			}
 
 			block_add_render_info(packets, block, loc);
 
-			while (bucket_trav != NULL) {
-				entity_add_render_info(packets, bucket_trav->item);
-				bucket_trav = bucket_trav->next;
+			if (bucket != NULL) {
+				while (listiter_next(bucketiter, (void **)&entity)
+					&& world_bucket_y(entity) < block_y) {
+					entity_add_render_info(packets, entity);
+				}
 			}
 		} else { // draw entities over block regardless
 			block_add_render_info(packets, block, loc);
 
 			if (bucket != NULL)
-				LIST_FOREACH(bucket_trav, bucket)
-					entity_add_render_info(packets, bucket_trav->item);
+				while (listiter_next(bucketiter, (void **)&entity))
+					entity_add_render_info(packets, entity);
 		}
 	} else if (bucket != NULL) {
-		LIST_FOREACH(bucket_trav, bucket)
-			entity_add_render_info(packets, bucket_trav->item);
+		while (listiter_next(bucketiter, (void **)&entity))
+			entity_add_render_info(packets, entity);
 	}
 }
 
@@ -199,8 +209,8 @@ void render_trim_packets(array_t *packets) {
 	render_packet_t *packet;
 	v2i pos;
 
-	for (size_t i = 0; i < packets->size; ++i) {
-		packet = packets->items[i];
+	for (size_t i = 0; i < array_size(packets); ++i) {
+		packet = array_get(packets, i);
 		pos = packet->data.pos;
 
 		if (pos.x < -VOXEL_WIDTH || pos.x > SCREEN_WIDTH + VOXEL_WIDTH
@@ -269,16 +279,16 @@ void render_from_info(render_info_t *info) {
 	SDL_SetRenderDrawColor(RENDERER, BG_GRAY, BG_GRAY, BG_GRAY, 0xFF); // BACKGROUND
 	SDL_RenderClear(RENDERER);
 
-	for (i = 0; i < info->bg_packets->size; ++i)
-		render_from_packet(info->bg_packets->items[i]);
+	for (i = 0; i < array_size(info->bg_packets); ++i)
+		render_from_packet(array_get(info->bg_packets, i));
 
 	if (info->cam_hit) {
 		SDL_SetRenderTarget(RENDERER, FOREGROUND);
 		SDL_SetRenderDrawColor(RENDERER, 0xFF, 0x00, 0x00, 0x00);
 		SDL_RenderClear(RENDERER);
 
-		for (i = 0; i < info->fg_packets->size; ++i)
-			render_from_packet(info->fg_packets->items[i]);
+		for (i = 0; i < array_size(info->fg_packets); ++i)
+			render_from_packet(array_get(info->fg_packets, i));
 
 		SDL_SetRenderDrawBlendMode(RENDERER, SDL_BLENDMODE_NONE);
 		SDL_SetRenderDrawColor(RENDERER, 0xFF, 0x00, 0x00, 0x00);

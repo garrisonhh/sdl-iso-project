@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include "../lib/list.h"
-#include "../lib/array.h"
+#include <ghh/list.h>
+#include <ghh/array.h>
 #include "../render.h"
 #include "../collision.h"
 #include "../sprites.h"

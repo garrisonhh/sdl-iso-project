@@ -1,12 +1,13 @@
 #include <stdlib.h>
 #include <time.h>
+#include <ghh/utils.h>
+#include <ghh/array.h>
 #include "generate.h"
 #include "gen_tree.h"
 #include "../world.h"
 #include "../block/blocks.h"
 #include "../procgen/noise.h"
 #include "../procgen/poisson.h"
-#include "../lib/utils.h"
 
 void world_gen_normal(world_t *);
 void world_gen_flat(world_t *);
@@ -93,8 +94,8 @@ void world_gen_normal(world_t *world) {
 	poisson2_prune_linear(tree_samples, tree_noise, 0.5);
 	poisson2_prune_linear(grass_samples, tree_noise, 0.7);
 
-	for (int i = 0; i < grass_samples->size; ++i) {
-		sample = *(v2i *)grass_samples->items[i];
+	for (int i = 0; i < array_size(grass_samples); ++i) {
+		sample = *(v2i *)array_get(grass_samples, i);
 
 		loc = (v3i){sample.x, sample.y, world->block_size - 1};
 
@@ -107,8 +108,8 @@ void world_gen_normal(world_t *world) {
 		world_get(world, loc)->state.plant.growth = 3.1;
 	}
 
-	for (int i = 0; i < tree_samples->size; ++i) {
-		sample = *(v2i *)tree_samples->items[i];
+	for (int i = 0; i < array_size(tree_samples); ++i) {
+		sample = *(v2i *)array_get(tree_samples, i);
 
 		loc = (v3i){sample.x, sample.y, world->block_size - 1};
 
@@ -137,8 +138,8 @@ void world_gen_flat(world_t *world) {
 	/*
 	tree_generator_t *oak_gen = tree_oak_generator();
 
-	for (loc.y = 16; loc.y < world->block_size; loc.y += 32) 
-		for (loc.x = 16; loc.x < world->block_size; loc.x += 32) 
+	for (loc.y = 16; loc.y < world->block_size; loc.y += 32)
+		for (loc.x = 16; loc.x < world->block_size; loc.x += 32)
 			tree_generate(world, oak_gen, loc);
 	*/
 }

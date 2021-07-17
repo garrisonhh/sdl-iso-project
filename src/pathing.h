@@ -3,9 +3,9 @@
 
 #include <stdbool.h>
 #include "lib/vector.h"
-#include "lib/hashmap.h"
-#include "lib/list.h"
-#include "lib/array.h"
+#include <ghh/hashmap.h>
+#include <ghh/list.h>
+#include <ghh/array.h>
 
 typedef struct world_t world_t;
 

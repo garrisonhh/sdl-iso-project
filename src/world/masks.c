@@ -1,7 +1,7 @@
 #include <stdbool.h>
+#include <ghh/utils.h>
 #include "masks.h"
 #include "../world.h"
-#include "../lib/utils.h"
 #include "../lib/vector.h"
 #include "../camera.h"
 

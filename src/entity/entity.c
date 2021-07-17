@@ -2,9 +2,9 @@
 #include <stdbool.h>
 #include "entity.h"
 #include "human.h"
+#include <ghh/utils.h>
 #include "../entity/collision.h"
 #include "../lib/vector.h"
-#include "../lib/utils.h"
 #include "../world.h"
 #include "../block/blocks.h"
 #include "../block/collision.h"
@@ -80,7 +80,7 @@ void entity_add_render_info(array_t *packets, entity_t *entity) {
 	screen_pos = project_v3d(pos);
 
 	render_packet_t *base_packet = render_sprite_packet_create(loc, screen_pos, entity->data.sprite);
-	
+
 	base_packet->sprite.anim = entity->data.anim_state;
 
 	switch (entity->data.type) {

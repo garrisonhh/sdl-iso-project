@@ -6,7 +6,7 @@
 #include "app.h"
 #include "game.h"
 #include "lib/vector.h"
-#include "lib/utils.h"
+#include <ghh/utils.h>
 #include "render.h"
 #include "render/gui.h"
 #include "render/fonts.h"
