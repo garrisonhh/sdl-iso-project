@@ -79,20 +79,14 @@ world_t *world_create(int size_pow2, world_gen_type_e world_type) {
 }
 
 void world_destroy(world_t *world) {
-	listiter_t *entities;
 	entity_t *entity;
 
 	for (size_t i = 0; i < world->num_chunks; ++i)
 		if (world->chunks[i] != NULL)
 			chunk_destroy(world->chunks[i]);
 
-
-	entities = listiter_create(world->entities);
-
-	while (listiter_next(entities, (void **)&entity))
+	LIST_FOREACH(entity, world->entities)
 		entity_destroy(entity);
-
-	free(entities);
 
 	array_destroy(world->mask_updates, true);
 	list_destroy(world->ticks, false);
@@ -105,27 +99,17 @@ void world_destroy(world_t *world) {
 	free(world);
 }
 
-// if you just want to access a block, use world_get() unless you're REALLY going for optimization,
-// it is very safe and doesn't have any hidden gotchas
-bool world_indices(world_t *world, v3i loc, unsigned *chunk_result, unsigned *block_result) {
-	unsigned chunk_index = 0, block_index = 0;
-	int dim, i;
+// if you just want to access a block, use world_get() unless you're REALLY going for optimization
+bool world_indices(world_t *world, v3i loc, unsigned *out_chunk, unsigned *out_block) {
+	*out_chunk = *out_block = 0;
 
-	for (i = 0; i < 3; i++) {
-		chunk_index <<= world->size_pow2;
-		block_index <<= 4;
+	for (int i = 0; i < 3; i++) {
+		*out_chunk <<= world->size_pow2;
+		*out_block <<= 4;
 
-		dim = v3i_IDX(loc, i);
-
-		if (dim < 0 || dim >= world->block_size)
-			return false;
-
-		chunk_index |= (dim >> 4) & world->chunk_mask;
-		block_index |= dim & 0xF;
+		*out_chunk |= (v3i_IDX(loc, i) >> 4) & world->chunk_mask;
+		*out_block |= v3i_IDX(loc, i) & 0xF;
 	}
-
-	*chunk_result = chunk_index;
-	*block_result = block_index;
 
 	return true;
 }
@@ -190,9 +174,8 @@ void world_set_no_update(world_t *world, v3i loc, size_t block_id) {
 	chunk->blocks[block_index] = block;
 
 	// TODO scalable solution; this checks tickability
-	if (block->type == BLOCK_PLANT) {
+	if (block->type == BLOCK_PLANT)
 		list_append(world->ticks, block);
-	}
 }
 
 void world_set(world_t *world, v3i loc, size_t block_id) {
@@ -221,12 +204,9 @@ void world_tick(world_t *world, double time) {
 	entity_t *entity;
 	block_t *block;
 	list_t *bucket;
-	listiter_t *entities, *ticks, *buckets;
 
 	// update entities and check for bucket swaps
-	entities = listiter_create(world->entities);
-
-	while (listiter_next(entities, (void **)&entity)) {
+	LIST_FOREACH(entity, world->entities) {
 		last_loc = v3i_from_v3d(entity->data.ray.pos);
 		entity_tick(entity, world, time);
 		this_loc = v3i_from_v3d(entity->data.ray.pos);
@@ -237,8 +217,6 @@ void world_tick(world_t *world, double time) {
 		}
 	}
 
-	free(entities);
-
 	// update loops
 	for (i = 0; i < array_size(world->mask_updates); ++i) {
 		update = array_get(world->mask_updates, i);
@@ -248,15 +226,9 @@ void world_tick(world_t *world, double time) {
 
 	array_clear(world->mask_updates, true);
 
-	ticks = listiter_create(world->ticks);
-	buckets = listiter_create(world->buckets);
-
-	while (listiter_next(ticks, (void **)&block))
+	LIST_FOREACH(block, world->ticks)
 		block_tick(block, world, time);
 
-	while (listiter_next(buckets, (void **)&bucket))
+	LIST_FOREACH(bucket, world->buckets)
 		world_bucket_z_sort(bucket);
-
-	free(ticks);
-	free(buckets);
 }

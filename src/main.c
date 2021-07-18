@@ -26,8 +26,6 @@ SDL_Window *WINDOW = NULL;
 void init(void);
 void quit_all(void);
 
-#include <ghh/list.h>
-#include <ghh/hashmap.h>
 int MAIN(int argc, char **argv) {
 	init();
 
