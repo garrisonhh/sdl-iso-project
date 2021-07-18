@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ghh/utils.h>
 #include "app.h"
 #include "game.h"
 #include "lib/vector.h"
-#include <ghh/utils.h>
 #include "render.h"
 #include "render/gui.h"
 #include "render/fonts.h"
@@ -26,6 +26,8 @@ SDL_Window *WINDOW = NULL;
 void init(void);
 void quit_all(void);
 
+#include <ghh/list.h>
+#include <ghh/hashmap.h>
 int MAIN(int argc, char **argv) {
 	init();
 

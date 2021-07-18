@@ -63,14 +63,11 @@ void render_info_add_shadows(render_info_t *info, world_t *world) {
 	v3d shadow_pos;
 	v3i shadow_loc;
 	entity_t *entity;
-	listiter_t *entities;
 	block_t *block;
 	render_packet_t *packet;
 
-	entities = listiter_create(world->entities);
-
 	// TODO update list iterator to match hashmap iterator
-	while (listiter_next(entities, (void **)&entity)) {
+	LIST_FOREACH(entity, world->entities) {
 		shadow_pos = entity->data.ray.pos;
 		shadow_loc = v3i_from_v3d(shadow_pos);
 
@@ -93,8 +90,6 @@ void render_info_add_shadows(render_info_t *info, world_t *world) {
 		else
 			array_push(info->bg_packets, packet);
 	}
-
-	free(entities);
 }
 
 // TODO I think this is the sticking point, try optimizing render packet sorting so this
@@ -107,6 +102,7 @@ void render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 	listiter_t *bucketiter;
 
 	world_get_render_loc(world, loc, &block, &bucket);
+
 	if (bucket != NULL)
 		bucketiter = listiter_create(bucket);
 
@@ -115,21 +111,15 @@ void render_info_add_packets_at(array_t *packets, world_t *world, v3i loc) {
 			block_y = -(((double)loc.x + 0.5) * camera.facing.x
 					  + ((double)loc.y + 0.5) * camera.facing.y);
 
-			if (bucket != NULL) {
-				while (listiter_next(bucketiter, (void **)&entity)
-					&& world_bucket_y(entity) < block_y) {
-					entity_add_render_info(packets, entity);
-				}
+			while (listiter_next(bucketiter, (void **)&entity)
+				&& world_bucket_y(entity) < block_y) {
+				entity_add_render_info(packets, entity);
 			}
 
 			block_add_render_info(packets, block, loc);
 
-			if (bucket != NULL) {
-				while (listiter_next(bucketiter, (void **)&entity)
-					&& world_bucket_y(entity) < block_y) {
-					entity_add_render_info(packets, entity);
-				}
-			}
+			while (listiter_next(bucketiter, (void **)&entity))
+				entity_add_render_info(packets, entity);
 		} else { // draw entities over block regardless
 			block_add_render_info(packets, block, loc);
 
