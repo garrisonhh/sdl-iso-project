@@ -4,23 +4,20 @@
 #include <stdbool.h>
 #include "lib/vector.h"
 
-struct bbox_t {
+typedef struct bbox {
 	v3d pos;
 	v3d size;
-};
-typedef struct bbox_t bbox_t;
+} bbox_t;
 
-struct ray_t {
+typedef struct ray {
 	v3d pos;
 	v3d dir;
-};
-typedef struct ray_t ray_t;
+} ray_t;
 
-struct sphere_t {
+typedef struct sphere {
 	v3d pos;
 	double radius;
-};
-typedef struct sphere_t sphere_t;
+} sphere_t;
 
 bool inside_bbox(bbox_t, v3d);
 

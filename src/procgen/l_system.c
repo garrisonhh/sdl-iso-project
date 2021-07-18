@@ -12,13 +12,12 @@
  * - contextual (? forget name) rules
  */
 
-struct l_rule_t {
+typedef struct l_rule {
 	string_t *symbol;
 	const char *replacement;
-};
-typedef struct l_rule_t l_rule_t;
+} l_rule_t;
 
-struct l_system_t {
+struct l_system {
 	const char *axiom;
 	array_t *rules;
 };

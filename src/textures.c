@@ -12,19 +12,17 @@
 #include "render/textures.h"
 #include "lib/vector.h"
 
-struct pre_texture_t {
+typedef struct preexture {
 	SDL_Surface *surface;
 	SDL_Rect rect;
-};
-typedef struct pre_texture_t pre_texture_t;
+} pre_texture_t;
 
-struct tex_load_context_t {
+typedef struct tex_load_context {
 	array_t *pre_textures;
 	v2i pos; // location for next surface
 
 	hashmap_t *tex_type_map, *tags_map;
-};
-typedef struct tex_load_context_t tex_load_context_t;
+} tex_load_context_t;
 
 const SDL_Rect VOXEL_TOP_RECT = {
 	0,

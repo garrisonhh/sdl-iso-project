@@ -10,10 +10,9 @@
 #define HUMAN_JUMP_VELOCITY 7.5
 
 /*
-struct tool_t {
+typedef struct tool {
 	sprite_t *sprites[2];
-};
-typedef struct tool_t tool_t;
+} tool_t;
 */
 
 human_t *human_create(void);

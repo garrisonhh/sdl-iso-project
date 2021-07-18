@@ -37,13 +37,6 @@ def construct_file_list(file_path):
         print(f"\"{file_path}\" is not an existing directory or file.")
         exit(0)
 
-def find_pattern(file_path, pattern):
-    for file_name in construct_file_list(file_path):
-        with open(file_name, "r") as f:
-            for line_num, line in enumerate(f.readlines()):
-                if re.search(pattern, line) != None:
-                    print(f"{file_name}:{line_num + 1}: \t{line.strip()}")
-
 def findname():
     if len(sys.argv) != 4:
         print("usage: findname [base path] [name]")
@@ -53,7 +46,13 @@ def findname():
 
     print(f"finding all occurrences of \"{name}\":")
 
-    find_pattern(file_path, r"\b" + re.escape(name) + r"\b")
+    pattern = r"\b" + re.escape(name) + r"\b"
+
+    for file_name in construct_file_list(file_path):
+        with open(file_name, "r") as f:
+            for line_num, line in enumerate(f.readlines()):
+                if re.search(pattern, line) != None:
+                    print(f"{file_name}:{line_num + 1}: \t{line.strip()}")
 
 def findmatch():
     if len(sys.argv) != 4:
@@ -64,7 +63,13 @@ def findmatch():
 
     print(f"finding all occurrences of /{regex}/:")
 
-    find_pattern(file_path, regex)
+    for file_name in construct_file_list(file_path):
+        with open(file_name, "r") as f:
+            for match in re.finditer(regex, f.read(), re.MULTILINE):
+                print(f"--- {file_name} ---\n{match.group(0)}\n")
+
+                for i, group in enumerate(match.groups()):
+                    print(f"capture {i}: \"{group}\"")
 
 def rename():
     if len(sys.argv) != 5:

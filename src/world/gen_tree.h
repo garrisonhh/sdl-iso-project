@@ -4,8 +4,8 @@
 #include "../procgen/l_system.h"
 #include "../lib/vector.h"
 
-typedef struct world_t world_t;
-typedef struct tree_generator_t tree_generator_t;
+typedef struct world world_t;
+typedef struct tree_generator tree_generator_t;
 
 tree_generator_t *tree_oak_generator();
 

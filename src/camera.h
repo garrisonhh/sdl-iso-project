@@ -6,7 +6,7 @@
 #include "render.h"
 #include "render/primitives.h"
 
-struct camera_t {
+typedef struct camera {
 	// position
 	v3d pos; // position in world
 	v2i center; // projected position relative to (0, 0, 0) 
@@ -22,8 +22,7 @@ struct camera_t {
 	v3i facing;
 	v3d view_dir;
 	v3i world_limits, render_center, render_limits;
-};
-typedef struct camera_t camera_t;
+} camera_t;
 
 extern camera_t camera;
 

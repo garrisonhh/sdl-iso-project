@@ -8,7 +8,7 @@
 #define ANIMATION_FPS 12.0
 
 typedef union entity_t entity_t;
-typedef struct animation_t animation_t;
+typedef struct animation animation_t;
 
 enum dir_xy_e {
 	DIR_FRONT,
@@ -30,12 +30,11 @@ enum dir_z_e {
 };
 typedef enum dir_z_e dir_z_e;
 
-struct animation_t {
+typedef struct animation {
 	v2i cell;
 	double state;
 	bool done;
-};
-typedef struct animation_t animation_t;
+} animation_t;
 
 animation_t anim_empty_state(void);
 

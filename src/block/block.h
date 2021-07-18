@@ -7,7 +7,7 @@
 #include "../lib/vector.h"
 #include "../textures.h"
 
-typedef struct world_t world_t;
+typedef struct world world_t;
 
 enum block_type_e {
 	BLOCK_STATELESS,
@@ -17,13 +17,12 @@ enum block_type_e {
 };
 typedef enum block_type_e block_type_e;
 
-struct block_state_t {
+typedef struct block_state {
 	int ticks: 1;
 	plant_t plant;
-};
-typedef struct block_state_t block_state_t;
+} block_state_t;
 
-struct block_t {
+typedef struct block {
 	size_t id;
 
 	texture_t *texture;
@@ -36,8 +35,7 @@ struct block_t {
 
 	block_type_e type;
 	block_state_t state;
-};
-typedef struct block_t block_t;
+} block_t;
 
 block_t *block_create(size_t);
 void block_destroy(block_t *);

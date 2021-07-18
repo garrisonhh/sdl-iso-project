@@ -9,12 +9,11 @@
 #include "../textures.h"
 #include "../lib/vector.h"
 
-struct font_t {
+typedef struct font {
 	SDL_Texture *sheet;
 	v2i char_size, sheet_size;
 	int scale, margin;
-};
-typedef struct font_t font_t;
+} font_t;
 
 font_t FONTS[NUM_FONTS];
 

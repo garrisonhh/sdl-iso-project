@@ -12,33 +12,29 @@ enum menu_element_type_e {
 };
 typedef enum menu_element_type_e menu_element_type_e;
 
-struct menu_element_data_t {
+typedef struct menu_element_data {
 	menu_element_type_e type;
 
 	SDL_Texture *texture;
 	SDL_Rect rect;
-};
-typedef struct menu_element_data_t menu_element_data_t;
+} menu_element_data_t;
 
-struct menu_label_t {
+typedef struct menu_label {
 	menu_element_data_t _data;
-};
-typedef struct menu_label_t menu_label_t;
+} menu_label_t;
 
-struct menu_button_t {
+typedef struct menu_button {
 	menu_element_data_t _data;
 
 	void (*func)(void);
-};
-typedef struct menu_button_t menu_button_t;
+} menu_button_t;
 
-struct menu_dynamic_text_t {
+typedef struct menu_dynamicext {
 	menu_element_data_t _data;
 
 	char **text;
 	char *cur_text;
-};
-typedef struct menu_dynamic_text_t menu_dynamic_text_t;
+} menu_dynamic_text_t;
 
 union menu_element_t {
 	menu_element_data_t data;
@@ -48,12 +44,11 @@ union menu_element_t {
 };
 typedef union menu_element_t menu_element_t;
 
-struct menu_t {
+typedef struct menu {
 	SDL_Point mouse_pt;
 	bool mouse_held;
 	array_t *elements;
-};
-typedef struct menu_t menu_t;
+} menu_t;
 
 menu_t *menu_create();
 void menu_destroy(menu_t *);

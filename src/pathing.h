@@ -7,29 +7,26 @@
 #include <ghh/list.h>
 #include <ghh/array.h>
 
-typedef struct world_t world_t;
+typedef struct world world_t;
 
 // path network types
-struct path_node_t {
+typedef struct path_node {
 	v3i pos;
 	array_t *connects;
-};
-typedef struct path_node_t path_node_t;
+} path_node_t;
 
-struct path_connect_t {
+typedef struct path_connect {
 	double weight;
-	struct path_node_t *node;
-};
-typedef struct path_connect_t path_connect_t;
+	struct path_node *node;
+} path_connect_t;
 
-struct path_network_t {
+typedef struct path_network {
 	// nodes is {v3i : path_node_t *}
 	// ids is {v3i : group id}
 	hashmap_t *nodes, *ids;
 	// the integers ids points to
 	array_t *id_targets;
-};
-typedef struct path_network_t path_network_t;
+} path_network_t;
 
 // astar types
 enum path_astar_set_e {
@@ -38,12 +35,11 @@ enum path_astar_set_e {
 };
 typedef enum path_astar_set_e path_astar_set_e;
 
-struct path_asnode_t {
+typedef struct path_asnode {
 	double g, h, f;
 	v3i pos, prev;
 	path_astar_set_e set;
-};
-typedef struct path_asnode_t path_asnode_t;
+} path_asnode_t;
 
 bool path_block_pathable(world_t *, v3i);
 path_network_t *path_generate_world_network(world_t *);

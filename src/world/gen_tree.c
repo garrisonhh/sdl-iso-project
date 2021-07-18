@@ -7,20 +7,18 @@
 #include "../lib/quaternion.h"
 
 // TODO tree turtle is a hilarious idea for an animal in the game
-struct tree_turtle_t {
+typedef struct treeurtle {
 	ray_t ray;
 	double radius;
-};
-typedef struct tree_turtle_t tree_turtle_t;
+} tree_turtle_t;
 
-struct tree_turtle_ctx_t {
+typedef struct treeurtle_ctx {
 	array_t *stack;
 	tree_turtle_t turtle;
 	double angle;
-};
-typedef struct tree_turtle_ctx_t tree_turtle_ctx_t;
+} tree_turtle_ctx_t;
 
-struct tree_generator_t {
+struct tree_generator {
 	l_system_t *lsys;
 	int iterations;
 	double branch_length, branch_radius;

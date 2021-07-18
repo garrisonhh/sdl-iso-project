@@ -15,14 +15,13 @@ enum render_packet_e {
 };
 typedef enum render_packet_e render_packet_e;
 
-struct render_packet_data_t {
+typedef struct render_packet_data {
 	render_packet_e type;
 	v2i pos; // on screen
 	v3i loc; // in world (for sorting)
-};
-typedef struct render_packet_data_t render_packet_data_t;
+} render_packet_data_t;
 
-struct texture_packet_t {
+typedef struct texture_packet {
 	render_packet_data_t _data;
 
 	texture_t *texture;
@@ -31,23 +30,20 @@ struct texture_packet_t {
 		voxel_masks_t voxel_masks;
 		unsigned connected_mask: 6;
 	} state;
-};
-typedef struct texture_packet_t texture_packet_t;
+} texture_packet_t;
 
-struct sprite_packet_t {
+typedef struct sprite_packet {
 	render_packet_data_t _data;
 
 	sprite_t *sprite;
 	animation_t anim;
-};
-typedef struct sprite_packet_t sprite_packet_t;
+} sprite_packet_t;
 
-struct shadow_packet_t {
+typedef struct shadow_packet {
 	render_packet_data_t _data;
 
 	int radius;
-};
-typedef struct shadow_packet_t shadow_packet_t;
+} shadow_packet_t;
 
 union render_packet_t {
 	render_packet_data_t data;

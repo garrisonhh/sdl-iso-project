@@ -100,16 +100,25 @@ void world_destroy(world_t *world) {
 }
 
 // if you just want to access a block, use world_get() unless you're REALLY going for optimization
-bool world_indices(world_t *world, v3i loc, unsigned *out_chunk, unsigned *out_block) {
-	*out_chunk = *out_block = 0;
+bool world_indices(world_t *world, v3i loc, unsigned *chunk_result, unsigned *block_result) {
+	unsigned chunk_index = 0, block_index = 0;
+	int dim, i;
 
-	for (int i = 0; i < 3; i++) {
-		*out_chunk <<= world->size_pow2;
-		*out_block <<= 4;
+	for (i = 0; i < 3; i++) {
+		chunk_index <<= world->size_pow2;
+		block_index <<= 4;
 
-		*out_chunk |= (v3i_IDX(loc, i) >> 4) & world->chunk_mask;
-		*out_block |= v3i_IDX(loc, i) & 0xF;
+		dim = v3i_IDX(loc, i);
+
+		if (dim < 0 || dim >= world->block_size)
+			return false;
+
+		chunk_index |= (dim >> 4) & world->chunk_mask;
+		block_index |= dim & 0xF;
 	}
+
+	*chunk_result = chunk_index;
+	*block_result = block_index;
 
 	return true;
 }

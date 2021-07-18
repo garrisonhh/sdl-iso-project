@@ -5,10 +5,9 @@
 
 extern const v3d UNIT_I, UNIT_J, UNIT_K;
 
-struct quat_t {
+typedef struct quat {
 	double w, x, y, z;
-};
-typedef struct quat_t quat_t;
+} quat_t;
 
 quat_t quat_from_v3d(v3d);
 

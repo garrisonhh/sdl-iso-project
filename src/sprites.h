@@ -18,7 +18,7 @@ typedef enum sprite_type_e sprite_type_e;
 
 // texture types
 // sprites require an animation_t for state as well, see animation.*
-struct sprite_t {
+typedef struct sprite {
 	sprite_type_e type;
 
 	// each row is an animation
@@ -28,8 +28,7 @@ struct sprite_t {
 	// array of animation lengths (corresponding to row lengths on sheet)
 	int *anim_lengths;
 	int num_anims;
-};
-typedef struct sprite_t sprite_t;
+} sprite_t;
 
 void sprites_load(void);
 void sprites_destroy(void);

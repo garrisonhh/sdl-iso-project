@@ -3,7 +3,7 @@
 
 #include "lib/vector.h"
 
-typedef struct world_t world_t;
+typedef struct world world_t;
 
 extern bool GODMODE;
 

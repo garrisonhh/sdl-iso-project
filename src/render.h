@@ -19,16 +19,15 @@
 
 extern SDL_Renderer *RENDERER;
 
-typedef struct world_t world_t;
+typedef struct world world_t;
 
-struct render_info_t {
+typedef struct render_info {
 	array_t *bg_packets, *fg_packets;
 	bool cam_hit;
 	int z_split;
 
 	SDL_Rect cam_viewport;
-};
-typedef struct render_info_t render_info_t;
+} render_info_t;
 
 void render_init(SDL_Window *);
 void render_game_init(void);

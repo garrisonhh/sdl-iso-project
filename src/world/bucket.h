@@ -5,7 +5,7 @@
 #include "../lib/vector.h"
 #include <ghh/list.h>
 
-typedef struct world_t world_t;
+typedef struct world world_t;
 void world_bucket_add(world_t *world, v3i loc, entity_t *entity);
 
 // render y sorting

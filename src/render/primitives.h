@@ -3,11 +3,10 @@
 
 #include "../lib/vector.h"
 
-struct circle_t {
+typedef struct circle {
 	v2i loc;
 	int radius;
-};
-typedef struct circle_t circle_t;
+} circle_t;
 
 void render_iso_circle(circle_t);
 

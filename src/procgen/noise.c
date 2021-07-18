@@ -20,19 +20,17 @@ const v3d RANDOM_VECTORS3[8] = {
 	(v3d){-1, -1, -1},
 };
 
-struct layer2_t {
+typedef struct layer2 {
 	v2d *vectors;
 	size_t side, size;
-};
-typedef struct layer2_t layer2_t;
+} layer2_t;
 
-struct layer3_t {
+typedef struct layer3 {
 	v3d *vectors;
 	size_t side, size;
-};
-typedef struct layer3_t layer3_t;
+} layer3_t;
 
-struct noise_t {
+struct noise {
 	double *map;
 	size_t side, size;
 }; // typedef'd as noise2_t and noise3_t
@@ -247,7 +245,7 @@ double noise3_at(noise3_t *noise, int x, int y, int z) {
 	return noise->map[(((z * noise->side) + y) * noise->side) + x];
 }
 
-void noise_map_func(struct noise_t *noise, double (*mapped)(double, int, int, int, int)) {
+void noise_map_func(struct noise *noise, double (*mapped)(double, int, int, int, int)) {
 	int x, y, z;
 	size_t i = 0;
 

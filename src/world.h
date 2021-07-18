@@ -15,17 +15,16 @@
 #define CHUNK_SIZE 4096 // 0x000 -> 0xFFF
 #define GRAVITY (-20)
 
-struct chunk_t {
+typedef struct chunk {
 	block_t *blocks[CHUNK_SIZE];
 	list_t *buckets[CHUNK_SIZE];
 
 	// num_blocks tracked in world_set();
 	// num_entities tracked using block bucket funcs
 	size_t num_blocks, num_entities;
-};
-typedef struct chunk_t chunk_t;
+} chunk_t;
 
-struct world_t {
+typedef struct world {
 	array_t *mask_updates; // malloc'd v3i *
 	list_t *ticks; // block_t *
 	list_t *buckets; // list_t *
@@ -39,8 +38,7 @@ struct world_t {
 	// size = chunks along side of cube
 	// block_size = number of blocks along side of cube
 	int size, size_pow2, block_size;
-};
-typedef struct world_t world_t;
+} world_t;
 
 chunk_t *chunk_create();
 void chunk_destroy();

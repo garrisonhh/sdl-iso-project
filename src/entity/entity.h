@@ -10,7 +10,7 @@
 #include "../sprites.h"
 #include "../animation.h"
 
-typedef struct world_t world_t;
+typedef struct world world_t;
 
 enum entity_type_e {
 	ENTITY_BASE,
@@ -18,7 +18,7 @@ enum entity_type_e {
 };
 typedef enum entity_type_e entity_type_e;
 
-struct entity_data_t {
+typedef struct entity_data {
 	entity_type_e type;
 
 	// sprite + animation
@@ -33,16 +33,14 @@ struct entity_data_t {
 	ray_t ray;
 	v3d size, center;
 	bool on_ground; // for gravity application
-};
-typedef struct entity_data_t entity_data_t;
+} entity_data_t;
 
-struct human_t {
+typedef struct human {
 	entity_data_t _data;
 
 	sprite_t *hands[2];
 	animation_t anim_state;
-};
-typedef struct human_t human_t;
+} human_t;
 
 union entity_t {
 	entity_data_t data;

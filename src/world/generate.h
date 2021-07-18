@@ -1,7 +1,7 @@
 #ifndef WORLD_GENERATE_H
 #define WORLD_GENERATE_H
 
-typedef struct world_t world_t;
+typedef struct world world_t;
 
 enum world_gen_type_e {
 	WORLD_NORMAL,

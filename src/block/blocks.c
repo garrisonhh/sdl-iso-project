@@ -149,7 +149,7 @@ void blocks_load_block(json_object *block_obj, size_t index,
 void blocks_load() {
 	int i;
 
-	// construct coll_type hashmap
+	// construct collype hashmap
 	char *coll_type_strings[] = {
 		"none",
 		"default",
@@ -165,7 +165,7 @@ void blocks_load() {
 		hashmap_set(coll_type_map, coll_type_strings[i], coll_type);
 	}
 
-	// construct block_type hashmap
+	// construct blockype hashmap
 	char *block_type_strings[] = {
 		"stateless",
 		"plant",

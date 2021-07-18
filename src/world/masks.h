@@ -3,15 +3,14 @@
 
 #include "../lib/vector.h"
 
-typedef struct world_t world_t;
-typedef struct block_t block_t;
+typedef struct world world_t;
+typedef struct block block_t;
 
-struct voxel_masks_t {
+typedef struct voxel_masks {
 	unsigned expose: 3;
 	unsigned outline: 6;
 	unsigned dark: 3;
-};
-typedef struct voxel_masks_t voxel_masks_t;
+} voxel_masks_t;
 
 void world_update_masks(world_t *world, v3i loc);
 bool world_exposed(block_t *block);

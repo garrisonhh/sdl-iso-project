@@ -4,19 +4,17 @@
 #include <ghh/utils.h>
 #include "poisson.h"
 
-struct poisson2_grid_t {
+typedef struct poisson2_grid {
 	v2i **points;
 	int w, h;
 	int total_w, total_h;
 	double cell_side, r;
-};
-typedef struct poisson2_grid_t poisson2_grid_t;
+} poisson2_grid_t;
 
-struct poisson2_sample_t {
+typedef struct poisson2_sample {
 	v2i *pos;
 	double value;
-};
-typedef struct poisson2_sample_t poisson2_sample_t;
+} poisson2_sample_t;
 
 void poisson2_grid_populate(poisson2_grid_t *grid, double r, int w, int h) {
 	grid->r = r;

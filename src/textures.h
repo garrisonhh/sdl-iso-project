@@ -25,15 +25,14 @@ typedef enum texture_type_e texture_type_e;
  * index x, y multiplied by rect w, h. (rect w, h indicate size of a cell, not
  * size of whole texture);
  */
-struct texture_t {
+typedef struct texture {
 	texture_type_e type;
 	SDL_Rect atlas_rect;
 
 	bool transparent;
 	size_t *tags;
 	size_t num_tags;
-};
-typedef struct texture_t texture_t;
+} texture_t;
 
 union texture_state_t {
 	// order is -X +X -Y +Y for top/bottom, corners are (-X, -Y) (+X -Y)...

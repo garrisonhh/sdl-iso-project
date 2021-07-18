@@ -3,13 +3,12 @@
 
 #include "../lib/vector.h"
 
-typedef struct world_t world_t;
+typedef struct world world_t;
 
-struct gui_data_t {
+typedef struct gui_data {
 	double fps, loop_fps, main_fps;
 	int packets;
-};
-typedef struct gui_data_t gui_data_t;
+} gui_data_t;
 
 extern gui_data_t GUI_DATA;
 
