@@ -6,7 +6,7 @@
 #include <ghh/gtimer.h>
 #include "game.h"
 #include "app.h"
-#include "render.h"
+#include "render/render.h"
 #include "render/gui.h"
 #include "player.h"
 #include "camera.h"

@@ -9,7 +9,7 @@
 #include "../block/blocks.h"
 #include "../block/collision.h"
 #include "../camera.h"
-#include "../render.h"
+#include "../render/render.h"
 
 void entity_destroy(entity_t *entity) {
 	switch (entity->data.type) {

@@ -3,13 +3,13 @@
 
 #include "SDL2/SDL.h"
 #include "world.h"
-#include "render.h"
+#include "render/render.h"
 #include "render/primitives.h"
 
 typedef struct camera {
 	// position
 	v3d pos; // position in world
-	v2i center; // projected position relative to (0, 0, 0) 
+	v2i center; // projected position relative to (0, 0, 0)
 
 	// view
 	int scale;

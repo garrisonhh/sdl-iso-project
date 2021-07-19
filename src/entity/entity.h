@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <ghh/list.h>
 #include <ghh/array.h>
-#include "../render.h"
+#include "../render/render.h"
 #include "../collision.h"
 #include "../sprites.h"
 #include "../animation.h"

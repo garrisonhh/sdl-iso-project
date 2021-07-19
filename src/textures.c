@@ -7,8 +7,8 @@
 #include <string.h>
 #include "textures.h"
 #include "content.h"
-#include "render.h"
 #include "meta.h"
+#include "render/render.h"
 #include "render/textures.h"
 #include "lib/vector.h"
 

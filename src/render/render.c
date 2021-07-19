@@ -7,15 +7,15 @@
 #include <ghh/hashmap.h>
 #include <ghh/list.h>
 #include "render.h"
-#include "render/gui.h"
-#include "world.h"
-#include "world/masks.h"
-#include "world/bucket.h"
-#include "lib/vector.h"
-#include "camera.h"
-#include "player.h"
-#include "textures.h"
-#include "raycast.h"
+#include "gui.h"
+#include "../world.h"
+#include "../world/masks.h"
+#include "../world/bucket.h"
+#include "../lib/vector.h"
+#include "../camera.h"
+#include "../player.h"
+#include "../textures.h"
+#include "../raycast.h"
 
 SDL_Renderer *RENDERER;
 SDL_Texture *FOREGROUND, *BACKGROUND;

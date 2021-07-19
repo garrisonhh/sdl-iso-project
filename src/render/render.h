@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <ghh/array.h>
-#include "render/packet.h"
+#include "packet.h"
 
 #define RENDER_FORMAT SDL_PIXELFORMAT_RGBA8888
 

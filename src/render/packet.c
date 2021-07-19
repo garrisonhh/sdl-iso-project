@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include "packet.h"
-#include "../render/textures.h"
-#include "../render.h"
+#include "render.h"
+#include "textures.h"
 #include "../camera.h"
 #include "../block/block.h"
 #include "../entity/entity.h"

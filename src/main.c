@@ -7,7 +7,7 @@
 #include "app.h"
 #include "game.h"
 #include "lib/vector.h"
-#include "render.h"
+#include "render/render.h"
 #include "render/gui.h"
 #include "render/fonts.h"
 #include "block/blocks.h"

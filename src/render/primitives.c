@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include "primitives.h"
-#include "../render.h"
+#include "render.h"
 #include "../lib/vector.h"
 
 // bresenham's circle algo adapted from https://web.engr.oregonstate.edu/~sllu/bcircle.pdf
@@ -25,7 +25,7 @@ void render_iso_circle(circle_t circle) {
 
 	SDL_RenderDrawLine(RENDERER, circle.loc.x + x, circle.loc.y,
 								 circle.loc.x - x, circle.loc.y);
-	
+
 	while (x >= y) {
 		if (toggle && y > 1) {
 			halfy = y >> 1;

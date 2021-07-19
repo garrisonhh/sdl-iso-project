@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "fonts.h"
-#include "../render.h"
+#include "render.h"
 #include "../meta.h"
 #include "../content.h"
 #include "../textures.h"
@@ -24,7 +24,7 @@ font_t load_font(json_object *font_obj) {
 
 	sheet = load_sdl_texture(content_get_string(font_obj, "path"));
 	char_size = content_get_v2i(font_obj, "char-size");
-	
+
 	SDL_QueryTexture(sheet, NULL, NULL, &sheet_size.x, &sheet_size.y);
 
 	sheet_size = v2i_div(sheet_size, char_size);

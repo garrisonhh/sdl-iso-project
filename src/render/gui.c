@@ -4,9 +4,8 @@
 #include <math.h>
 #include "gui.h"
 #include "fonts.h"
+#include "render.h"
 #include "textures.h"
-#include "../render.h"
-#include "../render/textures.h"
 #include "../camera.h"
 #include "../player.h"
 #include "../sprites.h"

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <ghh/array.h>
 #include "menu.h"
-#include "render.h"
+#include "render/render.h"
 #include "render/fonts.h"
 
 void menu_element_find_rect(menu_element_t *element) {
