@@ -27,7 +27,7 @@ typedef struct v3d v3d;
 void vector_check_structs(void);
 
 // v2i
-#define v2i_IDX(v, idx) ((int *)(&v))[idx]
+#define v2i_IDX(v, idx) ((int *)(&v /* cppcheck-suppress objectIndex */))[idx]
 
 v2i v2i_from_v2d(v2d);
 
@@ -37,7 +37,7 @@ v2i v2i_mul(v2i, v2i);
 v2i v2i_div(v2i, v2i);
 
 // v2d
-#define v2d_IDX(v, idx) ((double *)(&v))[idx]
+#define v2d_IDX(v, idx) ((double *)(&v /* cppcheck-suppress objectIndex */))[idx]
 
 v2d v2d_from_v2i(v2i);
 
@@ -52,7 +52,7 @@ double v2d_magnitude(v2d v);
 double v2d_dot(v2d, v2d);
 
 // v3i
-#define v3i_IDX(v, idx) ((int *)(&v))[idx]
+#define v3i_IDX(v, idx) ((int *)(&v /* cppcheck-suppress objectIndex */))[idx]
 
 v3i v3i_from_v3d(v3d);
 
@@ -73,7 +73,7 @@ void v3i_print(const char *message, v3i v);
 void v3i_sprint(char *string, const char *message, v3i v);
 
 // v3d
-#define v3d_IDX(v, idx) ((double *)(&v))[idx]
+#define v3d_IDX(v, idx) ((double *)(&v /* cppcheck-suppress objectIndex */))[idx]
 
 v3d v3d_from_v3i(v3i);
 

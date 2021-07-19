@@ -2,7 +2,6 @@
 #define BLOCK_COLLISION_H
 
 #include "../collision.h"
-#include "../lib/vector.h"
 #include <ghh/array.h>
 
 enum block_coll_e {

@@ -6,9 +6,8 @@ premake:
 debug:
 	cd build/ && make config=debug
 
-release: 
+release:
 	cd build/ && make config=release
 
 clean:
 	cd build/ && make clean
-

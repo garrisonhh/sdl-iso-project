@@ -2,10 +2,10 @@
 #define PATHING_H
 
 #include <stdbool.h>
-#include "lib/vector.h"
 #include <ghh/hashmap.h>
 #include <ghh/list.h>
 #include <ghh/array.h>
+#include "lib/vector.h"
 
 typedef struct world world_t;
 

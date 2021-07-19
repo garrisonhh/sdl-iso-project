@@ -34,11 +34,10 @@ using bash or powershell, cd to wherever you would like to store the project fol
 
 ```bash
 git clone https://github.com/garrisonhh/sdl-iso-project.git
-cd sdl-iso-project/build
-premake5 gmake2
+cd sdl-iso-project
 
-# if you're using windows with mingw, replace make with mingw32-make
-make config=release
+make premake
+make release
 ```
 
 the executable needs to know where the assets are located, so don't move it from the build directory.
