@@ -1,6 +1,6 @@
 # unnamed project
 
-**THIS PROJECT HAS MOVED TO A [NEW REPO](https://github.com/garrisonhh/clockwork-universe)**
+**THIS PROJECT IS MOVING TO A [NEW REPO](https://github.com/garrisonhh/clockwork-universe)**
 
 *check out the `stable` branch for a tested and working version!*
 
