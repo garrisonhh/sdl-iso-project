@@ -1,7 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "SDL2/SDL.h"
+#include "SDL.h"
 #include "world.h"
 #include "render/render.h"
 #include "render/primitives.h"

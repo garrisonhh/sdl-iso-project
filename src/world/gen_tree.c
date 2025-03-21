@@ -41,7 +41,7 @@ void tree_turtle_branch(world_t *world, tree_turtle_ctx_t *ctx) {
 		v_max = v_min + v3d_IDX(ctx->turtle.ray.dir, i);
 
 		if (v_min > v_max)
-			SWAP(v_min, v_max, swp);
+			SWAP_TMP(v_min, v_max, swp);
 
 		v_min -= ctx->turtle.radius;
 		v_max += ctx->turtle.radius;

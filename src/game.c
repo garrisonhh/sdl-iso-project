@@ -1,7 +1,7 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_thread.h>
-#include <SDL2/SDL_mutex.h>
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_thread.h>
+#include <SDL_mutex.h>
 #include <stdio.h>
 #include <ghh/gtimer.h>
 #include "game.h"

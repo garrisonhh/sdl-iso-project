@@ -1,18 +1,4 @@
-# random file types
-**.swp
-**.gch
-
-# generated build files
-build/obj
-build/*.make
-build/Makefile
-
-# executables
-Iso
-Iso.exe
-iso
-iso.exe
-
-# valgrind
-callgrind**
-vg*
+.gitignore
+compile_commands.json
+.zig-cache/
+/zig-out/

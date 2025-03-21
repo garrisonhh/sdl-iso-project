@@ -1,7 +1,7 @@
 #ifndef SPRITES_H
 #define SPRITES_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "lib/vector.h"
 
 // also modify textures_load when modifying this enum

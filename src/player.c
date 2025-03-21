@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <math.h>
 #include "world.h"
 #include "camera.h"
@@ -9,7 +9,8 @@
 #include "lib/vector.h"
 #include <ghh/utils.h>
 
-const double SIN_PI_6 = sin(M_PI / 6);
+// sin(pi / 6)
+const double SIN_PI_6 = 0.5;
 
 bool GODMODE = false;
 

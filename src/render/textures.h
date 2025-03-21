@@ -1,7 +1,7 @@
 #ifndef RENDER_TEXTURES_H
 #define RENDER_TEXTURES_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "../textures.h"
 #include "../sprites.h"
 #include "../lib/vector.h"

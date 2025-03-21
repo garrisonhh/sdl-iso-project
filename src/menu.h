@@ -1,7 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <ghh/array.h>
 #include "lib/vector.h"
 

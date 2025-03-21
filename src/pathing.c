@@ -200,7 +200,7 @@ path_network_t *path_generate_world_network(world_t *world) {
 						path_node_connect(current, neighbor);
 				}
 
-				SWAP(offset.x, offset.y, temp);
+				SWAP_TMP(offset.x, offset.y, temp);
 				offset.y = -offset.y;
 			}
 
@@ -231,7 +231,7 @@ path_network_t *path_generate_world_network(world_t *world) {
 					}
 				}
 
-				SWAP(offset.x, offset.y, temp);
+				SWAP_TMP(offset.x, offset.y, temp);
 				offset.y = -offset.y;
 			}
 		}

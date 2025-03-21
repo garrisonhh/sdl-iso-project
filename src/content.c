@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <json-c/json.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -68,7 +68,7 @@ v2i content_v2i_from_obj(json_object *obj) {
 	array_t *arr = content_array_from_obj(obj);
 
 	if (array_size(arr) != 2)
-		ERROR0("v2i could not be retrieved from json array with invalid length.\n");
+		ERROR("v2i could not be retrieved from json array with invalid length.\n");
 
 	v2i v = {
 		json_object_get_int(array_get(arr, 0)),
@@ -84,7 +84,7 @@ v3d content_v3d_from_obj(json_object *obj) {
 	array_t *arr = content_array_from_obj(obj);
 
 	if (array_size(arr) != 3)
-		ERROR0("v3d could not be retrieved from json array with invalid length.\n");
+		ERROR("v3d could not be retrieved from json array with invalid length.\n");
 
 	v3d v;
 
@@ -100,7 +100,7 @@ bbox_t content_bbox_from_obj(json_object *obj) {
 	array_t *arr = content_array_from_obj(obj);
 
 	if (array_size(arr) != 2)
-		ERROR0("bbox could not be retrieved from json array with invalid length.\n");
+		ERROR("bbox could not be retrieved from json array with invalid length.\n");
 
 	bbox_t bbox = {
 		content_v3d_from_obj(array_get(arr, 0)),

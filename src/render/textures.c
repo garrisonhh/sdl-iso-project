@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <ghh/utils.h>
 #include "textures.h"
 #include "render.h"

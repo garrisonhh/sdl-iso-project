@@ -1,7 +1,7 @@
 #ifndef TEXTURES_H
 #define TEXTURES_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <json-c/json.h>
 #include <ghh/array.h>
 #include "lib/vector.h"

@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <json-c/json.h>
 #include <stdlib.h>
 #include <string.h>

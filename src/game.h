@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "world.h"
 
 // used by new world menu

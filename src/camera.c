@@ -180,7 +180,7 @@ v3d camera_rotated_v3d(v3d v) {
 
 	switch (camera.rotation) {
 	case 1:
-		SWAP(v.x, v.y, swp);
+		SWAP_TMP(v.x, v.y, swp);
 		v.y = -v.y;
 		break;
 	case 2:
@@ -188,7 +188,7 @@ v3d camera_rotated_v3d(v3d v) {
 		v.y = -v.y;
 		break;
 	case 3:
-		SWAP(v.x, v.y, swp);
+		SWAP_TMP(v.x, v.y, swp);
 		v.x = -v.x;
 		break;
 	}
@@ -201,7 +201,7 @@ v3d camera_reverse_rotated_v3d(v3d v) {
 
 	switch (camera.rotation) {
 	case 3:
-		SWAP(v.x, v.y, swp);
+		SWAP_TMP(v.x, v.y, swp);
 		v.y = -v.y;
 		break;
 	case 2:
@@ -209,7 +209,7 @@ v3d camera_reverse_rotated_v3d(v3d v) {
 		v.y = -v.y;
 		break;
 	case 1:
-		SWAP(v.x, v.y, swp);
+		SWAP_TMP(v.x, v.y, swp);
 		v.x = -v.x;
 		break;
 	}
@@ -222,7 +222,7 @@ v3i camera_rotated_v3i(v3i v) {
 
 	switch (camera.rotation) {
 	case 1:
-		SWAP(v.x, v.y, swp);
+		SWAP_TMP(v.x, v.y, swp);
 		v.y = -v.y;
 		break;
 	case 2:
@@ -230,7 +230,7 @@ v3i camera_rotated_v3i(v3i v) {
 		v.y = -v.y;
 		break;
 	case 3:
-		SWAP(v.x, v.y, swp);
+		SWAP_TMP(v.x, v.y, swp);
 		v.x = -v.x;
 		break;
 	}
@@ -243,7 +243,7 @@ v3i camera_reverse_rotated_v3i(v3i v) {
 
 	switch (camera.rotation) {
 	case 3:
-		SWAP(v.x, v.y, swp);
+		SWAP_TMP(v.x, v.y, swp);
 		v.y = -v.y;
 		break;
 	case 2:
@@ -251,7 +251,7 @@ v3i camera_reverse_rotated_v3i(v3i v) {
 		v.y = -v.y;
 		break;
 	case 1:
-		SWAP(v.x, v.y, swp);
+		SWAP_TMP(v.x, v.y, swp);
 		v.x = -v.x;
 		break;
 	}
