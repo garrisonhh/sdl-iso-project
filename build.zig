@@ -70,4 +70,8 @@ pub fn build(b: *std.Build) void {
 
     const install_exe = b.addInstallArtifact(exe, .{});
     b.getInstallStep().dependOn(&install_exe.step);
+
+    const run_step = b.step("run", "Run the game");
+    const run_exe = b.addRunArtifact(exe);
+    run_step.dependOn(&run_exe.step);
 }

@@ -50,7 +50,7 @@ void render_iso_circle(circle_t circle) {
 		r_err += dy;
 		dy += 2;
 
-		if ((r_err << 1) + dx > 0) {
+		if (r_err * 2 + dx > 0) {
 			x--;
 			r_err += dx;
 			dx += 2;
